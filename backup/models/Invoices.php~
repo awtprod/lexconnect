@@ -1,0 +1,72 @@
+<?php
+
+use Illuminate\Auth\UserTrait;
+use Illuminate\Auth\UserInterface;
+use Illuminate\Auth\Reminders\RemindableTrait;
+use Illuminate\Auth\Reminders\RemindableInterface;
+
+class Inovices extends Eloquent implements UserInterface, RemindableInterface {
+
+	use UserTrait, RemindableTrait;
+	public $timestamps = true;
+	protected $fillable = ['order_id', 'servee_id','job_id','client_amt','vendor_amt','vendor','client'];
+	
+	public static $rules = [
+		'date' => 'required|date',
+		'time' => 'required',
+		'served_upon' => 'required',
+		'description' => 'required'
+		];
+
+	
+	public $errors;
+
+	
+	/**
+	 * The database table used by the model.
+	 *
+	 * @var string
+	 */
+	protected $table = 'invoices';
+
+	/**
+	 * The attributes excluded from the model's JSON form.
+	 *
+	 * @var array
+	 */
+	protected $hidden = array('password', 'remember_token');
+
+	public function isValid()
+	{
+		
+		$validation = Validator::make($this->attributes, static::$rules);
+		
+		if ($validation->passes()) return true;
+		
+		$this->errors = $validation->messages();
+		
+		return false;
+	}
+	
+	public function CreateInvoice($id){
+		
+	//Find Job
+	$job = DB::table('jobs')->where('id', $id)->first();
+	
+	//Determine if filing job or service job
+	$process = DB::table('tasks')->where('job_id', $id)->orderBy('process', 'asc')->pluck('process');
+	
+	if($process == 0){
+		
+	}
+	else{
+	
+		
+	}
+		
+
+	}
+
+
+
+}

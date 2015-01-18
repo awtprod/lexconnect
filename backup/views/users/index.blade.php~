@@ -1,0 +1,14 @@
+@extends('layouts.default')
+
+@section('content')
+<h1>All Users</h1>
+
+@if ($users->count())
+
+@foreach ($users as $user)
+<li>{{ link_to("/users/{$user->username}", $user->name) }} </li>
+@endforeach
+@else
+<h2>No Users to display!</h2>
+@endif
+@stop

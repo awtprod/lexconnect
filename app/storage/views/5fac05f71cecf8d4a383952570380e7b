@@ -1,0 +1,100 @@
+<?php $__env->startSection('content'); ?>
+<h1>Edit Profile</h1>
+
+<?php echo Form::open(['route' => 'users.store_edit']); ?>
+
+	<div>
+	<?php echo Form::label('name', 'Name: '); ?>
+
+	<?php echo Form::text('name', $user->name); ?>
+
+	<?php echo $errors->first('name'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('email', 'Email: '); ?>
+
+	<?php echo Form::email('email', $user->email); ?>
+
+	<?php echo $errors->first('email'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('email_confirmation', 'Confirm Email: '); ?>
+
+	<?php echo Form::email('email_confirmation', $user->email); ?>
+
+	<?php echo $errors->first('email_confirmation'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('password', 'Password: '); ?>
+
+	<?php echo Form::password('password'); ?>
+
+	<?php echo $errors->first('password'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('password_confirmation', 'Confirm Password: '); ?>
+
+	<?php echo Form::password('password_confirmation'); ?>
+
+	<?php echo $errors->first('password_confirmation'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('role', 'User Level: '); ?>
+
+	<?php echo Form::select('role', array('Employee' => 'Employee', 'Supervisor' => 'Supervisor'), $user->role);; ?>
+
+	<?php echo $errors->first('role'); ?>
+
+	</div>
+	<?php if(Auth::user()->user_role=='Admin'): ?>
+	<div>
+	<?php echo Form::label('company', 'Company: '); ?>
+
+	<?php echo Form::select('company', $company, $user->company); ?>
+
+	<?php echo $errors->first('company'); ?>
+
+	</div>
+	<?php else: ?> 
+	<div>
+	<?php echo Form::label('company', 'Company: '); ?>
+
+	<?php echo $user->company; ?>
+
+	<?php echo Form::hidden('company', $user->company); ?>
+
+	</div>
+	<?php endif; ?>
+	<?php if(Auth::user()->user_role=='Admin'): ?>
+	<div>
+	<?php echo Form::label('user_role', 'Site User Level: '); ?>
+
+	<?php echo Form::select('user_role', array('Vendor' => 'Vendor', 'Client' => 'Client', 'Admin' => 'Admin'), $user->user_role);; ?>
+
+	<?php echo $errors->first('user_role'); ?>
+
+	</div>
+	<?php else: ?>
+	<div>
+	<?php echo Form::hidden('user_role', $user->user_role);; ?>
+
+	</div>
+	<?php endif; ?>
+	<div>
+	<?php echo Form::hidden('company_id', $user->company_id); ?>
+
+	</div>
+	<?php echo Form::hidden('id', $user->id); ?>
+
+	<div><?php echo Form::submit('Save'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

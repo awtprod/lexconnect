@@ -1,0 +1,10 @@
+<?php $__env->startSection('content'); ?>
+<p>Company: <?php echo $company->name; ?></p>
+<p>Address: <?php echo $company->address; ?>, <?php echo $company->city; ?>, <?php echo $company->state; ?> <?php echo $company->zip_code; ?></p>
+<p>Phone: <?php echo $company->phone; ?></p>
+<p>Email: <?php echo $company->email; ?></p>
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

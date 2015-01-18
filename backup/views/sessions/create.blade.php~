@@ -1,0 +1,35 @@
+@extends('layouts.default')
+
+@section('content')
+<h1>Add New User</h1>
+
+{{ Form::open(['route' => 'users.store']) }}
+	<div>
+	{{ Form::label('name', 'Name: ') }}
+	{{ Form::text('name') }}
+	{{ $errors->first('name') }}
+	</div>
+	<div>
+	{{ Form::label('email', 'Email: ') }}
+	{{ Form::email('email') }}
+	{{ $errors->first('email') }}
+	</div>
+	<div>
+	{{ Form::label('email_confirmation', 'Confirm Email: ') }}
+	{{ Form::email('email_confirmation') }}
+	{{ $errors->first('email_confirmation') }}
+	</div>
+	<div>
+	{{ Form::label('role', 'User Level: ') }}
+	{{ Form::select('role', array('Employee' => 'Employee', 'Supervisor' => 'Supervisor', 'Admin' => 'Admin'), 'Employee'); }}
+	{{ $errors->first('role') }}
+	</div>
+	<div>
+	{{ Form::label('company', 'Company: ') }}
+	{{ Form::select('company', $company, Input::old('company')) }}
+	{{ $errors->first('company') }}
+	</div>
+	<div>{{ Form::submit('Add User') }}</div>
+{{ Form::close() }}
+<a href="{{ URL::previous() }}">Go Back</a>
+@stop

@@ -1,0 +1,21 @@
+<?php $__env->startSection('content'); ?>
+<h1>Create New Order</h1>
+
+<?php echo Form::open(['route' => 'orders.store']); ?>
+
+Defendant:<?php echo $input['defendant']; ?><?php echo Form::hidden('defendant', $input['defendant']); ?><p>
+
+<?php echo $result[0]['delivery_line_1']; ?><?php echo Form::hidden('street', $result[0]['delivery_line_1']); ?>&nbsp;
+<?php echo $result[0]['components']['city_name']; ?><?php echo Form::hidden('city', $result[0]['components']['city_name']); ?>,&nbsp;
+<?php echo $result[0]['components']['state_abbreviation']; ?><?php echo Form::hidden('state', $result[0]['components']['state_abbreviation']); ?>&nbsp;
+<?php echo $result[0]['components']['zipcode']; ?><?php echo Form::hidden('zipcode', $result[0]['components']['zipcode']); ?><p>
+<b>Property Vacant:&nbsp;<?php echo $result[0]['analysis']['dpv_vacant']; ?></b>
+<?php echo Form::hidden('orders_id', $orders_id); ?>
+
+	<div><?php echo Form::submit('Verify Order'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

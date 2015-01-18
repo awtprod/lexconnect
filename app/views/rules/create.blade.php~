@@ -1,0 +1,50 @@
+@extends('layouts.default')
+
+@section('content')
+<h1>Edit Rules</h1>
+
+{{ Form::open(['route' => 'rules.store']) }}
+<table>
+  <tr>
+    <th>State</th>
+    <th>Affidavit Required</th>		
+    <th>Sub-Serve Mailing</th>
+  </tr>
+
+@foreach ($rules as $rule)
+<tr>
+	<div>
+	<td>{{ Form::hidden('state['.$rule->id.']', $rule->name) }}{{ $rule->name }}</td>
+@if($rule->affidavit == 'yes')
+	<div><td>
+	{{ Form::label('affidavit') }}
+	{{ Form::checkbox('affidavit['.$rule->id.']', 'yes', true) }} 
+	</div>
+	</td>
+@else
+	<div><td>
+	{{ Form::label('affidavit') }}
+	{{ Form::checkbox('affidavit['.$rule->id.']', 'yes') }} 
+	</div>
+	</td>
+@endif
+@if($rule->mailing == 'yes')
+	<div><td>
+	{{ Form::label('mailing') }}
+	{{ Form::checkbox('mailing['.$rule->id.']', 'yes', true) }} 
+	</div>
+	</td>
+@else
+	<div><td>
+	{{ Form::label('mailing') }}
+	{{ Form::checkbox('mailing['.$rule->id.']', 'yes') }} 
+	</div>
+	</td>
+@endif
+@endforeach
+</tr>
+</table>
+	<div>{{ Form::submit('Save Rules') }}{{ Form::reset('Reset') }}</div>
+{{ Form::close() }}
+<a href="{{ URL::previous() }}">Go Back</a>
+@stop

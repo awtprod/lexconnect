@@ -1,0 +1,81 @@
+<?php $__env->startSection('content'); ?>
+<?php if($orders_id==0): ?>
+<h1> Create New Order </h1>
+<?php else: ?>
+<h1>Order # <?php echo $orders_id; ?></h1>
+<?php endif; ?>
+<a href="<?php echo URL::route('orders.create'); ?>">Create New Order</a>
+<?php if(!$jobs==0): ?>
+<?php foreach($jobs as $job): ?>
+<div>
+Defendant: <?php echo $job->defendant; ?><p>
+<?php echo $job->street; ?>, <?php echo $job->city; ?>, <?php echo $job->state; ?> <?php echo $job->zipcode; ?><p>
+<?php endforeach; ?>
+<?php endif; ?>
+</script>
+
+<?php echo Form::open(['route' => 'orders.verify']); ?>
+
+<?php echo dd($input); ?>
+
+	<div>
+	<?php echo Form::label('Defendant', 'Defendant: '); ?>
+
+	<?php echo Form::text('defendant', $input["_old_input"]["defendant"]); ?>
+
+	<?php echo $errors->first('defendant'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('street', 'Street: '); ?>
+
+	<?php echo Form::text('street', $input["_old_input"]["street"]); ?>
+
+	<?php echo $errors->first('street'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('street2', 'Apt/Suite/Unit: '); ?>
+
+	<?php echo Form::text('street2', $input["_old_input"]["street2"]); ?>
+
+	<?php echo $errors->first('street2'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('city', 'City: '); ?>
+
+	<?php echo Form::text('city', $input["_old_input"]["city"]); ?>
+
+	<?php echo $errors->first('city'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('state', 'State: '); ?>
+
+	<?php echo Form::select('state', $states, $input["_old_input"]["state"]);; ?>
+
+	<?php echo $errors->first('state'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('zipcode', 'Zip Code: '); ?>
+
+	<?php echo Form::text('zipcode', $input["_old_input"]["zipcode"]); ?>
+
+	<?php echo $errors->first('zipcode'); ?>
+
+	</div>
+	<?php if(!$orders_id==0): ?>
+	<?php echo Form::hidden('orders_id', $orders_id); ?>
+
+	<?php endif; ?>
+	<div><?php echo Form::submit('Update Defendant'); ?></div>
+<?php echo Form::close(); ?>
+
+<?php echo link_to("/orders/clear/", 'Clear Form'); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

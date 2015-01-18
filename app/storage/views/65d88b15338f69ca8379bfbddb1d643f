@@ -1,0 +1,7 @@
+<?php $__env->startSection('content'); ?>
+<?php foreach($companies as $company): ?>
+<p>Company: <?php echo $company->name; ?></p>
+<?php endforeach; ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

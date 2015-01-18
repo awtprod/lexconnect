@@ -1,0 +1,48 @@
+<?php $__env->startSection('content'); ?>
+<h1>Create Declaration of Mailing</h1><p>
+<?php if(!empty($job->declaration)): ?>
+<h2>Upload Executed Declaration of Mailing</h2><p>
+<?php echo Form::open(array('route'=>'jobs.declaration','files'=>true)); ?>
+
+  	<?php echo $errors->first('declaration'); ?><p>
+  <input type="file" name="declaration" id="">
+  <br/>
+  <?php echo Form::hidden('job_id', $job->id); ?>
+
+  <!-- submit buttons -->
+  <?php echo Form::submit('Upload Executed Declaration'); ?>
+
+ <?php endif; ?>
+	<div>
+	<h3> Mail Documents To:</h3><p>
+	<?php echo $job->street; ?><p>
+	<?php echo $job->city; ?>,<?php echo $job->state; ?><?php echo $job->zipcode; ?><p>
+	</div>
+<?php echo Form::open(['route' => 'tasks.declaration']); ?>
+
+
+	<div>
+	<?php echo Form::label('mail_date', 'Date Mailed: '); ?>
+
+	<?php echo Form::input('date', 'mail_date'); ?>
+
+	<?php echo $errors->first('date'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('declarant', 'Declarant: '); ?>
+
+	<?php echo Form::select('declarant', $servers); ?>
+
+	</div>
+	<?php echo Form::hidden('job', $job_id); ?>
+
+	<?php echo Form::hidden('tasks_id', $tasks_id); ?>
+
+	<div><?php echo Form::submit('Create Declaration'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

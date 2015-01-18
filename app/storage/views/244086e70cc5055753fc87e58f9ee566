@@ -1,0 +1,50 @@
+<?php $__env->startSection('content'); ?>
+<h1>Add Service Attempt</h1>
+
+<?php echo Form::open(['route' => 'attempts.store']); ?>
+
+
+	<div>
+	<?php echo Form::label('date', 'Date: '); ?>
+
+	<?php echo Form::input('date', 'date'); ?>
+
+	<?php echo $errors->first('date'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('time', 'Time: '); ?>
+
+	<?php echo Form::input('time', 'time'); ?>
+
+	<?php echo $errors->first('time'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('description', 'Description: '); ?>
+
+	<?php echo Form::textarea('description'); ?>
+
+	<?php echo $errors->first('description'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('non-serve', 'Non-Serve: '); ?>
+
+	<?php echo Form::checkbox('non-serve', 'yes'); ?> Note: This will end service for this defendant and generate a Proof of Service.
+	<?php echo $errors->first('non-serve'); ?>
+
+	</div>
+	<?php echo Form::hidden('job', $job_id); ?>
+
+	<?php echo Form::hidden('tasks_id', $tasks_id); ?>
+
+	<?php echo Form::hidden('_token', $token); ?>
+
+	<div><?php echo Form::submit('Add Attempt'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

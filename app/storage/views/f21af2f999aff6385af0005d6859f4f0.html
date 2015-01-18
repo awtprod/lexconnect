@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+table {
+    width:50%;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+table#t01 tr:nth-child(even) {
+    background-color: #eee;
+}
+table#t01 tr:nth-child(odd) {
+   background-color:#fff;
+}
+table#t01 th	{
+    background-color: black;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+
+<?php if(!empty($input)): ?>
+
+<h3><?php echo link_to("/orders/{$input["orders_id"]}", "Order # {$input["orders_id"]}"); ?></h3><p>
+
+<h1>Add New Service Address</h1>
+
+<?php echo Form::open(['route' => 'jobs.verify']); ?>
+
+		<div>
+	Defendant:&nbsp; <?php echo $input["defendant"]; ?>
+
+	<?php echo Form::hidden('defendant', $input["defendant"]); ?>
+
+
+	</div>
+			<div>
+	<?php echo Form::label('street', 'Street: '); ?>
+
+	<?php echo Form::text('street', $input["street"]); ?>
+
+	<?php echo $errors->first('street'); ?>
+
+	</div>
+	
+<?php if(!empty($input["street2"])): ?>
+			<div>
+	<?php echo Form::label('street2', 'Apt/Unit/Suite: '); ?>
+
+	<?php echo Form::text('street2', $input["street2"]); ?>
+
+	<?php echo $errors->first('street2'); ?>
+
+	</div>
+<?php endif; ?>
+			<div>
+	<?php echo Form::label('city', 'City: '); ?>
+
+	<?php echo Form::text('city', $input["city"]); ?>
+
+	<?php echo $errors->first('city'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('state', 'State: '); ?>
+
+	<?php echo Form::select('state', $states, $input["state"]); ?>
+
+	<?php echo $errors->first('state'); ?>
+
+	</div>
+				<div>
+	<?php echo Form::label('zipcode', 'Zip Code: '); ?>
+
+	<?php echo Form::text('zipcode', $input["zipcode"]); ?>
+
+	<?php echo $errors->first('zipcode'); ?>
+
+	</div>
+<?php echo Form::hidden('servee_id', $input["servee_id"]); ?>
+
+<?php echo Form::hidden('orders_id', $input["orders_id"]); ?>
+
+
+
+	<div><?php echo Form::submit('Add New Address'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<?php else: ?>
+<h3><?php echo link_to("/orders/{$servee->order_id}", "Order # {$servee->order_id}"); ?></h3><p>
+
+<h1>Add New Serve Address</h1>
+
+<?php echo Form::open(['route' => 'jobs.verify']); ?>
+
+		<div>
+	Defendant: <?php echo $servee->defendant; ?>
+
+	<?php echo Form::hidden('defendant', $servee->defendant); ?>
+
+	</div>
+			<div>
+	<?php echo Form::label('street', 'Street: '); ?>
+
+	<?php echo Form::text('street'); ?>
+
+	<?php echo $errors->first('street'); ?>
+
+	</div>
+			<div>
+	<?php echo Form::label('street2', 'Apt/Unit/Suite: '); ?>
+
+	<?php echo Form::text('street2'); ?>
+
+	<?php echo $errors->first('street2'); ?>
+
+	</div>
+			<div>
+	<?php echo Form::label('city', 'City: '); ?>
+
+	<?php echo Form::text('city'); ?>
+
+	<?php echo $errors->first('city'); ?>
+
+	</div>
+	<div>
+	<?php echo Form::label('state', 'State: '); ?>
+
+	<?php echo Form::select('state', $states, null, ['id' => 'state']); ?>
+
+	<?php echo $errors->first('state'); ?>
+
+	</div>
+				<div>
+	<?php echo Form::label('zipcode', 'Zip Code: '); ?>
+
+	<?php echo Form::text('zipcode'); ?>
+
+	<?php echo $errors->first('zipcode'); ?>
+
+	</div>
+<?php echo Form::hidden('servee_id', $servee->id); ?>
+
+<?php echo Form::hidden('orders_id', $servee->order_id); ?>
+
+
+	<div><?php echo Form::submit('Add New Address'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<?php endif; ?>
+<?php if(!empty($jobs)): ?>
+<h2> Previous Attempted Addresses: </h2><p>
+<?php foreach($jobs as $job): ?>
+<table>
+<td><?php echo $job->street; ?><p> <?php echo $job->city; ?>, <?php echo $job->state; ?> <?php echo $job->zipcode; ?></td>
+</tr>
+</table>
+<?php endforeach; ?>
+<?php endif; ?>
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+</body>
+</html>

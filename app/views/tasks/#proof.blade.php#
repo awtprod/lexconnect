@@ -1,0 +1,17 @@
+@extends('layouts.default')
+
+@section('content')
+<h1>Declaration of Attempted Service</h1>
+
+<div>
+
+I, INSERT NAME, being of suitable age and a resident of my sick mind, attempted to serve <b>{{ $proof->defendant }}</b> at <b> {{ $proof->street }}, {{ $proof->city }}, {{ $proof->state }}&nbsp;{{ $proof->zipcode }}</b> on the following dates and times:<p>
+@foreach ($a as $attempts)
+{{ $attempts["date"] }}&nbsp;{{ $attempts["time"] }}: {{ $attempts["description"] }}<p>
+@endforeach
+</div>
+-------------------------------------------<p>
+INSERT NAME<p>
+Process Server<p>
+
+@stop

@@ -78,7 +78,7 @@ return array(
 			'driver'   => 'sqlsrv',
 			'host'     => 'localhost',
 			'database' => 'database',
-			'username' => 'root',
+			'username' => 'forge',
 			'password' => '',
 			'prefix'   => '',
 		),

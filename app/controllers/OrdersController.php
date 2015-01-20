@@ -157,6 +157,8 @@ class OrdersController extends \BaseController {
 
 		//grab latest job
 		$job = DB::table('jobs')->where('servee_id', $viewservee->id)->orderBy('completed', 'asc')->first();
+		
+		if(!empty($job)){
 					
 		if($job->completed == NULL){
 		//Pass Job Id for holds/cancels
@@ -195,6 +197,7 @@ class OrdersController extends \BaseController {
 		//Due date of the current task
 		elseif($task->process < 7){
 		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
+		}
 		}
 		}
 		}

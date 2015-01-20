@@ -179,18 +179,21 @@ class OrdersController extends \BaseController {
 		
 
 		//If Waiting for Documents to be filed/uploaded
-		if($task->status == 0 AND $job->status == 0){
+		elseif($task->status == 0 AND $job->status == 0){
 			$progress[$viewservee->id]['description'] = "Waiting for Documents";
+		$progress[$viewservee->id]['status'] = $this->reprojections->Status($task->id);
+		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
 		}
 
-		if($task->process < 7 AND $task->status !== 0 AND $job->status == 0){
+		elseif($task->process < 7 AND $task->status !== 0 AND $job->status == 0){
 		//Current status of the current task			
 		$progress[$viewservee->id]['description'] = $this->tasks->TaskStatus($task->process);
-		$progress[$viewservee->id]['status'] = $this->reprojections->Status($task->id);		
+		$progress[$viewservee->id]['status'] = $this->reprojections->Status($task->id);
+		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
 		}
 	
 		//Due date of the current task
-		if($task->process < 7){
+		elseif($task->process < 7){
 		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
 		}
 		}
@@ -225,7 +228,7 @@ class OrdersController extends \BaseController {
 			elseif($job->status == 2){
 
 			$completed[$viewservee->id]['defendant'] = $job->defendant;
-			$completed[$viewservee->id]['description'] = "Job Cancelled";	
+			$completed[$viewservee->id]['description'] = "Job Canceled";	
 			$completed[$viewservee->id]['served_upon'] = "N/A";
 			$completed[$viewservee->id]['date'] = date("m/d/y", strtotime($job->completed));	
 			$completed[$viewservee->id]['time'] = date("h:i A", strtotime($job->completed));
@@ -358,20 +361,23 @@ class OrdersController extends \BaseController {
 		$orders->save();
 
 		//Find latest filing task
-		//$filing = DB::table('tasks')->where('order_id', $id)
-		//			    ->where('process', '<', 6)
-		//			    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
+		$filing = DB::table('tasks')->where('order_id', $id)
+					    ->where('process', '<', 6)
+					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
 		//Removed Document Hold, if there are no filing tasks assoc. w/ order
 		if(empty($filing)){
 			$this->tasks->WaitingDocs($id);
 		//Update Due Dates of Tasks
 		$jobs = DB::table('jobs')->where('order_id', $id)
-					->where('completed', NULL)->first();
+					->where('completed', NULL)->get();
 		foreach($jobs as $job){
 		$task = DB::table('tasks')->where('job_id', $job)
-					  ->where('completion', NULL)->orderBy('completion', 'asc')->first();
+					  ->where('completion', NULL)
+					  ->where('process', '>' ,4)->orderBy('completion', 'asc')->first();
+		if(!empty($task)){
 		$this->tasks->TaskForecast($task->id);
+		}
 		}
 		}
 		

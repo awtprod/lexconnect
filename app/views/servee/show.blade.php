@@ -32,7 +32,7 @@ table#t01 th	{
 
 {{ link_to('/orders/{$servee->order_id}', "Order # {$servee->order_id}") }}
 
-<h2>Defendant:&nbsp;{{ $servee->defendant }}</h2><p>
+<h2>Defendant:{{ $servee->defendant }}</h2><p>
 @if (!empty($serveeinvoices))
 <div>
 <h2> Invoices: </h2><p>

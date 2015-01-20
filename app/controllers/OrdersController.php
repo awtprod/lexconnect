@@ -228,6 +228,7 @@ class OrdersController extends \BaseController {
 				}
 			}
 			//Cancelled Job
+			if(!empty($job)){
 			elseif($job->status == 2){
 
 			$completed[$viewservee->id]['defendant'] = $job->defendant;
@@ -260,6 +261,7 @@ class OrdersController extends \BaseController {
 				
 		}
 		}
+		}
 		//Find latest filing task
 		$filing = DB::table('tasks')->where('order_id', $id)
 					    ->where('process', '<', 5)
@@ -288,6 +290,7 @@ class OrdersController extends \BaseController {
 		//Determine if job or order is on hold
 		$job = DB::table('jobs')->where('id', $filing->job_id)->first();
 		
+		if(!empty($job)){
 		if($job->status == 1 OR $showorders->status == 1){
 		
 		
@@ -303,6 +306,7 @@ class OrdersController extends \BaseController {
 		$filingtask['status'] = '2';
 		}
 			
+		}
 		}
 		else{
 		//Prepared filing status for View			   

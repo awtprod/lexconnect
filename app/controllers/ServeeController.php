@@ -128,8 +128,8 @@ class ServeeController extends \BaseController {
 			
 			$serves[$complete->id]['description'] = "Non-Serve";
 			$serves[$complete->id]['served_upon'] = "N/A";
-			$serves[$complete->id]['date'] = date("m/d/y", strtotime($complete->date));	
-			$serves[$complete->id]['time'] = date("h:i A", strtotime($complete->time));
+			$serves[$complete->id]['date'] = date("m/d/y", strtotime($non->date));	
+			$serves[$complete->id]['time'] = date("h:i A", strtotime($non->time));
 			$serves[$complete->id]['street'] = $complete->street;
 			$serves[$complete->id]['city'] = $complete->city;	
 			$serves[$complete->id]['state'] = $complete->state;	

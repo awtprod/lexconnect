@@ -34,6 +34,14 @@ Route::get('tasks/filing', [
 	'as' => 'tasks.filing',
 	'uses' => 'TasksController@filing'
 	]);
+Route::get('/', [
+	'as' => 'home.redirect',
+	'uses' => 'HomeController@redirect'
+	]);
+Route::get('home/', [
+	'as' => 'home.index',
+	'uses' => 'HomeController@index'
+	]);
 
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() { 
@@ -183,11 +191,4 @@ Route::get('orders/files/{file}', [
 	'as' => 'orders.files',
 	'uses' => 'OrdersController@files'
 	]);
-Route::get('/', [
-	'as' => 'home.redirect',
-	'uses' => 'HomeController@redirect'
-	]);
-Route::get('home/', [
-	'as' => 'home.index',
-	'uses' => 'HomeController@index'
-	]);
+

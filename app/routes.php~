@@ -129,6 +129,7 @@ Route::resource('jobs', 'JobsController');
 Route::resource('attempts', 'AttemptsController');
 Route::resource('tasks', 'TasksController');
 Route::resource('serve', 'ServeController');
+Route::resource('servee', 'ServeeController');
 Route::resource('rules', 'RulesController');
 Route::resource('reprojections', 'ReprojectionsController');
 

@@ -34,10 +34,7 @@ Route::get('tasks/filing', [
 	'as' => 'tasks.filing',
 	'uses' => 'TasksController@filing'
 	]);
-Route::get('/', [
-	'as' => 'home.redirect',
-	'uses' => 'HomeController@redirect'
-	]);
+
 Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
@@ -190,5 +187,9 @@ Route::post('users/push_resend_activation', [
 Route::get('orders/files/{file}', [
 	'as' => 'orders.files',
 	'uses' => 'OrdersController@files'
+	]);
+Route::get('/', [
+	'as' => 'home.redirect',
+	'uses' => 'HomeController@redirect'
 	]);
 

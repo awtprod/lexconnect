@@ -100,7 +100,7 @@ class SearchController extends \BaseController {
 		}		
 		if((count($results) == 1)){
 			
-		Return Redirect::route('jobs.show')->with('id', $data2->id);
+		Return Redirect::route('jobs.show')->with('job_id', $data2->id);
 			
 		}
 		

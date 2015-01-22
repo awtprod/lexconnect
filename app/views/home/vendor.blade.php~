@@ -28,7 +28,6 @@ table#t01 th	{
 </head>
 
 <body>
-<td>{{ Form::open(['route' => 'search.index']) }}{{ Form::text('search') }}{{ Form::submit('Search') }}{{ Form::close() }}</td>
 <h1>View Active Jobs</h1>
 
 

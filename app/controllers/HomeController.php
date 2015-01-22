@@ -42,6 +42,34 @@ class HomeController extends BaseController {
 	
 	//If User is Admin
 	if(Auth::user()->user_role=='Admin'){
+	//Find current tasks
+	
+	$openjobs = DB::table('jobs')
+				->join('tasks', function($opentasks)
+			{
+				$opentasks->on('jobs.id', '=', 'tasks.job_id')
+				->where('jobs.status', '=', 0)
+				->whereNULL('jobs.completed')
+				->whereNULL('tasks.completion')
+				->where('tasks.status', '=', 1);
+			})
+			->select('tasks.job_id', 'jobs.defendant', 'tasks.id', 'tasks.process', 'tasks.deadline')
+			->orderBy('tasks.deadline', 'asc')
+			->get();
+
+			
+	//Build tasks list
+	$tasklist = array();
+	
+	foreach($openjobs as $job){
+		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->process);
+		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);
+		$tasklist[$job->job_id]['deadline'] = date("m/d/y", strtotime($job->deadline));
+		$tasklist[$job->job_id]['id'] = $job->job_id;
+		$tasklist[$job->job_id]['defendant'] = $job->defendant;
+	}
+	
+	Return View::make('home.vendor')->with(['job' => $tasklist]);		
 		
 	}
 	

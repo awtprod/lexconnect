@@ -32,18 +32,47 @@ class SearchController extends \BaseController {
 		
 		foreach($results['orders'] as $results_orders){
 		
-		$search_results[$results_orders->id] = DB::table('orders')->where('id', $results_orders->id)->first();
+		$data = DB::table('orders')->where('id', $results_orders->id)->first();
+		
+		//find order data
+		
+		$search_results[$results_orders->id]['order_id'] = $data->id;
+		$search_results[$results_orders->id]['ref'] = $data->reference;
+		$search_results[$results_orders->id]['plaintiff'] = $data->plaintiff;
+		$search_results[$results_orders->id]['defendant'] = $data->defendant;
+		$search_results[$results_orders->id]['case'] = $data->case;
+		$search_results[$results_orders->id]['state'] = $data->state;
+		$search_results[$results_orders->id]['court'] = $data->court;
 			
 		}
 		foreach($results['jobs'] as $results_jobs){
 
-		$search_results[$results_jobs->order_id] = DB::table('orders')->where('id', $results_jobs->order_id)->first();
+		$data = DB::table('orders')->where('id', $results_jobs->order_id)->first();
+		$data2 = DB::table('jobs')->where('id', $results_jobs->id)->first();
+		
+		//find order data
+
+		$search_results[$results_jobs->order_id]['order_id'] = $data->id;
+		$search_results[$results_jobs->order_id]['ref'] = $data->reference;
+		$search_results[$results_jobs->order_id]['plaintiff'] = $data->plaintiff;
+		$search_results[$results_jobs->order_id]['defendant'] = $data2->defendant;
+		$search_results[$results_jobs->order_id]['case'] = $data->case;
+		$search_results[$results_jobs->order_id]['state'] = $data->state;
+		$search_results[$results_jobs->order_id]['court'] = $data->court;
 			
 		}
-		dd($search_results);	
+		
+		if((count($results['jobs']) == 1 AND count($results['orders']) == 0) OR (count($results['jobs']) == 0 AND count($results['orders']) == 1)){
+			
+		Return Redirect::route('orders.show')->with('orders_id', $data->id);
+			
 		}
 		
-		View::make('search.index')->with(['results' => $results]);
+
+	
+		Return View::make('search.index')->with(['search_results' => $search_results])->with(['results' => $results]);		
+		}
+
 	}
 
 

@@ -5,11 +5,11 @@ use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableTrait;
 use Illuminate\Auth\Reminders\RemindableInterface;
 
-class User extends Eloquent implements UserInterface, RemindableInterface {
+class Search extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['email','email_confirmation','role','name','password','activation_code','activation','password_confirmation','company', 'user_role', 'company_id'];
+	protected $fillable = ['email'];
 	
 	public static $rules = [
 		'password' => 'confirmed|min:8',
@@ -17,16 +17,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	
 		
 	];
-	
-		public static $rulesall = [
-		'email' => 'required|confirmed|email|unique:users',
-		'name' => 'required',
-		'password' => 'confirmed|min:8'
-	];
-	
-	public static $passrules = [
-		'password' => 'required|confirmed|min:8'
-		];
+
 	
 	public $errors;
 
@@ -36,7 +27,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	 *
 	 * @var string
 	 */
-	protected $table = 'users';
+	protected $table = 'search';
 
 	/**
 	 * The attributes excluded from the model's JSON form.
@@ -56,28 +47,28 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 		
 		return false;
 	}
-		public function isValidPassword()
+	
+	public function ClientSearch($search)
 	{
-		
-		$passvalidation = Validator::make($this->attributes, static::$passrules);
-		
-		if ($passvalidation->passes()) return true;
-		
-		$this->errors = $passvalidation->messages();
-		
-		return false;
+		$results = array();
+
+		$results['jobs'] = DB::table('jobs')->where(function ($query) use($search){
+				$query->where('id', 'LIKE', "%$search%")
+				      ->orWhere('defendant', 'LIKE', "%$search%");
+				})->where(function ($query) {
+					$query->where('client', '=', Auth::user()->company);
+				})->get();
+				
+		$results['orders'] = DB::table('orders')->where(function ($query) use($search){
+				$query->where('id', 'LIKE', "%$search%")
+				      ->orWhere('plaintiff', 'LIKE', "%$search%")
+				      ->orWhere('reference', 'LIKE', "%$search%");
+				})->where(function ($query) {
+					$query->where('company', '=', Auth::user()->company);
+				})->get();
+		return $results;
 	}
-		public function isValidAll()
-	{
-		
-		$allvalidation = Validator::make($this->attributes, static::$rulesall);
-		
-		if ($allvalidation->passes()) return true;
-		
-		$this->errors = $allvalidation->messages();
-		
-		return false;
-	}
+
 
 
 }

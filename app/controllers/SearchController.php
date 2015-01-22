@@ -98,7 +98,7 @@ class SearchController extends \BaseController {
 		$search_results[$result->id]['court'] = $data->court;
 			
 		}		
-		if((count($results) == 1){
+		if((count($results) == 1)){
 			
 		Return Redirect::route('jobs.show')->with('id', $data2->id);
 			

@@ -1,0 +1,45 @@
+<?php $__env->startSection('content'); ?>
+<h1>Job #<?php echo $jobs->id; ?></h1>
+
+<div>
+<?php if($process==7): ?>
+
+<?php echo Form::open(['route' => 'tasks.proof']); ?>
+
+	<?php echo Form::label('server', 'Server: '); ?>
+
+	<?php echo Form::select('server', $servers); ?>
+
+<?php echo Form::hidden('job_id', $jobs->id); ?>
+
+<?php echo Form::submit('Generate Proof'); ?>
+
+<?php echo Form::close(); ?>
+
+<?php endif; ?>
+</div>
+
+<?php if(!empty($proof)): ?>
+<?php echo Form::open(array('route'=>'jobs.proof','files'=>true)); ?>
+
+  	<?php echo $errors->first('proof'); ?><p>
+  <input type="file" name="proof" id="">
+  <br/>
+  <?php echo Form::hidden('job_id', $jobs->id); ?>
+
+  <!-- submit buttons -->
+  <?php echo Form::submit('Upload Executed Proof'); ?>
+
+
+  
+  <?php echo Form::close(); ?>
+
+<a href="/proof/<?php echo $proof; ?>"> Proof </a>
+<?php endif; ?>
+<?php foreach($jobtask as $jobtasks): ?>
+<li><?php echo $jobtasks["description"]; ?> &nbsp; <?php echo $jobtasks["deadline"]; ?></li> 
+<?php endforeach; ?>
+
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

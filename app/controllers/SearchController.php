@@ -80,7 +80,7 @@ class SearchController extends \BaseController {
 		$results = $this->search->VendorSearch($search);
 
 		$search_results = array();
-		
+
 		//Loop through search results and find order id
 		
 		foreach($results['orders'] as $results_orders){
@@ -91,7 +91,7 @@ class SearchController extends \BaseController {
 								->where('vendor', Auth::user()->company_id)->get();
 								
 		if(!empty($searchjobs)){
-			
+		View::share(['searchjobs' => $searchjobs]);
 		foreach($searchjobs as $searchjob){	
 			
 		$data = DB::table('orders')->where('id', $searchjob->order_id)->first();
@@ -99,13 +99,13 @@ class SearchController extends \BaseController {
 		
 		//find order data
 		
-		$search_results[$searchjob->order_id]['job_id'] = $data2->id;
-		$search_results[$searchjob->order_id]['ref'] = $data->reference;
-		$search_results[$searchjob->order_id]['plaintiff'] = $data->plaintiff;
-		$search_results[$searchjob->order_id]['defendant'] = $data2->defendant;
-		$search_results[$searchjob->order_id]['case'] = $data->case;
-		$search_results[$searchjob->order_id]['state'] = $data->state;
-		$search_results[$searchjob->order_id]['court'] = $data->court;
+		$search_results[$searchjob->id]['job_id'] = $data2->id;
+		$search_results[$searchjob->id]['ref'] = $data->reference;
+		$search_results[$searchjob->id]['plaintiff'] = $data->plaintiff;
+		$search_results[$searchjob->id]['defendant'] = $data2->defendant;
+		$search_results[$searchjob->id]['case'] = $data->case;
+		$search_results[$searchjob->id]['state'] = $data->state;
+		$search_results[$searchjob->id]['court'] = $data->court;
 		
 		}
 		}

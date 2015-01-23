@@ -62,6 +62,7 @@ class Search extends Eloquent implements UserInterface, RemindableInterface {
 		$results['orders'] = DB::table('orders')->where(function ($query) use($search){
 				$query->where('id', 'LIKE', "%$search%")
 				      ->orWhere('plaintiff', 'LIKE', "%$search%")
+				      ->orWhere('case', 'LIKE', "%$search%")
 				      ->orWhere('reference', 'LIKE', "%$search%");
 				})->where(function ($query) {
 					$query->where('company', '=', Auth::user()->company);
@@ -71,12 +72,22 @@ class Search extends Eloquent implements UserInterface, RemindableInterface {
 	
 	public function VendorSearch($search)
 	{
-		$results = DB::table('jobs')->where(function ($query) use($search){
+		
+		$results = array();
+		
+		$results['jobs'] = DB::table('jobs')->where(function ($query) use($search){
 				$query->where('id', 'LIKE', "%$search%")
 				      ->orWhere('defendant', 'LIKE', "%$search%");
 				})->where(function ($query) {
 					$query->where('vendor', '=', Auth::user()->company_id);
 				})->get();
+				
+		$results['orders'] = DB::table('orders')->where(function ($query) use($search){
+				$query->where('id', 'LIKE', "%$search%")
+				      ->orWhere('plaintiff', 'LIKE', "%$search%")
+				      ->orWhere('case', 'LIKE', "%$search%")
+				      ->orWhere('reference', 'LIKE', "%$search%");
+				})->get();				
 				
 				return $results;
 	}

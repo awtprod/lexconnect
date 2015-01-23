@@ -44,7 +44,17 @@ table#t01 th	{
     <th>Court</th>
 
   </tr>
-@foreach ($results as $result)
+@foreach ($results['orders'] as $result)
+
+<tr>
+<td>{{ link_to("/jobs/{$search_results[$result->id]["job_id"]}", $search_results[$result->id]["job_id"]) }}</td>
+<td>{{ $search_results[$result->id]["case"] }}</td> 
+<td>{{ $search_results[$result->id]["plaintiff"] }}</td>
+<td>{{ $search_results[$result->id]["defendant"] }}</td>
+<td>{{ $search_results[$result->id]["state"] }}</td>
+<td>{{ $search_results[$result->id]["court"] }}</td>
+@endforeach  
+@foreach ($results['jobs'] as $result)
 
 <tr>
 <td>{{ link_to("/jobs/{$search_results[$result->id]["job_id"]}", $search_results[$result->id]["job_id"]) }}</td>

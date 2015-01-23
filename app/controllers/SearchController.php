@@ -81,21 +81,50 @@ class SearchController extends \BaseController {
 
 		$search_results = array();
 		
-		//Loop through search results and find job id
+		//Loop through search results and find order id
 		
-		foreach($results as $result){
+		foreach($results['orders'] as $results_orders){
+			
+			
+		//Find all jobs associated with order
+		$searchjobs = Jobs::whereOrderId($results_orders->id)
+								where('vendor', Auth::user()->company_id)->get();
+								
+		if(!empty($searchjobs)){
+			
+		foreach($searchjobs as $searchjob){	
+			
+		$data = DB::table('orders')->where('id', $searchjob->order_id)->first();
+		$data2 = DB::table('jobs')->where('id', $searchjob->id)->first();			
+		
+		//find order data
+		
+		$search_results[$searchjob->order_id]['job_id'] = $data2->id;
+		$search_results[$searchjob->order_id]['ref'] = $data->reference;
+		$search_results[$searchjob->order_id]['plaintiff'] = $data->plaintiff;
+		$search_results[$searchjob->order_id]['defendant'] = $data2->defendant;
+		$search_results[$searchjob->order_id]['case'] = $data->case;
+		$search_results[$searchjob->order_id]['state'] = $data->state;
+		$search_results[$searchjob->order_id]['court'] = $data->court;
+		
+		}
+		}
+			
+		}
+		foreach($results['jobs'] as $results_jobs){
 
-		$data = DB::table('orders')->where('id', $result->order_id)->first();
-		$data2 = DB::table('jobs')->where('id', $result->id)->first();
+		$data = DB::table('orders')->where('id', $results_jobs->order_id)->first();
+		$data2 = DB::table('jobs')->where('id', $results_jobs->id)->first();
 		
 		//find order data
 
-		$search_results[$result->id]['job_id'] = $data->id;
-		$search_results[$result->id]['plaintiff'] = $data->plaintiff;
-		$search_results[$result->id]['defendant'] = $data2->defendant;
-		$search_results[$result->id]['case'] = $data->case;
-		$search_results[$result->id]['state'] = $data->state;
-		$search_results[$result->id]['court'] = $data->court;
+		$search_results[$results_jobs->order_id]['job_id'] = $data2->id;
+		$search_results[$results_jobs->order_id]['ref'] = $data->reference;
+		$search_results[$results_jobs->order_id]['plaintiff'] = $data->plaintiff;
+		$search_results[$results_jobs->order_id]['defendant'] = $data2->defendant;
+		$search_results[$results_jobs->order_id]['case'] = $data->case;
+		$search_results[$results_jobs->order_id]['state'] = $data->state;
+		$search_results[$results_jobs->order_id]['court'] = $data->court;
 			
 		}		
 		if((count($results) == 1)){

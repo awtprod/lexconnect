@@ -88,7 +88,7 @@ class SearchController extends \BaseController {
 			
 		//Find all jobs associated with order
 		$searchjobs = Jobs::whereOrderId($results_orders->id)
-								where('vendor', Auth::user()->company_id)->get();
+								->where('vendor', Auth::user()->company_id)->get();
 								
 		if(!empty($searchjobs)){
 			

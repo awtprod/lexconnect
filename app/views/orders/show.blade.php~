@@ -114,7 +114,7 @@ Reference: {{ $orders->reference }}<p>
 
 @elseif($filingtask["status"] == 2)
 
-<td>{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '0') }}{{ Form::hidden('orders_id', $filingtask["order"]) }}{{ Form::submit('Remove Order from Hold') }}{{ Form::close() }}</td>
+<td>{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '0') }}{{ Form::hidden('id', $filingtask["order"]) }}{{ Form::submit('Remove Order from Hold') }}{{ Form::close() }}</td>
 
 @else
     <td>{{ Form::open(['route' => 'jobs.status']) }}{{ Form::hidden('status', '1') }}{{ Form::hidden('id', $filingtask["job"]) }}{{ Form::submit('Place Job on Hold') }}{{ Form::close() }}{{ Form::open(['route' => 'jobs.status']) }}{{ Form::hidden('status', '2') }}{{ Form::hidden('id', $filingtask["job"]) }}{{ Form::submit('Cancel Job') }}{{ Form::close() }}</td>

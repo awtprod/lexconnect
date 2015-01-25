@@ -470,7 +470,7 @@ class OrdersController extends \BaseController {
 	
 	if($status == 0){
 	//Remove hold
-	$showorders = $this->orders->whereId(Input::get('id'))->first();
+	$showorders = $this->orders->whereId(Input::get('orders_id'))->first();
 	$showorders->status = 0;
 	$showorders->save();
 	
@@ -490,12 +490,12 @@ class OrdersController extends \BaseController {
 	if($status == 1){
 	//Place Order on hold
 	
-	$showorders = Orders::whereId(Input::get('id'))->first();
+	$showorders = Orders::whereId(Input::get('orders_id'))->first();
 	$showorders->status = 1;
 	$showorders->save();
 	
 	//Place all jobs on hold
-	$orderjobs = DB::table('jobs')->where('order_id', Input::get('id'))
+	$orderjobs = DB::table('jobs')->where('order_id', Input::get('orders_id'))
 				      ->where('complete', NULL)->get();
 	
 	foreach($orderjobs as $job){
@@ -511,7 +511,7 @@ class OrdersController extends \BaseController {
 	if($status == 2){
 	//Cancel Order
 	
-	$showorders = $this->orders->whereId(Input::get('id'))->first();
+	$showorders = $this->orders->whereId(Input::get('orders_id'))->first();
 	$showorders->status = 2;
 	$showorders->completed = Carbon::now();
 	$showorders->save();

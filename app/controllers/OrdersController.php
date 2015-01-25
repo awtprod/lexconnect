@@ -133,7 +133,7 @@ class OrdersController extends \BaseController {
 		if(!is_numeric($id)){
 		$id = Session::get('orders_id');
 		}
-		
+		dd(Auth::user()->role);
 		//Retrieve Order
 		$showorders = $this->orders->whereId($id)->first();
 		

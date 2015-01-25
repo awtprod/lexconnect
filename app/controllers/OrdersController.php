@@ -476,7 +476,7 @@ class OrdersController extends \BaseController {
 	
 	//Remove hold from all jobs
 	$orderjobs = DB::table('jobs')->where('order_id', Input::get('id'))
-				      ->where('complete', NULL)->get();
+				      ->where('completed', NULL)->get();
 	
 	foreach($orderjobs as $job){
 	
@@ -496,7 +496,7 @@ class OrdersController extends \BaseController {
 	
 	//Place all jobs on hold
 	$orderjobs = DB::table('jobs')->where('order_id', Input::get('orders_id'))
-				      ->where('complete', NULL)->get();
+				      ->where('completed', NULL)->get();
 	
 	foreach($orderjobs as $job){
 	
@@ -518,7 +518,7 @@ class OrdersController extends \BaseController {
 	
 	//Cancel all jobs
 	$orderjobs = DB::table('jobs')->where('order_id', Input::get('id'))
-				      ->where('complete', NULL)->get();
+				      ->where('completed', NULL)->get();
 	
 	foreach($orderjobs as $job){
 	

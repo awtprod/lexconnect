@@ -4,7 +4,7 @@
 <head>
 <style>
 table {
-    width:75%;
+    width:100px;
 }
 table, th, td {
     border: 1px solid black;

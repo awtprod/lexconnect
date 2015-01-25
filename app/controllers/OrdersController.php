@@ -132,6 +132,10 @@ class OrdersController extends \BaseController {
 		//If Order is not passed by URL, retrieve from session
 		if(!is_numeric($id)){
 		$id = Session::get('orders_id');
+		Cache::put('orders_id', $id);
+		}
+		if(empty($id)){
+		Cache::get('orders_id');	
 		}
 		//Retrieve Order
 		$showorders = $this->orders->whereId($id)->first();

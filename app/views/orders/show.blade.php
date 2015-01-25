@@ -35,8 +35,11 @@ table#t01 th	{
 @if (!empty($orders))
 <h2>Order # {{ $orders->id }}</h2><p>
 
-@if($orders->status != 1)
+@if($orders->status == 0)
 <h2>{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '1') }}{{ Form::hidden('orders_id', $orders->id) }}{{ Form::submit('Place Order on Hold') }}{{ Form::close() }}{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '2') }}{{ Form::hidden('orders_id', $orders->id) }}{{ Form::submit('Cancel Order') }}{{ Form::close() }}</h2><p>
+@endif
+@if($orders->status == 1)
+<h2>{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '0') }}{{ Form::hidden('orders_id', $orders->id) }}{{ Form::submit('Remove Order from Hold') }}{{ Form::close() }}{{ Form::open(['route' => 'orders.status']) }}{{ Form::hidden('status', '2') }}{{ Form::hidden('orders_id', $orders->id) }}{{ Form::submit('Cancel Order') }}{{ Form::close() }}</h2><p>
 @endif
 
 {{ $orders->court }}<p>

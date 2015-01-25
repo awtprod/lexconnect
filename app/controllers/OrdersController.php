@@ -490,7 +490,7 @@ class OrdersController extends \BaseController {
 	if($status == 1){
 	//Place Order on hold
 	
-	$showorders = $this->orders->whereId(Input::get('id'))->first();
+	$showorders = Orders::whereId(Input::get('id'))->first();
 	$showorders->status = 1;
 	$showorders->save();
 	

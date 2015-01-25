@@ -347,6 +347,7 @@ class OrdersController extends \BaseController {
 		//Retrieve Uploaded Docs
 		$input = Input::all();
 		$id = Input::get('orders_id');
+		dd($id);
 		//Validate File
 		if ( ! $this->orders->fill($input)->ValidFiles())
 	{

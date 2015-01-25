@@ -1,0 +1,19 @@
+<?php $__env->startSection('content'); ?>
+<h1>View Active Orders</h1>
+
+<?php echo link_to('/orders/create', 'New Order'); ?>
+
+
+<?php if(!empty($orders)): ?>
+<h2>Order # &nbsp; Order Date: </h2>
+<?php foreach($orders as $order): ?>
+<li><?php echo link_to("/orders/{$order->id}", $order->id); ?> &nbsp; <?php echo $order->created_at; ?> </li> 
+<?php endforeach; ?>
+<?php else: ?>
+<h2>No Orders to display!</h2>
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

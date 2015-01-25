@@ -369,7 +369,7 @@ class OrdersController extends \BaseController {
 					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
 		//Removed Document Hold, if there are no filing tasks assoc. w/ order
-		if(empty($filing)){
+		/*if(empty($filing)){
 			$this->tasks->WaitingDocs($id);
 		//Update Due Dates of Tasks
 		$jobs = DB::table('jobs')->where('order_id', $id)
@@ -384,7 +384,7 @@ class OrdersController extends \BaseController {
 		}
 		}
 		}
-		}
+		}*/
 		
 		//Send back to order page
 		Return Redirect::back()->withErrors('Documents Uploaded!');

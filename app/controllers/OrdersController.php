@@ -374,12 +374,14 @@ class OrdersController extends \BaseController {
 		//Update Due Dates of Tasks
 		$jobs = DB::table('jobs')->where('order_id', $id)
 					->where('completed', NULL)->get();
+		if(!empty($jobs)){
 		foreach($jobs as $job){
 		$task = DB::table('tasks')->where('job_id', $job)
 					  ->where('completion', NULL)
 					  ->where('process', '>' ,4)->orderBy('completion', 'asc')->first();
 		if(!empty($task)){
 		$this->tasks->TaskForecast($task->id);
+		}
 		}
 		}
 		}

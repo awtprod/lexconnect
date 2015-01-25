@@ -138,10 +138,10 @@ class OrdersController extends \BaseController {
 		$showorders = $this->orders->whereId($id)->first();
 		
 		//Check if user is Admin or Client
-		if(Auth::user()->company==$showorders->company OR Auth::user()->role=='Admin'){
+		if(Auth::user()->company==$showorders->company OR Auth::user()->user_role=='Admin'){
 		
 		//If Admin, find all defendants
-		if(Auth::user()->role=='Admin'){
+		if(Auth::user()->user_role=='Admin'){
 		$viewservees = DB::table('servee')->where('order_id', $id)->orderBy('id', 'asc')->get();
 		}
 		else{

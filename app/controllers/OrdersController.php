@@ -364,12 +364,12 @@ class OrdersController extends \BaseController {
 		$orders->save();
 
 		//Find latest filing task
-		$filing = DB::table('tasks')->where('order_id', $id)
+		/*$filing = DB::table('tasks')->where('order_id', $id)
 					    ->where('process', '<', 6)
 					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
 		//Removed Document Hold, if there are no filing tasks assoc. w/ order
-		/*if(empty($filing)){
+		if(empty($filing)){
 			$this->tasks->WaitingDocs($id);
 		//Update Due Dates of Tasks
 		$jobs = DB::table('jobs')->where('order_id', $id)

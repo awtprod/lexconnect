@@ -346,8 +346,10 @@ class OrdersController extends \BaseController {
 	{
 		//Retrieve Uploaded Docs
 		$input = Input::all();
+		if(empty($input)){
+		return Redirect::back()	
+		}
 		$id = Input::get('orders_id');
-		dd($id);
 		//Validate File
 		if ( ! $this->orders->fill($input)->ValidFiles())
 	{
@@ -365,7 +367,7 @@ class OrdersController extends \BaseController {
 		$orders->save();
 
 		//Find latest filing task
-		/*$filing = DB::table('tasks')->where('order_id', $id)
+		$filing = DB::table('tasks')->where('order_id', $id)
 					    ->where('process', '<', 6)
 					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
@@ -385,10 +387,10 @@ class OrdersController extends \BaseController {
 		}
 		}
 		}
-		}*/
+		}
 		
 		//Send back to order page
-		Return Redirect::back();
+		Return Redirect::back()->withErrors('Documents Uploaded!');
 	}
 	
 	public function files($file)

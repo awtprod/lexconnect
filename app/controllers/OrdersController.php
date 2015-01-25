@@ -346,8 +346,9 @@ class OrdersController extends \BaseController {
 	{
 		//Retrieve Uploaded Docs
 		$input = Input::all();
-		if(empty($input)){
-		return Redirect::back()	
+		$file = Input::file('documents');
+		if(empty($file)){
+		return Redirect::back();
 		}
 		$id = Input::get('orders_id');
 		//Validate File

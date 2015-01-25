@@ -118,6 +118,7 @@ class OrdersController extends \BaseController {
 		$send_task = array('jobs_id' => $jobs_id, 'vendor' => $server, 'filing' => Input::get('filing'), 'recording' => Input::get('recording'), 'orders_id' => $orders_id);
 		$this->tasks->FilingTasks($send_task);	
 		}
+			Cache::put('orders_id', $orders_id, 30);
 			Return Redirect::route('orders.show')->with('orders_id', $orders_id); 
 	}
 
@@ -131,13 +132,10 @@ class OrdersController extends \BaseController {
 	{
 		//If Order is not passed by URL, retrieve from session
 		if(!is_numeric($id)){
-		$id = Session::get('orders_id');
+		$id = Cache::get('orders_id');
+		}
 
-		}
-		if(empty($id)){
-		Cache::get('orders_id');	
-		}
-		Cache::put('orders_id', $id, 30);
+
 		//Retrieve Order
 		$showorders = $this->orders->whereId($id)->first();
 		

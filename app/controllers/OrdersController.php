@@ -132,7 +132,7 @@ class OrdersController extends \BaseController {
 		//If Order is not passed by URL, retrieve from session
 		if(!is_numeric($id)){
 		$id = Session::get('orders_id');
-		Cache::put('orders_id', $id);
+		Cache::put('orders_id', $id, 30);
 		}
 		if(empty($id)){
 		Cache::get('orders_id');	

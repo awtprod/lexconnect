@@ -441,15 +441,48 @@ class JobsController extends \BaseController {
 	if($status == 2){
 	//Cancel Job
 	
-	$this->jobs->CancelJob(Input::get('id'));
-	
 	//Find current task
 	$task = DB::table('tasks')->where('job_id', Input::get('id'))->whereNULL('completion')->first();
 	
 	if(($task->process > 1 AND $task->process < 5) OR $task->process >5){
 
 	$this->invoices->CreateInvoice(Input::get('id'));
-	}	
+	
+	}
+	
+	//Determine if filing job and service docs have been uploaded
+	if($task->process < 5){
+	
+	$canceledjob = DB::table('jobs')->where('id', Input::get('id'))->first();
+
+	$servicedocs = DB::table('orders')->where('id', $canceledjob->order_id)->pluck('filed_docs');
+
+	//Removed Document Hold, if service docs have been uploaded
+	if(!empty($servicedocs)){
+
+			$this->tasks->WaitingDocs($canceledjob->order_id);
+			
+		//Update Due Dates of Tasks
+		$jobs = DB::table('jobs')->where('order_id', $canceledjob->order_id)
+					->where('completed', NULL)->get();
+
+					
+		foreach($jobs as $job){
+		$futuretask = DB::table('tasks')->where('job_id', $job->id)
+					 	->where('completion', NULL)
+					 	->where('process', '>', 4)->orderBy('completion', 'asc')->first();
+
+		if(!empty($futuretask)){		  
+		$this->tasks->TaskForecast($futuretask->id);
+		}
+		}
+		}	
+		
+	}
+	
+	$this->jobs->CancelJob(Input::get('id'));
+	
+	
 	
 	return Redirect::back();
 		

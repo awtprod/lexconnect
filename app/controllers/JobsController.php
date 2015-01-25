@@ -1,5 +1,5 @@
 <?php
-
+use Carbon\Carbon;
 class JobsController extends \BaseController {
 	public function __construct (Orders $orders, Tasks $tasks, Jobs $jobs, Invoices $invoices)
 	{

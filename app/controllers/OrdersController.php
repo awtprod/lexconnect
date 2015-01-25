@@ -176,6 +176,7 @@ class OrdersController extends \BaseController {
 		$progress[$viewservee->id]['hold'] = "Job On Hold";
 		$progress[$viewservee->id]['description'] = $this->tasks->TaskStatus($task->process);
 		$progress[$viewservee->id]['status'] = '1';
+		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));
 		}
 		
 

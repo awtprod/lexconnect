@@ -387,7 +387,7 @@ class OrdersController extends \BaseController {
 		}*/
 		
 		//Send back to order page
-		Return Redirect::back()->withErrors('Documents Uploaded!');
+		Return Redirect::back();
 	}
 	
 	public function files($file)

@@ -214,9 +214,33 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			
 			//Update status of next task
 			if($first){
+				
 			$days = Cache::get('days')->addDays($tasks_next->days);
 			$tasks_next->deadline = $days;
+			
+			//If attempting to serve, check to see if docs have been uploaded/filed
+			if($process == 6){
+				
+			//Check to see if docs have been uploaded
+			$documents = Orders::whereId($tasks_next->order_id)->pluck('filed_docs');
+			
+			//Find all filing tasks with job
+			$alltasks = Tasks::whereJobId($tasks_next->job_id)
+									->where('process', '<', '4')
+									->whereNULL('completion')->get();
+									
+			//Hold service if filed docs are empty or active filing
+			if(empty($documents) OR !empty($alltasks)){
+			$tasks_next->status = 0;				
+			}
+			else{
+			$tasks_next->status = 1;				
+			}
+				
+			}
+			else{
 			$tasks_next->status = 1;
+			}
 			$tasks_next->save();	
 			$first = false;
 			Cache::put('days', $days, 5);
@@ -572,9 +596,18 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 	
 	public function WaitingDocs($order_id){
 		
-		$tasks = Tasks::whereOrderId($order_id)->OrderBy('process', 'asc')->first();
+		//Find all jobs
+		$currentjobs = Jobs::whereOrderId($order_id)->whereNULL('completed')->get();
+		
+		//loop through all service jobs
+		foreach($currentjobs as $job){
+		
+		$tasks = Tasks::whereJobId($job->id)->where('process', 6)->first();
+		if(!empty($tasks)){
 		$tasks->status = 1;
 		$tasks->save();	
+		}
+		}
 
 	}
 

@@ -144,7 +144,6 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			if($first){
 			$days = Cache::get('days')->addDays($tasks_next->days);
 			$tasks_next->deadline = $days;
-			$tasks_next->status = 1;
 			$tasks_next->save();	
 			$first = false;
 			Cache::put('days', $days, 5);

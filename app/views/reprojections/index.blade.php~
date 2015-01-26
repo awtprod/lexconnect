@@ -43,7 +43,6 @@ table#t01 th	{
 	{{ $errors->first('description') }}
 	</div>
 {{ Form::hidden('task_id', $task_id) }}
-{{ Form::hidden('back', URL::previous()) }}
 
 	<div>{{ Form::submit('Reproject Task') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}

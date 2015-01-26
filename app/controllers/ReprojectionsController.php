@@ -86,7 +86,7 @@ class ReprojectionsController extends \BaseController {
 	//Reforecast upcoming Tasks
 	$this->tasks->TaskReproject($task->id);	
 	
-	Return Redirect::route('jobs.index');
+	Return Redirect::to(Input::get('back'));
 	
 	}
 

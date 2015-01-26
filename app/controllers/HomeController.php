@@ -69,7 +69,7 @@ class HomeController extends BaseController {
 		$tasklist[$job->job_id]['defendant'] = $job->defendant;
 	}
 	
-	Return View::make('home.vendor')->with(['job' => $tasklist]);		
+	Return View::make('home.admin')->with(['job' => $tasklist]);		
 		
 	}
 	

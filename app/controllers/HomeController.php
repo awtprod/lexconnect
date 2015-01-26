@@ -53,7 +53,7 @@ class HomeController extends BaseController {
 				->whereNULL('tasks.completion')
 				->where('tasks.status', '=', 1);
 			})
-			->select('tasks.job_id', 'jobs.defendant', 'tasks.id', 'tasks.process', 'tasks.deadline')
+			->select('tasks.job_id', 'jobs.defendant', 'tasks.id', 'tasks.process', 'tasks.deadline', 'jobs.vendor', 'jobs.order_id')
 			->orderBy('tasks.deadline', 'asc')
 			->get();
 
@@ -62,11 +62,16 @@ class HomeController extends BaseController {
 	$tasklist = array();
 	
 	foreach($openjobs as $job){
+		
+		$vendor = DB::table('company')->where('id', $job->vendor)->first();
+		
 		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->process);
 		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);
 		$tasklist[$job->job_id]['deadline'] = date("m/d/y", strtotime($job->deadline));
 		$tasklist[$job->job_id]['id'] = $job->job_id;
 		$tasklist[$job->job_id]['defendant'] = $job->defendant;
+		$tasklist[$job->job_id]['vendor'] = $vendor;
+		$tasklist[$job->job_id]['order_id'] = $job->order_id;
 	}
 	
 	Return View::make('home.admin')->with(['job' => $tasklist]);		

@@ -2,7 +2,7 @@
 @section('head')
 @section('content')
 <td>{{ Form::open(['route' => 'search.index']) }}{{ Form::text('search') }}{{ Form::submit('Search') }}{{ Form::close() }}</td>
-<h1>View Active Jobs</h1>
+<h1>Task List</h1>
 
 
 @if (!empty($job))
@@ -10,6 +10,8 @@
 <table>
   <tr>
     <th>Job #</th>
+    <th>Order #</th>
+    <th>Vendor</th>
     <th>Task</th>		
     <th>Defendant</th>
     <th>Deadline</th>
@@ -18,6 +20,8 @@
 @foreach ($job as $jobs)
 <tr>
 <td>{{ link_to("/jobs/{$jobs["id"]}", $jobs["id"]) }}</td>
+<td>{{ link_to("/orders/{$jobs["order_id"]}", $jobs["order_id"]) }}</td>
+<td>{{ $jobs["vendor"] }}</td>
 <td>{{ $jobs["task"] }}</td>
 <td>{{ $jobs["defendant"] }}</td> 
 @if (!empty($jobs["link"]["link"]))

@@ -174,7 +174,7 @@ Reference: {{ $orders->reference }}<p>
 <td>{{ link_to("/proofs/{$completed[$servee->id]["proof"]}", 'Proof') }} 
 @endif
 @if(!empty($completed[$servee->id]["declaration"]))
-{{ link_to("/proofs/{$completed[$servee->id]["declaration"]}", 'Declaration of Mailing') }}
+{{ link_to("/declarations/{$completed[$servee->id]["declaration"]}", 'Declaration of Mailing') }}
 @endif
 </td>
 <td>{{ Form::open(['route' => 'jobs.add']) }}{{ Form::hidden('servee_id', $servee->id) }}{{ Form::submit('New Serve Address') }}{{ Form::close() }}</td>

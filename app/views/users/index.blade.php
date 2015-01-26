@@ -1,5 +1,5 @@
 @extends('layouts.default')
-
+@section('head')
 @section('content')
 <h1>All Users</h1>
 {{ link_to('/users/create', 'Add User') }}

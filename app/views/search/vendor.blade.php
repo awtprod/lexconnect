@@ -1,33 +1,6 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-<style>
-table {
-    width:100px;
-}
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 5px;
-    text-align: left;
-}
-table#t01 tr:nth-child(even) {
-    background-color: #eee;
-}
-table#t01 tr:nth-child(odd) {
-   background-color:#fff;
-}
-table#t01 th	{
-    background-color: black;
-    color: white;
-}
-</style>
-</head>
-
-<body>
+@extends('layouts.default')
+@section('head')
+@section('content')
 <h1>Search Results</h1>
 
 <td>{{ Form::open(['route' => 'search.index']) }}{{ Form::text('search') }}{{ Form::submit('Search') }}{{ Form::close() }}</td>
@@ -77,5 +50,4 @@ table#t01 th	{
 
 <a href="{{ URL::previous() }}">Go Back</a>
 
-</body>
-</html>
+@stop

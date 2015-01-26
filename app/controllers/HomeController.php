@@ -63,7 +63,7 @@ class HomeController extends BaseController {
 	
 	foreach($openjobs as $job){
 		
-		$vendor = DB::table('company')->where('id', $job->vendor)->first();
+		$vendor = DB::table('company')->where('id', $job->vendor)->pluck('name');
 		
 		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->process);
 		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);

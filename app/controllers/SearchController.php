@@ -64,7 +64,8 @@ class SearchController extends \BaseController {
 		
 		if((count($results['jobs']) == 1 AND count($results['orders']) == 0) OR (count($results['jobs']) == 0 AND count($results['orders']) == 1)){
 			
-		Return Redirect::route('orders.show')->with('orders_id', $data->id);
+		Cache::put('orders_id', $data->id, 30);
+		Return Redirect::route('orders.show');
 			
 		}
 		
@@ -180,8 +181,10 @@ class SearchController extends \BaseController {
 		}
 		
 		if((count($results['jobs']) == 1 AND count($results['orders']) == 0) OR (count($results['jobs']) == 0 AND count($results['orders']) == 1)){
+		
+		Cache::put('orders_id', $data->id, 30);
 			
-		Return Redirect::route('orders.show')->with('orders_id', $data->id);
+		Return Redirect::route('orders.show');
 			
 		}
 		

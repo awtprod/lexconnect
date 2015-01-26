@@ -27,26 +27,26 @@ table#t01 th	{
 </style>
 </head>
 <body>
-
-@yield('content')
 @if(Auth::user()->user_role == 'Client')
 @if(Auth::user()->role == 'Employee')
 <div>
-{{ link_to("/home/", Home) }}{{ link_to("/orders/", Orders) }}{{ link_to("/invoices/", Invoices) }}{{ link_to("/logout/", Logout) }}
+{{ link_to("/home/", 'Home') }}{{ link_to("/orders/", 'Orders') }}{{ link_to("/invoices/", 'Invoices') }}{{ link_to("/logout/", 'Logout') }}
 </div>
 @else
 <div>
-{{ link_to("/home/", Home) }}{{ link_to("/orders/", Orders) }}{{ link_to("/invoices/", Invoices) }}{{ link_to("/users/", Users) }}{{ link_to("/logout/", Logout) }}
+{{ link_to("/home/", 'Home') }}{{ link_to("/orders/", 'Orders') }}{{ link_to("/invoices/", 'Invoices') }}{{ link_to("/users/", 'Users') }}{{ link_to("/logout/", 'Logout') }}
 </div>
 @endif
 @elseif(Auth::user()->user_role == 'Vendor')
 <div>
-{{ link_to("/home/", Home) }}{{ link_to("/jobs/", Jobs) }}{{ link_to("/invoices/", Invoices) }}{{ link_to("/users/", Users) }}{{ link_to("/logout/", Logout) }}
+{{ link_to("/home/", 'Home') }}{{ link_to("/jobs/", 'Jobs') }}{{ link_to("/invoices/", 'Invoices') }}{{ link_to("/users/", 'Users') }}{{ link_to("/logout/", 'Logout') }}
 </div>
 @elseif(Auth::user()->user_role == 'Admin')
 <div>
-{{ link_to("/home/", Home) }}{{ link_to("/jobs/", Jobs) }}{{ link_to("/orders/", Orders) }}{{ link_to("/invoices/", Invoices) }}{{ link_to("/users/", Users) }}{{ link_to("/logout/", Logout) }}
+{{ link_to("/home/", 'Home') }}{{ link_to("/jobs/", 'Jobs') }}{{ link_to("/orders/", 'Orders') }}{{ link_to("/invoices/", 'Invoices') }}{{ link_to("/users/", 'Users') }}{{ link_to("/logout/", 'Logout') }}
 </div>
 @endif
+@yield('content')
+
 </body>
 </html>

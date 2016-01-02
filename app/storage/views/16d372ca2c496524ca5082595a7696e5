@@ -1,0 +1,81 @@
+<?php $__env->startSection('content'); ?>
+
+    <?php echo Form::open(['route' => 'counties.index']); ?>
+
+    <?php echo Form::label('state', 'State: '); ?>
+
+    <?php if(!empty($state)): ?>
+    <?php echo Form::select('state', $states, $state); ?>
+
+    <?php else: ?>
+    <?php echo Form::select('state', $states); ?>
+
+    <?php endif; ?>
+
+    <div><?php echo Form::submit('Submit'); ?></div>
+    <?php echo Form::close(); ?>
+
+    <?php if(count($counties)>0): ?>
+
+    <table>
+        <tr>
+            <th>State</th>
+            <th>County</th>
+            <th>Filing Process</th>
+            <th>Service Process</th>
+            <th>Recording Process</th>
+        </tr>
+        <?php echo Form::open(['route' => 'counties.update']); ?>
+
+
+            <?php foreach($counties as $county): ?>
+            <tr>
+                <div><td>
+                    <?php echo $county->state; ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo $county->county; ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::select('filing['.$county->id.']', $filing, $filingDefault[$county->id]); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label('', ''); ?>
+
+                    <?php echo Form::select('service['.$county->id.']', $service, $serviceDefault[$county->id]); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::select('recording['.$county->id.']', $recording, $recordingDefault[$county->id]); ?>
+
+                </div>
+                </td>
+                </tr>
+            <?php echo Form::hidden('state', $county->state); ?>
+
+
+        <?php endforeach; ?>
+    </table>
+
+    <div><?php echo Form::submit('Save Changes'); ?></div>
+    <?php echo Form::close(); ?>
+
+    <?php else: ?>
+
+<?php endif; ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

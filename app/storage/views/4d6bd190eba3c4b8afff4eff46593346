@@ -30,38 +30,31 @@ table#t01 th	{
 <body>
 <td><?php echo Form::open(['route' => 'search.index']); ?><?php echo Form::text('search'); ?><?php echo Form::submit('Search'); ?><?php echo Form::close(); ?></td>
 
-<?php echo link_to('/orders/create', 'New Order'); ?>
+<?php echo link_to('/orders/create', 'New Order'); ?>&nbsp;<?php echo link_to("/orders/edit/{$orders->id}", 'Edit Order'); ?>
 
 
 <?php if(!empty($orders)): ?>
 <h2>Order # <?php echo $orders->id; ?></h2><p>
 
-<?php if($orders->status != 1): ?>
+<?php if($orders->status == 0): ?>
 <h2><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '1'); ?><?php echo Form::hidden('orders_id', $orders->id); ?><?php echo Form::submit('Place Order on Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('orders_id', $orders->id); ?><?php echo Form::submit('Cancel Order'); ?><?php echo Form::close(); ?></h2><p>
+<?php endif; ?>
+<?php if($orders->status == 1): ?>
+<h2><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('orders_id', $orders->id); ?><?php echo Form::submit('Remove Order from Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('orders_id', $orders->id); ?><?php echo Form::submit('Cancel Order'); ?><?php echo Form::close(); ?></h2><p>
 <?php endif; ?>
 
 <?php echo $orders->court; ?><p>
 <?php echo $orders->plaintiff; ?>v.<?php echo $orders->defendant; ?><p>
-Case: <?php echo $orders->case; ?><p>
+Case: <?php echo $orders->courtcase; ?><p>
 Reference: <?php echo $orders->reference; ?><p>
 <?php else: ?>
 <h2>No Order to display!</h2>
 <?php endif; ?>
 <h2><?php echo Form::open(['route' => 'jobs.create']); ?><?php echo Form::hidden('orders_id', $orders->id); ?><?php echo Form::submit('Add Defendants'); ?><?php echo Form::close(); ?></h2>
- <div> 
-<?php echo Form::open(array('route'=>'orders.documents','files'=>true)); ?>
+ <div>
 
-  	<?php echo $errors->first('documents'); ?><p>
-  <input type="file" name="documents" id="">
-  <br/>
-  <?php echo Form::hidden('orders_id', $orders->id); ?>
-
-  <!-- submit buttons -->
-  <?php echo Form::submit('Upload Service Documents'); ?>
-
-
-  
-  <?php echo Form::close(); ?>
+     <?php echo link_to("/documents/upload/?orderId={$orders->id}&_token={$token}", 'Upload Documents'); ?><br>
+     <?php echo link_to("/documents/view/?orderId={$orders->id}&_token={$token}", 'View Documents'); ?><br>
 
   </div>
 <?php if(!empty($invoices)): ?>
@@ -87,164 +80,8 @@ Reference: <?php echo $orders->reference; ?><p>
 </div>
 <br>
 <?php endif; ?>
+ <h2>No Defendants to display!</h2>
 
-<?php if(!empty($filingtask)): ?>
-
-
-<h2>Filing/Recording:</h2>
-<table>
-  <tr>
-    <th>Status</th>
-<?php if(!empty($filingtask["deadline"])): ?>
-    <th>Due Date</th>	
-<?php endif; ?>
-    <th>Documents</th>
-    <th>Actions</th>
-  </tr>
-
-  <tr>
-
-    <td><?php echo $filingtask["description"]; ?></td>
-<?php if(!empty($filingtask["deadline"])): ?>
-    <td><?php echo $filingtask["deadline"]; ?></td>
-<?php endif; ?>
-    <?php if(!empty($filingtask["file"])): ?>
-    <td><a href="/service_documents/<?php echo $filingtask["file"]; ?>"> Service Documents </a></td>
-    <?php else: ?>
-    <td></td>
-    <?php endif; ?>
-<?php if($filingtask["status"] == 1): ?>
-
-<td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $filingtask["job"]); ?><?php echo Form::submit('Remove Job from Hold'); ?><?php echo Form::close(); ?></td>
-
-<?php elseif($filingtask["status"] == 2): ?>
-
-<td><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $filingtask["order"]); ?><?php echo Form::submit('Remove Order from Hold'); ?><?php echo Form::close(); ?></td>
-
-<?php else: ?>
-    <td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '1'); ?><?php echo Form::hidden('id', $filingtask["job"]); ?><?php echo Form::submit('Place Job on Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('id', $filingtask["job"]); ?><?php echo Form::submit('Cancel Job'); ?><?php echo Form::close(); ?></td>
-<?php endif; ?>
-    </tr>
-</table>
-<?php endif; ?>
-
-<table>
-  
-<?php if(!empty($filing)): ?>
-
-<tr>
-    <td><?php echo $filing["description"]; ?></td>
-    <td><a href="/service_documents/<?php echo $filing["file"]; ?>"> Service Documents </a></td>
-</tr>
-    <?php endif; ?>
-<?php if(!empty($recording)): ?>
-<tr>    
-<td><?php echo $recording["description"]; ?></td>
-    <td><a href="/recorded_documents/<?php echo $recording["file"]; ?>"> Recorded Documents </a></td>
-</tr>
-    <?php endif; ?>
-</tr>
-
-</table>
-<?php if(!empty($completed)): ?>
-
-<h2> Completed Serves: </h2><p>
-<table>
-  <tr>
-    <th>Defendant</th>
-    <th>Service</th>		
-    <th>Served Upon</th>
-    <th>Date</th>
-    <th>Time</th>
-    <th>Serve Address</th>
-    <th>Proof</th>
-    <th>Actions</th>
-  </tr>
-
-  <?php foreach($servees as $servee): ?>
-  <?php if(!empty($completed[$servee->id])): ?>
-<tr>
-<td><?php echo link_to("/servee/{$servee->id}", $servee->defendant); ?></td>
-<td><?php echo $completed[$servee->id]["description"]; ?></td>
-<td><?php echo $completed[$servee->id]["served_upon"]; ?></td>
-<td><?php echo $completed[$servee->id]["date"]; ?></td>
-<td><?php echo $completed[$servee->id]["time"]; ?></td>
-<td><?php echo $completed[$servee->id]["street"]; ?><br><?php echo $completed[$servee->id]["city"]; ?>,&nbsp;<?php echo $completed[$servee->id]["state"]; ?>&nbsp;<?php echo $completed[$servee->id]["zipcode"]; ?></td>
-<?php if($completed[$servee->id]["proof"] == NULL): ?>
-<td>N/A</td>
-<?php else: ?>
-<td><?php echo link_to("/proofs/{$completed[$servee->id]["proof"]}", 'Proof'); ?> 
-<?php endif; ?>
-<?php if(!empty($completed[$servee->id]["declaration"])): ?>
-<?php echo link_to("/proofs/{$completed[$servee->id]["declaration"]}", 'Declaration of Mailing'); ?>
-
-<?php endif; ?>
-</td>
-<td><?php echo Form::open(['route' => 'jobs.add']); ?><?php echo Form::hidden('servee_id', $servee->id); ?><?php echo Form::submit('New Serve Address'); ?><?php echo Form::close(); ?></td>
-</tr>
-   <?php endif; ?>
-<?php endforeach; ?>
-</table>
-<?php endif; ?>
-
-<?php if(!empty($progress)): ?>
-
-<h2> Serves In Progress: </h2><p>
-<table>
-  <tr>
-    <th>Defendant</th>
-    <th>Task</th>
-    <th>Status</th>
-    <th>Due Date</th>
-    <th>Actions</th>
-  </tr>
-
-  <?php foreach($servees as $servee): ?>
-
-  <?php if(!empty($progress[$servee->id])): ?>
-<tr>
-<td><?php echo link_to("/servee/{$servee->id}", $servee->defendant); ?></td> 
-<td><?php echo $progress[$servee->id]["description"]; ?></td>
-
-<?php if($progress[$servee->id]["status"] == 1 OR $progress[$servee->id]["status"] == 2): ?>
-<td>
-<?php echo $progress[$servee->id]["hold"]; ?>
-
-</td>
-<?php elseif(!empty($progress[$servee->id]["status"]["date"])): ?>
-
-<td>
-<b><?php echo $progress[$servee->id]["status"]["date"]; ?></b> at <b> <?php echo $progress[$servee->id]["status"]["time"]; ?></b>: &nbsp; <?php echo $progress[$servee->id]["status"]["description"]; ?>
-
-</td>
-<?php else: ?>
-<td>
-<?php echo $progress[$servee->id]["status"]["description"]; ?>
-
-</td>
-<?php endif; ?>
-
-<td><?php echo $progress[$servee->id]["deadline"]; ?></td>
-
-<?php if($progress[$servee->id]["status"] == 1): ?>
-
-<td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Remove Job from Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Cancel Job'); ?><?php echo Form::close(); ?></td>
-
-<?php elseif($progress[$servee->id]["status"] == 2): ?>
-
-<td><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $progress[$servee->id]["order"]); ?><?php echo Form::submit('Remove Order from Hold'); ?><?php echo Form::close(); ?></td>
-
-<?php else: ?>
-<td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '1'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Place Job on Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Cancel Job'); ?><?php echo Form::close(); ?></td>
-<?php endif; ?>
-
-</tr>
-   <?php endif; ?>
-<?php endforeach; ?>
-
-</table>
-<?php else: ?> <h2>No Defendants to display!</h2>
-<?php endif; ?>
 
 <a href="<?php echo URL::previous(); ?>">Go Back</a>
 

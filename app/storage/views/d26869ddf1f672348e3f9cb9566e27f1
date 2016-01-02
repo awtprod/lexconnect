@@ -2,7 +2,7 @@
 <h1>Job #<?php echo $jobs->id; ?></h1>
 
 <div>
-<?php if($process==7): ?>
+<?php if($step->process == 2 AND $step->step == 2): ?>
 
 <?php echo Form::open(['route' => 'tasks.proof']); ?>
 
@@ -36,8 +36,29 @@
 
 <a href="/proof/<?php echo $proof; ?>"> Proof </a>
 <?php endif; ?>
+
+<table>
+  <tr>
+    <th>Task</th>
+    <th>Deadline</th>
+    <th>Completed</th>
+    <th>Actions</th>
+  </tr>
 <?php foreach($jobtask as $jobtasks): ?>
-<li><?php echo $jobtasks["description"]; ?> &nbsp; <?php echo $jobtasks["deadline"]; ?></li> 
+<tr>
+<td><?php echo $jobtasks["description"]; ?></td>
+<td><?php echo $jobtasks["deadline"]; ?></td>
+<?php if($jobtasks["completed"] == NULL): ?>
+<td></td>
+<?php else: ?>
+<td><?php echo $jobtasks["completed"]; ?></td>
+<?php endif; ?>
+<?php if($jobtasks["action"] == NULL): ?>
+<td></td>
+
+<?php else: ?>
+<td style="display:none;"><?php echo Form::open(['route' => 'tasks.complete']); ?><?php echo Form::token(); ?><?php echo Form::hidden('tasks_id', $jobtasks["action"]); ?><?php echo Form::submit('Complete'); ?><?php echo Form::close(); ?></td>
+<?php endif; ?>
 <?php endforeach; ?>
 
 <?php $__env->stopSection(); ?>

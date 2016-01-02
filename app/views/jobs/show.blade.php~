@@ -16,9 +16,9 @@
 </div>
 
 @if(!empty($proof))
-{{ Form::open(array('route'=>'tasks.proof','files'=>true)) }}
-  	{{ $errors->first('documents') }}<p>
-  <input type="file" name="documents" id="">
+{{ Form::open(array('route'=>'jobs.proof','files'=>true)) }}
+  	{{ $errors->first('proof') }}<p>
+  <input type="file" name="proof" id="">
   <br/>
   {{ Form::hidden('job_id', $jobs->id) }}
   <!-- submit buttons -->

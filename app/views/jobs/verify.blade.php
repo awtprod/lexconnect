@@ -34,6 +34,7 @@ table#t01 th	{
 <h2> Verify Defendant</h2>
 
 @if(empty($result))
+{{ dd(Input::all()) }}
 {{ Form::open(['route' => 'jobs.store']) }}
 <h3><font color="red">Warning! The Address You Entered Cannot Be Verified. Please Verify That You Correctly Entered The Address. Click "Verify Defendant" If You Wish To Continue With This Address.</font></h3>
 Defendant:{{ $input["defendant"] }}{{ Form::hidden('defendant', $input["defendant"]) }}<p>
@@ -43,6 +44,9 @@ Defendant:{{ $input["defendant"] }}{{ Form::hidden('defendant', $input["defendan
 {{ $input["city"] }}{{ Form::hidden('city', $input["city"]) }},&nbsp;
 {{ $input["state"] }}{{ Form::hidden('state', $input["state"]) }}&nbsp;
 {{ $input["zipcode"] }}{{ Form::hidden('zipcode', $input["zipcode"]) }}<p>
+
+    {{ Form::hidden('notes', Input::get('notes')) }}
+    {{ Form::hidden('type', Input::get('type')) }}
 
 @if(!empty($input["servee_id"]))
 	{{ Form::hidden('orders_id', $input["orders_id"]) }}
@@ -58,15 +62,19 @@ Defendant:{{ $input["defendant"] }}{{ Form::hidden('defendant', $input["defendan
 {{ Form::close() }}
 
 @else
-{{ Form::open(['route' => 'jobs.store']) }}
+    {{ Form::open(['route' => 'jobs.store']) }}
 
 Defendant:{{ $input["defendant"] }}{{ Form::hidden('defendant', $input["defendant"]) }}<p>
 
 {{ $result[0]['delivery_line_1'] }}{{ Form::hidden('street', $result[0]['delivery_line_1']) }}&nbsp;
 {{ $result[0]['components']['city_name'] }}{{ Form::hidden('city', $result[0]['components']['city_name']) }},&nbsp;
+{{ $result[0]['metadata']['county_name'] }}{{ Form::hidden('county', $result[0]['metadata']['county_name']) }},&nbsp;
 {{ $result[0]['components']['state_abbreviation'] }}{{ Form::hidden('state', $result[0]['components']['state_abbreviation']) }}&nbsp;
 {{ $result[0]['components']['zipcode'] }}{{ Form::hidden('zipcode', $result[0]['components']['zipcode']) }}<p>
 <b>Property Vacant:&nbsp;{{ $result[0]['analysis']['dpv_vacant'] }}</b>
+
+        {{ Form::hidden('notes', Input::get('notes')) }}
+        {{ Form::hidden('type', Input::get('type')) }}
 
 @if(!empty($input["servee_id"]))
 	{{ Form::hidden('orders_id', $input["orders_id"]) }}

@@ -3,13 +3,19 @@ use Carbon\Carbon;
 \Carbon\Carbon::setToStringFormat('m/d/y');
 class AttemptsController extends \BaseController {
 	protected $attempts;
-	
-	public function __construct (Attempts $attempts, Tasks $tasks)
-	{
-	
-		$this->attempts = $attempts;
-		$this->tasks = $tasks;
-	}
+
+    public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Documents $documents, Attempts $attempts)
+    {
+
+        $this->orders = $orders;
+        $this->tasks = $tasks;
+        $this->reprojections = $reprojections;
+        $this->jobs = $jobs;
+        $this->invoices = $invoices;
+        $this->DocumentsServed = $DocumentsServed;
+        $this->documents = $documents;
+        $this->attempts = $attempts;
+    }
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -53,13 +59,30 @@ class AttemptsController extends \BaseController {
             'job' => Input::get('job'),
         ]);	
 //Update server score
-	$this->tasks->ServerScore(Input::get('tasks_id'));
+	$this->tasks->ServerScore(Input::get('taskId'));
 
 	//Redirect based on service status
         if (Input::get('non-serve') === 'yes') {
-        	return Redirect::route('tasks.complete')->with('attempts', 1)->with('tasks_id', Input::get('tasks_id'))->with('_token', Input::get('_token'));
+
+			//Find job
+			$job = Jobs::whereId(Input::get('job'))->first();
+
+			//Find servee
+			$servee = Servee::whereId($job->servee_id)->first();
+
+			//Mark servee as "non-serve" or set status to "2"
+			$servee->status = '2';
+			$servee->save();
+
+			//Complete task
+            $this->tasks->TaskComplete(Input::get('taskId'));
+
+            return Redirect::to('/');
     	} else {
-    		return Redirect::route('tasks.complete')->with('attempts', 2)->with('tasks_id', Input::get('tasks_id'))->with('_token', Input::get('_token'));
+
+            $this->tasks->TaskForecast(Input::get('taskId'));
+
+            return Redirect::to('/');
     	}
 	}
 

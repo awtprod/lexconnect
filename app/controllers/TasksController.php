@@ -1,13 +1,19 @@
 <?php
 use Carbon\Carbon;
 class TasksController extends \BaseController {
-	public function __construct (Tasks $tasks, Orders $orders, Jobs $jobs, Invoices $invoices)
+	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
-	
-		$this->tasks = $tasks;
+
 		$this->orders = $orders;
+		$this->tasks = $tasks;
+		$this->reprojections = $reprojections;
 		$this->jobs = $jobs;
 		$this->invoices = $invoices;
+		$this->DocumentsServed = $DocumentsServed;
+		$this->Processes = $processes;
+		$this->Steps = $steps;
+		$this->Template = $template;
+		$this->Counties = $counties;
 	}
 	/**
 	 * Display a listing of the resource.
@@ -26,64 +32,106 @@ class TasksController extends \BaseController {
 	 * @return Response
 	 */
 	public function complete()
-	{
-		$tasks_id = Input::get('tasks_id');
-		if(empty($tasks_id)){
-		$tasks_id = Session::get('tasks_id');	
-		}
+    {
+        //Retrieve task id from URL
+        $tasksId = Input::get('id');
 
-		$tasks = Tasks::whereId($tasks_id)->first();
-		//Retrieve Documents
-		if($tasks->process == 0 OR $tasks->process == 1 OR $tasks->process == 2 OR $tasks->process == 5 OR $tasks->process == 8){
-			
-		$complete = $this->tasks->TaskComplete($tasks->id);
-		//Mark Job as Complete
-		if($complete == TRUE){
-		$jobs = Jobs::whereId($tasks->job_id)->first();
-		$jobs->completed = Carbon::now();
-		$jobs->save();
-		
-		//Create Invoice
-		$this->invoices->CreateInvoice($tasks->job_id);
-		}
-			return Redirect::route('jobs.index');
-		}
-		//Filing Complete
-		if($tasks->process == 3 OR $tasks->process == 4){
-		return Redirect::route('tasks.filing')->with('job_id', $tasks->job_id)->with('tasks_id', $tasks->id);
-		}
-		//Service Attempts
-		if($tasks->process == 6){
-		//Non-Service
-		if(Session::get('attempts')==1){
-		$this->tasks->TaskComplete($tasks->id);
-		return Redirect::route('jobs.index');	
-		}
-		//Service Attempt
-		elseif(Session::get('attempts')==2){
-		$this->tasks->TaskForecast($tasks->id);
-		return Redirect::route('jobs.index');
+        //Retrieve task data from db
+        $CurrentTask = Tasks::whereId($tasksId)->first();
+
+        //Get zip code of serve address
+        $job = DB::table('jobs')->where('id', $CurrentTask->job_id)->first();
+
+        $order = Orders::whereId($CurrentTask->order_id)->first();
+
+        //Find current task due
+        $LatestTask = Tasks::OrderBy('sort_order', 'asc')
+            ->where('job_id', $CurrentTask->job_id)
+            ->where('completion', NULL)->first();
+
+        //See if requested task is current task due, if not throw an error
+        if ($LatestTask->id != $tasksId) {
+
+            Return "Not Authorized To View!";
+
+        //Check to see if user is authorized to complete task
+        } elseif (Auth::user()->user_role=='Admin' OR Auth::user()->company_id == $CurrentTask->vendor) {
+
+
+			//see if there is a popup window for task
+			if(!empty($CurrentTask->window)){
+
+				Return View::make($CurrentTask->window)->with('taskId', $tasksId);
+			}
+            //If vendor accepts serve, complete step and proceed with serve
+            else{
+
+            $this->tasks->TaskComplete($tasksId);
+
+				Return Redirect::route('jobs.show', $job->id);
+
+            }
+
+
+        }
+        else{
+
+            Return "Not Authorized To View!";
+        }
+    }
+
+	public function accept(){
+
+		$task = Tasks::whereId(Input::get('taskId'))->first();
+
+		$job = Jobs::whereId($task->job_id)->first();
+
+		//if server accepted job, mark task as complete
+
+		if(Input::get('accept') == 'true'){
+
+			$this->tasks->TaskComplete(Input::get('taskId'));
+
+			Return Redirect::route('jobs.show', $job->id);
 		}
 		else{
-		//Enter Attempt
-		return Redirect::route('attempts.create')->with('job_id', $tasks->job_id)->with('tasks_id', $tasks->id);
+
+			//Find new server
+			$serverData = array('zipcode' => $job->zipcode, 'jobId' => $job->id);
+			$server = $this->jobs->SelectServer($serverData);
+
+			//Reassign server
+			$newServerData = array('vendor' => $server, 'orderId' => $job->order_id, 'jobId' => $job->id);
+			$newServer = $this->jobs->ReAssignServer($newServerData);
+
+			Return Redirect::route('jobs.show', $job->id);
 		}
+	}
+
+	public function attempt(){
+
+		//if defendant served, load serve screen
+		if(Input::get('served') == 'true'){
+
+			Return View::make('serve.create')->with('taskId', Input::get('taskId'));
 		}
-		//Complete POS
-		if($tasks->process == 7){
-		return Redirect::route('jobs.show')->with('job_id', $tasks->job_id)->with('tasks_id', $tasks->id);
+		//if defendant was not served, load attempt screen
+		else{
+
+			$job = Tasks::whereId(Input::get('taskId'))->pluck('job_id');
+
+			Return View::make('attempt.create')->with('taskId', Input::get('taskId'))->with('job', $job);
+
 		}
-		//Complete Declaration
-		if($tasks->process == 9 OR $tasks->process == 10){
-		$job = Jobs::whereId($tasks->job_id)->first();
-		$servers = DB::table('users')->where('company_id', $job->vendor)->orderBy('name', 'asc')->lists('name', 'name');		
-		return View::make('tasks.declaration')->with('job_id', $tasks->job_id)->with('tasks_id', $tasks->id)->with(['job' => $job])->with(['servers' => $servers]);
-		}
+	}
+
+	public function filed(){
+
 	}
 	
 	public function filing(){
 		$tasks = DB::table('tasks')->where('id', Session::get('tasks_id'))->first();
-		if($tasks->process == 3){
+		if($tasks->process == 1 AND $tasks->step == 3){
 		Return View::make('tasks.filing')->with('jobs_id', Session::get('job_id'))->with('tasks_id', Session::get('tasks_id'));
 	}
 	else{
@@ -114,14 +162,14 @@ class TasksController extends \BaseController {
 		$tasks = DB::table('tasks')->where('id', Input::get('tasks_id'))->first();
 		$orders = Orders::whereId($jobs->order_id)->first();
 	//Save Filed Documents
-	if($tasks->process == 3){
+	if($tasks->process == 1 AND $tasks->step == 3){
 		$destinationPath = public_path().'/service_documents';
 		$file = str_random(6);
 		$filename = $orders->id.'_'.$file.'.pdf';
 		Input::file('documents')->move($destinationPath, $filename);
 		
 		//Update Table
-		$orders->filed_docs = $filename;
+		//$orders->filed_docs = $filename;
 		$orders->case = Input::get('case');
 		$orders->save();
 		$complete = $this->tasks->TaskComplete(Input::get('tasks_id'));
@@ -134,15 +182,15 @@ class TasksController extends \BaseController {
 		$this->tasks->WaitingDocs($orders);
 	}
 	//Save Recorded Documents
-	if($tasks->process == 4){
+	if($tasks->process == 1 AND $tasks->step == 4){
 		$destinationPath = public_path().'/recorded_documents';
 		$file = str_random(6);
 		$filename = $orders->id.'_'.$file.'.pdf';
 		Input::file('documents')->move($destinationPath, $filename);
 		
 		//Update Table
-		$orders->rec_docs = $filename;
-		$orders->instrument = Input::get('recording');
+		//$orders->rec_docs = $filename;
+		//$orders->instrument = Input::get('recording');
 		$orders->save();
 		$complete = $this->tasks->TaskComplete(Input::get('tasks_id'));
 		//Mark Job as Complete
@@ -159,8 +207,12 @@ class TasksController extends \BaseController {
 		
 	}
 	public function proof(){
-		
-		//Determine if Serve or Non-Serve
+
+        $orderId = Jobs::whereId(Input::get('job_id'))->pluck('order_id');
+
+        $taskId = Tasks::whereJobId(Input::get('job_id'))->first();
+
+        //Determine if Serve or Non-Serve
 		$serve = DB::table('serve')->where('job_id', Input::get('job_id'))->first();
 		View::share(['serve' => $serve]);
 		View::share('server', Input::get('server'));
@@ -184,10 +236,28 @@ class TasksController extends \BaseController {
 		$file = str_random(6);
 		$filename =  $file . '_'. 'proof.pdf';
 		$filepath = public_path('proofs/' . $filename);
-		$pdf = PDF::loadView('tasks.serve', ['data' => $data], ['proof' => $proof], ['serve' => $serve])->save($filepath);
-		DB::table('jobs')->where('id', Input::get('job_id'))->update(array('proof' => $filename));
+
+            if($taskId->process == 3){
+
+                $pdf = PDF::loadView('tasks.post', ['data' => $data], ['proof' => $proof], ['serve' => $serve])->save($filepath);
+
+            }
+            else {
+                $pdf = PDF::loadView('tasks.serve', ['data' => $data], ['proof' => $proof], ['serve' => $serve])->save($filepath);
+            }
+            //Update Table
+            $dbDoc = new Documents;
+            $dbDoc->document = 'Unexecuted_Proof';
+            $dbDoc->jobId = Input::get('job_id');
+            $dbDoc->orderId = $orderId;
+            $dbDoc->filename = $filename;
+            $dbDoc->filepath = '/proofs';
+            $dbDoc->save();
+
 		return $pdf->download($filename);		
 		}
+
+        //If defendant was NOT served
 		else{
 		$attempts = DB::table('attempts')->OrderBy('date', 'asc')->where('job', Input::get('job_id'))->get();
 		$a = array();
@@ -203,7 +273,16 @@ class TasksController extends \BaseController {
 		$filepath = public_path('proofs/' . $filename);
 
 		$pdf = PDF::loadView('tasks.non', ['a' => $a], ['proof' => $proof], ['serve' => $serve])->save($filepath);
-		DB::table('jobs')->where('id', Input::get('job_id'))->update(array('proof' => $filename));	
+
+            //Update Table
+            $dbDoc = new Documents;
+            $dbDoc->document = 'Unexecuted_Proof';
+            $dbDoc->jobId = Input::get('job_id');
+            $dbDoc->orderId = $orderId;
+            $dbDoc->filename = $filename;
+            $dbDoc->filepath = '/proofs';
+            $dbDoc->save();
+
 		return $pdf->download($filename);
 		}
 	}
@@ -212,8 +291,10 @@ class TasksController extends \BaseController {
 	}
 	public function declaration(){
 		//Retrieve data for array for declaration
-		$serve = DB::table('serve')->where('job_id', Input::get('job'))->first();
-		$job = Jobs::whereId(Input::get('job'))->first();
+		$serve = DB::table('serve')->where('job_id', Input::get('job_id'))->first();
+		$job = Jobs::whereId(Input::get('job_id'))->first();
+        $orderId = Jobs::whereId(Input::get('job_id'))->pluck('order_id');
+        $task = Tasks::whereId(Input::get('tasks_id'))->first();
 		$carbon = Carbon::now();
 		
 		//Data array for declaration
@@ -236,10 +317,30 @@ class TasksController extends \BaseController {
 		$filename =  $file . '_'. 'declaration.pdf';
 		$filepath = public_path('declarations/' . $filename);
 		$pdf = PDF::loadView('tasks.dec_proof', ['data' => $data])->save($filepath);
-		DB::table('jobs')->where('id', Input::get('job'))->update(array('declaration' => $filename));
-		$this->tasks->TaskComplete(Input::get('tasks_id'));
+
+        //Update Table
+        $dbDoc = new Documents;
+        $dbDoc->document = 'Unexecuted_Declaration';
+        $dbDoc->jobId = Input::get('job_id');
+        $dbDoc->orderId = $orderId;
+        $dbDoc->filename = $filename;
+        $dbDoc->filepath = '/declarations';
+        $dbDoc->save();
+
+        if($task->step == 4) {
+            $this->tasks->TaskComplete(Input::get('tasks_id'));
+        }
 		return $pdf->download($filename);		
 	}
+
+    public function proofFiled(){
+
+        $this->tasks->TaskComplete(Input::get('taskId'));
+
+        $jobId = Tasks::whereId(Input::get('taskId'))->pluck('job_id');
+
+        Return Redirect::route('jobs.show', $jobId);
+    }
 
 	public function create()
 	{

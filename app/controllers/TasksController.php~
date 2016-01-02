@@ -1,12 +1,13 @@
 <?php
 use Carbon\Carbon;
 class TasksController extends \BaseController {
-	public function __construct (Tasks $tasks, Orders $orders, Jobs $jobs)
+	public function __construct (Tasks $tasks, Orders $orders, Jobs $jobs, Invoices $invoices)
 	{
 	
 		$this->tasks = $tasks;
 		$this->orders = $orders;
 		$this->jobs = $jobs;
+		$this->invoices = $invoices;
 	}
 	/**
 	 * Display a listing of the resource.
@@ -34,7 +35,17 @@ class TasksController extends \BaseController {
 		$tasks = Tasks::whereId($tasks_id)->first();
 		//Retrieve Documents
 		if($tasks->process == 0 OR $tasks->process == 1 OR $tasks->process == 2 OR $tasks->process == 5 OR $tasks->process == 8){
-			$this->tasks->TaskComplete($tasks->id);
+			
+		$complete = $this->tasks->TaskComplete($tasks->id);
+		//Mark Job as Complete
+		if($complete == TRUE){
+		$jobs = Jobs::whereId($tasks->job_id)->first();
+		$jobs->completed = Carbon::now();
+		$jobs->save();
+		
+		//Create Invoice
+		$this->invoices->CreateInvoice($tasks->job_id);
+		}
 			return Redirect::route('jobs.index');
 		}
 		//Filing Complete

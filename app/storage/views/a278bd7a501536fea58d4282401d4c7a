@@ -1,0 +1,23 @@
+<?php $__env->startSection('content'); ?>
+<h1>Send Proof of Service</h1><p>
+<div>
+
+    <?php echo Form::open(['route'=>'tasks.proofFiled']); ?>
+
+Send Proof to: <?php echo $order->court; ?>
+
+        <br/>
+        <?php echo Form::hidden('taskId', $task->id); ?>
+
+        <!-- submit buttons -->
+        <?php echo Form::submit('Proof Filed'); ?>
+
+
+
+        <?php echo Form::close(); ?>
+
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

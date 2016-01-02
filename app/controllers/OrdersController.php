@@ -2,15 +2,19 @@
 
 class OrdersController extends \BaseController {
 	protected $order;
-	
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices)
+
+	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template)
 	{
-	
+
 		$this->orders = $orders;
 		$this->tasks = $tasks;
-		$this->reprojections = $reprojections;	
+		$this->reprojections = $reprojections;
 		$this->jobs = $jobs;
 		$this->invoices = $invoices;
+		$this->DocumentsServed = $DocumentsServed;
+		$this->Processes = $processes;
+		$this->Steps = $steps;
+		$this->Template = $template;
 	}
 
 
@@ -40,7 +44,7 @@ class OrdersController extends \BaseController {
 	 */
 	public function create()
 	{
-		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
 
@@ -51,11 +55,13 @@ class OrdersController extends \BaseController {
 			$company = Auth::user()->company;
 		}
 
+        $documents = array(['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
+
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->user_role=='Client'){
-		Return View::make('orders.create', array('states' => $states, 'courts' => $courts, 'company' => $company));
+		Return View::make('orders.create', array('states' => $states, 'courts' => $courts, 'company' => $company, 'documents' => $documents));
 		}
 		else{
-		Return redirect::to('login');	
+		Return Redirect::to('login');
 		}
 		
 	}
@@ -66,17 +72,17 @@ class OrdersController extends \BaseController {
 	 *
 	 * @return Response
 	 */
-	 public function getCourts($id)
+	 public function getCourts()
 	 {
-	$states = DB::table('states')->where('id', $id)->pluck('abbrev');
-	$courts = DB::table('courts')->where('state', $states)->get();
-        $options = array();
+         $input = Input::get('option');
+	$courts = DB::table('courts')->where('state', $input)->get();
 
-        foreach ($courts as $court) {
-            $options += array($court->id => $court->court);
-        }
+         $numbers = DB::table('courts')
+             ->where('state', $input)
+             ->orderBy('id', 'asc')
+             ->lists('court','id');
 
-        return Response::json($options);
+         return Response::json($numbers);
 	 }
 	 public  function clear()
 	 {
@@ -90,7 +96,9 @@ class OrdersController extends \BaseController {
 	}
 	public function store()
 	{
-		$input = Input::all();
+
+        $input = Input::all();
+        $court = DB::table('courts')->where('id', Input::get('court'))->first();
 		
 		if ( ! $this->orders->fill($input)->isValid())
 	{
@@ -100,26 +108,96 @@ class OrdersController extends \BaseController {
 		$orders->plaintiff = Input::get('plaintiff');
 		$orders->defendant = Input::get('defendant');
 		$orders->reference = Input::get('reference');
-		$orders->case = Input::get('case');
+		$orders->courtcase = Input::get('case');
 		$orders->state = Input::get('state');
-		$orders->court = Input::get('court');
+		$orders->county = $court->county;
+		$orders->court = $court->court;
 		$orders->user = Auth::user()->id;
 		$orders->company = Input::get('company');
 		$orders->save();
 		$orders_id =  $orders->id;
-		
-		if (Input::get('filing') === 'yes' OR Input::get('recording') === 'yes') {
-		$zipcode = DB::table('courts')->where('court', Input::get('court'))->pluck('zip'); 
-		$server = $this->orders->SelectServer($zipcode);
-			
-		$jobs_id = DB::table('jobs')->insertGetId(
-			array('client' => Input::get('company'), 'vendor' => $server, 'order_id' => $orders_id, 'defendant' => input::get('court'), 'state' => input::get('state'), 'zipcode' => $zipcode)
-			);
-		$send_task = array('jobs_id' => $jobs_id, 'vendor' => $server, 'filing' => Input::get('filing'), 'recording' => Input::get('recording'), 'orders_id' => $orders_id);
-		$this->tasks->FilingTasks($send_task);	
+
+        $docArray = array('input' => $input, 'orderId' => $orders_id);
+        $this->DocumentsServed->insertDocs($docArray);
+
+		//Set job to verify that docs are uploaded
+
+		$job = new Jobs;
+		$job->vendor = 1;
+		$job->client = Input::get('company');
+		$job->order_id = $orders_id;
+		$job->service = 'Verify Documents';
+		$job->priority = 'Routine';
+		$job->save();
+
+		//Create task array
+		$sendTask = array('jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => Input::get('state'));
+
+		//Load task into db
+		$process = $this->tasks->CreateTasks($sendTask);
+
+		//Update job with process
+		$job->process = $process;
+		$job->save();
+
+
+
+		if (!empty($input["filing"]) OR !empty($input["recording"])) {
+
+        $serverData = array('zipcode' => $court->zip, 'jobId' => 'NULL');
+		$server = $this->jobs->SelectServer($serverData);
+
+			if(!empty($input["filing"])) {
+
+				//Create job for filing
+
+				$job = new Jobs;
+				$job->vendor = $server;
+				$job->client = Input::get('company');
+				$job->order_id = $orders_id;
+				$job->service = Filing;
+				$job->priority = $input["filing"];
+				$job->zipcode = $court->zip;
+				$job->save();
+
+				//Create task array
+				$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Filing', 'priority' => $input["filing"], 'client' => Input::get('company'), 'state' => Input::get('state'));
+
+				//Load task into db
+				$process = $this->tasks->CreateTasks($sendTask);
+
+				//Update job with process
+				$job->process = $process;
+				$job->save();
+			}
+
+			if(!empty($input["recording"])) {
+
+				//Create job for recording
+
+				$job = new Jobs;
+				$job->vendor = $server;
+				$job->client = Input::get('company');
+				$job->order_id = $orders_id;
+				$job->service = Recording;
+				$job->priority = $input["recording"];
+				$job->zipcode = $court->zip;
+				$job->save();
+
+				//Create task array
+				$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Recording', 'priority' => $input["recording"], 'client' => Input::get('company'), 'state' => Input::get('state'));
+
+				//Load task into db
+				$process = $this->tasks->CreateTasks($sendTask);
+
+				//Update job with process
+				$job->process = $process;
+				$job->save();
+			}
 		}
+
 			Cache::put('orders_id', $orders_id, 30);
-			Return Redirect::route('orders.show')->with('orders_id', $orders_id); 
+		Return Redirect::route('orders.show')->with('orders_id', $orders_id);
 	}
 
 	/**
@@ -152,193 +230,13 @@ class OrdersController extends \BaseController {
 			->where('order_id', $id)
 			->where('client', Auth::user()->company)->orderBy('id', 'asc')->get();
 		}
-		$progress = array();
-		$completed = array();
-		//Loop through defendants and display latest status
-		foreach($viewservees as $viewservee){
 
-		//grab latest job
-		$job = DB::table('jobs')->where('servee_id', $viewservee->id)->orderBy('completed', 'asc')->first();
-		
 
-					
-		if($job->completed == NULL){
-		//Pass Job Id for holds/cancels
-		$progress[$viewservee->id]['job'] = $job->id;
-		$progress[$viewservee->id]['order'] = $id;
-		
 
-		//get status of latest task
-		$task = DB::table('tasks')->where('job_id', $job->id)
-					->where('completion', NULL)->orderBy('completion', 'asc')->first();
-		if(!empty($task)){
-			
-		
-		//Determine if job or order is on hold		
-		if($job->status == 1){
-		$progress[$viewservee->id]['hold'] = "Job On Hold";
-		$progress[$viewservee->id]['description'] = $this->tasks->TaskStatus($task->process);
-		$progress[$viewservee->id]['status'] = '1';
-		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));
-		}
-		
+        $token = Session::token();
 
-		//If Waiting for Documents to be filed/uploaded
-		elseif($task->status == 0 AND $job->status == 0){
-			$progress[$viewservee->id]['description'] = "Waiting for Documents";
-		$progress[$viewservee->id]['status'] = $this->reprojections->Status($task->id);
-		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
-		}
-
-		elseif($task->process < 7 AND $task->status !== 0 AND $job->status == 0){
-		//Current status of the current task			
-		$progress[$viewservee->id]['description'] = $this->tasks->TaskStatus($task->process);
-		$progress[$viewservee->id]['status'] = $this->reprojections->Status($task->id);
-		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
-		}
-	
-		//Due date of the current task
-		elseif($task->process < 7){
-		$progress[$viewservee->id]['deadline'] = date("m/d/y", strtotime($task->deadline));		
-		}
-		}
-		}
-		else{
-
-		//Display Completed Serves
-		
-		$served = DB::table('serve')->where('servee_id', $viewservee->id)->first();
-			
-			//Determine if defendant was served
-			if(!empty($served)){
-				$completed[$viewservee->id]['defendant'] = $job->defendant;
-				$completed[$viewservee->id]['served_upon'] = $served->served_upon;
-				$completed[$viewservee->id]['date'] = date("m/d/y", strtotime($served->date));	
-				$completed[$viewservee->id]['time'] = date("h:i A", strtotime($served->time));	
-				$completed[$viewservee->id]['street'] = $job->street;
-				$completed[$viewservee->id]['city'] = $job->city;	
-				$completed[$viewservee->id]['state'] = $job->state;	
-				$completed[$viewservee->id]['zipcode'] = $job->zipcode;	
-				$completed[$viewservee->id]['proof'] = $job->proof;	
-			//Determine if personal or sub-served
-				if($served->sub_served == 0){
-				$completed[$viewservee->id]['description'] = "Personal Service";
-				}
-				else{
-				$completed[$viewservee->id]['description'] = "Substitute Service";
-				$completed[$viewservee->id]['declaration'] = $job->declaration;
-				}
-			}
-			//Cancelled Job
-			elseif($job->status == 2){
-
-			$completed[$viewservee->id]['defendant'] = $job->defendant;
-			$completed[$viewservee->id]['description'] = "Job Canceled";	
-			$completed[$viewservee->id]['served_upon'] = "N/A";
-			$completed[$viewservee->id]['date'] = date("m/d/y", strtotime($job->completed));	
-			$completed[$viewservee->id]['time'] = date("h:i A", strtotime($job->completed));
-			$completed[$viewservee->id]['street'] = $job->street;
-			$completed[$viewservee->id]['city'] = $job->city;	
-			$completed[$viewservee->id]['state'] = $job->state;	
-			$completed[$viewservee->id]['zipcode'] = $job->zipcode;
-			$completed[$viewservee->id]['proof'] = NULL;
-			}
-			//Non-Serve
-			else{
-			//Find date and time on non-serve
-			$non = DB::table('attempts')->where('job', $job->id)->latest('date')->first();
-			
-			$completed[$viewservee->id]['defendant'] = $job->defendant;
-			$completed[$viewservee->id]['description'] = "Non-Serve";
-			$completed[$viewservee->id]['served_upon'] = "N/A";
-			$completed[$viewservee->id]['date'] = date("m/d/y", strtotime($non->date));	
-			$completed[$viewservee->id]['time'] = date("h:i A", strtotime($non->time));
-			$completed[$viewservee->id]['street'] = $job->street;
-			$completed[$viewservee->id]['city'] = $job->city;	
-			$completed[$viewservee->id]['state'] = $job->state;	
-			$completed[$viewservee->id]['zipcode'] = $job->zipcode;
-			$completed[$viewservee->id]['proof'] = $job->proof;
-			}
-				
-		
-		}
-		}
-		//Find latest filing task
-		$filing = DB::table('tasks')->where('order_id', $id)
-					    ->where('process', '<', 5)
-					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
-		//Show Documents After Filing is Complete
-
-		if(empty($filing)){
-			
-		$file = array();
-		$filingtask = array();
-		$recording = array();
-		
-			if(!empty($showorders->filed_docs)){
-		$filing['description'] = "Filed Documents";
-		$filing['file'] = $showorders->filed_docs;
-		View::share(['filing' => $filing]);
-			}
-			if(!empty($showorders->rec_docs)){
-		$recording['description'] = "Recorded Documents";
-		$recording['file'] = $showorders->rec_docs;
-		View::share(['recording' => $recording]);
-			}
-		}
-		else{
-
-		//Determine if job or order is on hold
-		$job = DB::table('jobs')->where('id', $filing->job_id)->first();
-		
-		if($job->status == 1 OR $showorders->status == 1){
-		
-		
-		if($job->status == 1){
-		$filingtask['job'] = $job->id;
-		$filingtask['description'] = "Job On Hold";
-		$filingtask['status'] = '1';
-		}
-		else{
-		$filingtask['order'] = $id;
-		$filingtask['job'] = $job->id;
-		$filingtask['description'] = "Order On Hold";
-		$filingtask['status'] = '2';
-		}
-			
-		}
-		else{
-		//Prepared filing status for View			   
-			$filingtask['description'] = $this->tasks->TaskStatus($filing->process);
-			$filingtask['deadline'] = date("m/d/y", strtotime($filing->deadline));
-			$filingtask['file'] = $showorders->filed_docs;
-			$filingtask['job'] = $filing->job_id;
-			$filingtask['status'] = '0';
-
-		}
-		}
-		//Find Invoices for Order
-		
-		$invoice_data = DB::table('invoices')->where('order_id', $id)->get();
-		
-		if(!empty($invoice_data)){
-		//If there are invoices, loop through them
-		
-		$invoices = array();
-		
-		foreach($invoice_data as $data){
-			
-		$invoices[$data->id]['date'] = date("m/d/y", strtotime($data->created_at));
-		$invoices[$data->id]['invoice'] = $data->invoice;
-		$invoices[$data->id]['amount'] = $data->client_amt;
-		$invoices[$data->id]['id'] = $data->id;
-		View::share(['invoices' => $invoices]);
-		
-		}
-		}
-		
 		//Return Order View	
-		return View::make('orders.show')->with(['filingtask' => $filingtask])->with('orders', $showorders)->with('servees', $viewservees)->with(['progress' => $progress])->with(['completed' => $completed])->with(['invoice_data' => $invoice_data]);
+		return View::make('orders.show')->with('orders', $showorders)->with('servees', $viewservees)->with('token', $token);
 		}
 		else{
 		Return redirect::to('login');	
@@ -372,7 +270,7 @@ class OrdersController extends \BaseController {
 
 		//Find latest filing task
 		$filing = DB::table('tasks')->where('order_id', $id)
-					    ->where('process', '<', 6)
+					    ->where('process', '=', 1)
 					    ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
 		//Removed Document Hold, if there are no filing tasks assoc. w/ order
@@ -385,7 +283,7 @@ class OrdersController extends \BaseController {
 		foreach($jobs as $job){
 		$task = DB::table('tasks')->where('job_id', $job)
 					  ->where('completion', NULL)
-					  ->where('process', '>' ,4)->orderBy('completion', 'asc')->first();
+					  ->where('process', '=' ,1)->orderBy('completion', 'asc')->first();
 		if(!empty($task)){
 		$this->tasks->TaskForecast($task->id);
 		}
@@ -409,6 +307,59 @@ class OrdersController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
+    public function edit($id){
+
+        //Get order data
+        $data = Orders::whereId($id)->first();
+
+        $states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+
+        $clients = Company::whereVC('client')->orderBy('name', 'asc')->lists('name', 'name');
+
+        //Check if user is Admin or Client
+        if(Auth::user()->company==$data->company OR Auth::user()->user_role=='Admin') {
+
+            Return View::make('orders.edit')->with(['data' => $data])->with(['states' => $states])->with(['clients' => $clients]);
+        }
+    }
+    public function update()
+    {
+        //Gather form data
+        $input = Input::all();
+
+        //Validate form data
+        if ( ! $this->orders->fill($input)->isValid())
+        {
+            return Redirect::back()->withInput()->withErrors($this->orders->errors);
+        }
+
+        $court = DB::table('courts')->where('id', Input::get('court'))->pluck('court');
+
+        //Update Order Data
+        $orders = Orders::whereId(Input::get('orderId'))->first();
+
+        if(!empty($input["plaintiff"])) {
+            $orders->plaintiff = Input::get('plaintiff');
+        }
+        if(!empty($input["defendant"])) {
+            $orders->defendant = Input::get('defendant');
+        }
+        if(!empty($input["reference"])) {
+            $orders->reference = Input::get('reference');
+        }
+        if(!empty($input["case"])) {
+            $orders->courtcase = Input::get('case');
+        }
+        $orders->state = Input::get('state');
+        $orders->court = $court;
+        if(!empty($input["company"])) {
+            $orders->company = Input::get('company');
+        }
+        $orders->save();
+
+        Return Redirect::route('orders.show', Input::get('orderId'));
+
+    }
 	public function add()
 	{
 			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
@@ -426,10 +377,7 @@ class OrdersController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
-	{
-		//
-	}
+
 
 
 	/**

@@ -31,37 +31,23 @@ table#t01 th	{
 <h1>View Active Jobs</h1>
 
 
-<?php if(!empty($job)): ?>
+<?php if(!empty($jobs)): ?>
 
 <table>
   <tr>
     <th>Job #</th>
-    <th>Task</th>		
+    <th>Service</th>
+    <th>Priority</th>
     <th>Defendant</th>
-    <th>Deadline</th>
-    <th>Actions</th>
+    <th>Service Address</th>
   </tr>
-<?php foreach($job as $jobs): ?>
+<?php foreach($jobs as $job): ?>
 <tr>
-<td><?php echo link_to("/jobs/{$jobs["id"]}", $jobs["id"]); ?></td>
-<td><?php echo $jobs["task"]; ?></td>
-<td><?php echo $jobs["defendant"]; ?></td> 
-<?php if(!empty($jobs["link"]["link"])): ?>
-<td><?php echo link_to("/reprojections/{$jobs["link"]["link"]}", $jobs["deadline"]); ?> </td>
-<?php else: ?>
-<td><?php echo $jobs["deadline"]; ?></td> 
-<?php endif; ?>
-<?php if(!empty($jobs["link"]["text"])): ?>
-<td><?php echo Form::open(['route' => 'tasks.complete']); ?><?php echo Form::token(); ?><?php echo Form::hidden('tasks_id', $jobs["link"]["link"]); ?><?php echo Form::submit($jobs["link"]["text"]); ?><?php echo Form::close(); ?>
-
-<?php if( !empty($jobs["link"]["text2"])): ?>
-<?php echo Form::open(['route' => 'serve.add']); ?><?php echo Form::token(); ?><?php echo Form::hidden('tasks_id', $jobs["link"]["link"]); ?><?php echo Form::submit($jobs["link"]["text2"]); ?><?php echo Form::close(); ?>
-
-<?php endif; ?>
-</td>
-<?php else: ?>
- <td></td>
-<?php endif; ?>
+<td><?php echo link_to("/jobs/{$job->id}", $job->id); ?></td>
+<td><?php echo $job->service; ?></td>
+<td><?php echo $job->priority; ?></td>
+<td><?php echo $job->defendant; ?></td>
+<td><?php echo $job->street; ?>&nbsp;<?php echo $job->street2; ?>,<?php echo $job->city; ?>,<?php echo $job->state; ?>&nbsp;<?php echo $job->zipcode; ?></td>
 <?php endforeach; ?>
 <?php else: ?>
 <h2>No Jobs to display!</h2>

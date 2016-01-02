@@ -25,9 +25,8 @@
 	{{ Form::checkbox('non-serve', 'yes') }} Note: This will end service for this defendant and generate a Proof of Service.
 	{{ $errors->first('non-serve') }}
 	</div>
-	{{ Form::hidden('job', $job_id) }}
-	{{ Form::hidden('tasks_id', $tasks_id) }}
-	{{ Form::hidden('_token', $token) }}
+	{{ Form::hidden('job', $job) }}
+	{{ Form::hidden('taskId', $taskId) }}
 	<div>{{ Form::submit('Add Attempt') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}
 <a href="{{ URL::previous() }}">Go Back</a>

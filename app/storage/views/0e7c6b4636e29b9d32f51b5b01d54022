@@ -1,0 +1,18 @@
+<?php $__env->startSection('content'); ?>
+<h1>Order Documents</h1>
+
+<table>
+    <tr>
+        <th>Document</th>
+        <th>Date Uploaded</th>
+    </tr>
+<?php foreach($documents as $document): ?>
+<tr>
+    <td><?php echo link_to("{$document->filepath}/{$document->filename}", str_replace('_', ' ', $document->document)); ?></td>
+    <td><?php echo $document->created_at; ?></td>
+    </tr>
+<?php endforeach; ?>
+    </table>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

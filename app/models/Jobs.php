@@ -10,7 +10,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['defendant','street','street2','city','state','zipcode','order_id'];
+	protected $fillable = ['service','priority','defendant','street','street2','city','state','county','zipcode','order_id','notes'];
 	
 	public static $rules = [
 		'defendant' => 'required',
@@ -19,7 +19,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		'zipcode' => 'required|min:5|max:5',
 	];
 	public static $file_rules = [
-		'proof' => 'mimes:pdf|max:10000',
+		'Executed_proof' => 'mimes:pdf|max:10000',
+        'Executed_Declaration' => 'mimes:pdf|max:10000',
 		];
 
 	public $errors;
@@ -61,10 +62,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		
 		return false;
 	}
-	public function SelectServer($zipcode)
+
+	public function SelectServer($serverData)
 	{
-	if(!empty($zipcode)){
-		$input1 = urlencode($zipcode);
+	if(!empty($serverData['zipcode'])){
+		$input1 = urlencode($serverData['zipcode']);
 	}
 	else{
 	$input1 = urlencode($this->attributes["zipcode"]);
@@ -75,16 +77,154 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		return 1;
 	}
 	$distance = array();
-	foreach($result as $select){
-	
-		$score = DB::table('company')->where('id', $select["UserData"])->pluck('score');
-		$distance[$select["UserData"]] = (1-($score))*($select["Distance"]["Value"]);
+	foreach($result as $key => $select){
+
+     //Find status of server
+     $suspended =  DB::table('company')
+                                      ->where('id', $select["UserData"])
+                                      ->where('status', 1)->pluck('status');
+
+     //Find if server has been previously assigned to job
+     if($serverData['jobId'] != NULL) {
+         $previousAssignment = DB::table('tasks')
+             ->where('vendor', $select["UserData"])
+             ->where('job_id', $serverData['jobId'])->pluck('vendor');
+     }
+
+     //Remove unqualified servers
+        if(!empty($suspended)){
+
+        unset($result[$key]);
+
+        }
+        elseif(!empty($previousAssignment)){
+
+        unset($result[$key]);
+
+        }
+	else {
+        $score = DB::table('company')->where('id', $select["UserData"])->pluck('score');
+        $distance[$select["UserData"]] = (1 - ($score)) * ($select["Distance"]["Value"]);
+    }
 		
 	}
 	$server = array_keys($distance, min($distance));
+
 	foreach($server as $servers){
 		return $servers;
 	}
+
+	}
+
+	public function ReAssignServer($newServer){
+
+		//Find previous server
+		$previousServer = Tasks::whereJobId($newServer['jobId'])->OrderBy('sort_order', 'asc')->first();
+
+		//Create task for new server
+		$newTask = new Tasks;
+		$newTask->job_id = $newServer['jobId'];
+		$newTask->order_id = $newServer['orderId'];
+		$newTask->group = $newServer['vendor'];
+		$newTask->process = $previousServer->process;
+		$newTask->sort_order = $previousServer->sort_order;
+		$newTask->days = $previousServer->days;
+		$newTask->window = $previousServer->window;
+		$newTask->status = 1;
+		$newTask->deadline = Carbon::now()->addDays($previousServer->days);
+		$newTask->save();
+
+		//Assign Job to new server
+		$assignJob = Jobs::whereId($newServer['jobId'])->first();
+
+		$assignJob->vendor = $newServer['vendor'];
+		$assignJob->save();
+
+		//Find upcoming tasks
+		$futureTasks = Tasks::whereJobId($newServer['jobId'])->whereGroup($previousServer->group)->whereNULL('completion')->get();
+
+		//Loop through all tasks
+		foreach($futureTasks as $futureTask) {
+
+			$task = Tasks::whereId($futureTask->id)->first();
+			$task->group = $newServer['vendor'];
+			$task->save();
+
+		}
+
+		return $newTask->id;
+
+	}
+
+	public function JobComplete($id){
+
+		//Mark Job as complete
+		$job = Jobs::whereId($id)->first();
+		$job->completed = Carbon::now();
+		$job->save();
+
+		//Check to see if any dependent processes
+		$depProcess = Dependent::wherepredProcess($job->process)->get();
+
+		//Find jobs on pending completion of prior job, if any processes
+		if(!empty($depProcess)) {
+
+			$depJobs = array();
+
+			foreach ($depProcess as $process) {
+
+				$depJobs[$process->dep_process] = Jobs::whereProcess($process->dep_process)
+													->whereOrderId($job->order_id)
+													->whereStatus(0)->get();
+			}
+
+		//Check to see if any additional dependent jobs, if any
+			if(!empty($depJobs)){
+
+				foreach($depProcess as $proces){
+
+					foreach($depJobs[$process->dep_process] as $depJob){
+
+						$addProcesses = Dependent::wheredepProcess($depJob->process)
+												->where('process', '!=', $job->process)->get();
+
+						//If additional dependent processes exist, check for existing jobs
+
+						if(!empty($addProcesses)){
+
+							$addJob = array();
+
+							foreach($addProcesses as $addProcess){
+
+								$addJob = Jobs::whereProcess($addProcess->pred_process)
+												->whereNull('completed')
+												->whereorderId($job->order_id)->get();
+							}
+
+								if(!empty($addJob)){
+
+								}
+
+							//If no active dependent jobs, remove hold on task(s)
+								else{
+
+									$depTask = Tasks::wherejobId($depJob->id)
+													->whereNull('completion')
+													->orderBy('sort_order', 'asc')->first();
+
+									$depTask->status = 1;
+									$depTask->save();
+
+									$this->tasks->Forecast($depTask->id);
+								}
+						}
+
+					}
+				}
+
+			}
+		}
+
 
 	}
 	

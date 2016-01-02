@@ -1,19 +1,22 @@
 <html>
 <head>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#state").change(function() {
-            $.getJSON("../orders/courts/" + $("#state").val(), function(data) {
-                var $courts = $("#courts");
-                $courts.empty();
-                $.each(data, function(index, value) {
-                    $courts.append('<option value="' + index +'">' + value + '</option>');
-                });
-            $("#courts").trigger("change"); /* trigger next drop down list not in the example */
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            $('#state').change(function(){
+                $.get("{{ url('api/getcourts')}}", { option: $('#state').val() },
+                        function(data) {
+                            var numbers = $('#court');
+                            numbers.empty();
+                            $.each(data, function(key, value) {
+                                numbers .append($("<option></option>")
+                                        .attr("value",key)
+                                        .text(value));
+                            });
+                        });
             });
         });
-    });
-</script>
+    </script>
 </head>
 <body>
 <h1>Create New Order</h1>
@@ -46,26 +49,46 @@
 	{{ Form::select('state', $states, null, ['id' => 'state']) }}
 	{{ $errors->first('state') }}
 	</div>
-	{{ Form::label('court', 'Court: ') }}
-	{{ Form::select('court', $courts) }}
-	{{ $errors->first('court') }}
+<div class="row">
+    <div class="large-9 columns">
+        <label for="court">Court:</label>
+        <select id="court" name="court">
+        </select>
+		{{ $errors->first('court') }}
+	</div>
+</div>
     	<div>
 	{{ Form::label('services', 'Services: ') }}
-	{{ Form::checkbox('filing', 'yes') }} 
+	{{ Form::select('filing', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
 	{{ Form::label('filing', 'Filing ') }}
-	{{ Form::checkbox('recording', 'yes') }}
+	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
 	{{ Form::label('recording', 'Recording ') }}
 	{{ Form::checkbox('service', 'yes') }} 
 	{{ Form::label('service', 'Service ') }}
-	{{ $errors->first('services') }}
+	{{ $errors->first('services') }}<p>
 	</div>
+<div>
+
+    {{ Form::label('Documents Served', 'Documents Served: ') }}<br>
+
+    @foreach($documents as $document)
+
+    {{ Form::checkbox($document[0], $document[1]) }}
+    {{ Form::label($document[1],  $document[1]) }}<br>
+    @endforeach
+    {{ $errors->first('documentsServed') }}<p>
+</div>
 @if (Auth::user()->user_role=='Admin')
     	{{ Form::label('company', 'Client: ') }}
 	{{ Form::select('company', $company) }}
-	{{ $errors->first('company') }}
+	{{ $errors->first('company') }}<p>
 @else
 	{{ Form::hidden('company', $company) }}
 @endif
+
+    @foreach($documents as $document)
+   {{  '<input type="hidden" name="documents[]" value="'. $document[0]. '">' }}
+    @endforeach
 
 	<div>{{ Form::submit('Create Order') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}

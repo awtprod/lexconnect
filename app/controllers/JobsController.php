@@ -1,14 +1,18 @@
 <?php
 use Carbon\Carbon;
 class JobsController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Jobs $jobs, Invoices $invoices)
+	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template)
 	{
-	
+
 		$this->orders = $orders;
 		$this->tasks = $tasks;
+		$this->reprojections = $reprojections;
 		$this->jobs = $jobs;
 		$this->invoices = $invoices;
-
+		$this->DocumentsServed = $DocumentsServed;
+		$this->Processes = $processes;
+		$this->Steps = $steps;
+		$this->Template = $template;
 	}
 
 	/**
@@ -19,60 +23,17 @@ class JobsController extends \BaseController {
 	public function index()
 	{
 		if(Auth::user()->user_role=='Admin'){
-		$jobs = DB::table('jobs')->OrderBy('id', 'asc')->get();
-		$job2 = array();
-		foreach($jobs as $job){
-		$tasks = DB::table('tasks')->OrderBy('process', 'asc')
-						->where('job_id', $job->id)
-						->where('completion', NULL)->first();
-		if(empty($tasks)){
-		}
-		else{
-		$job2[$job->id]['task'] = $this->tasks->TaskStatus($tasks->process);
-		$job2[$job->id]['link'] = $this->tasks->TaskLink($tasks->id);
-		$job2[$job->id]['deadline'] = date("m/d/y", strtotime($tasks->deadline));
-		$job2[$job->id]['id'] = $job->id;
-		$job2[$job->id]['defendant'] = $job->defendant;
-		}
-		}
+		$jobs = Jobs::OrderBy('id', 'asc')->get();
+
 		}
 		elseif(Auth::user()->user_role=='Vendor'){
 		$jobs = DB::table('jobs')->OrderBy('id', 'asc')
 								->where('vendor', Auth::user()->company_id)
 								->where('completed', NULL)->get();
-		$job2 = array();
-		foreach($jobs as $job){
-		$tasks = DB::table('tasks')->OrderBy('process', 'asc')
-						->where('job_id', $job->id)
-						->where('completion', NULL)->first();
-		$tasks_vendor = DB::table('tasks')->OrderBy('process', 'asc')
-						->where('job_id', $job->id)
-						->where('completion', NULL)
-						->where('vendor', Auth::user()->company_id)->first();
-		//If Waiting for Documents to be filed/uploaded
-		if(empty($tasks)){
-		}
-		elseif($tasks != $tasks_vendor){
-		$job2[$job->id]['task'] = $this->tasks->TaskStatus($tasks_vendor->process)."<br>(Pending Prior Task)";
-		$job2[$job->id]['link'] = NULL; 
-		$job2[$job->id]['deadline'] = date("m/d/y", strtotime($tasks_vendor->deadline));
-		}	
-		elseif($tasks->status == 0){
-		$job2[$job->id]['task'] = "On Hold";
-		$job2[$job->id]['link'] = NULL;
-		$job2[$job->id]['deadline'] = date("m/d/y", strtotime($tasks_vendor->deadline));
-		}
-		else{
-		$job2[$job->id]['task'] = $this->tasks->TaskStatus($tasks->process);
-		$job2[$job->id]['link'] = $this->tasks->TaskLink($tasks->id);
-		$job2[$job->id]['deadline'] = date("m/d/y", strtotime($tasks->deadline));
-		}
-		$job2[$job->id]['id'] = $job->id;
-		$job2[$job->id]['defendant'] = $job->defendant;
-		}
+
 		}
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->user_role=='Vendor'){
-					return View::make('jobs.index', array('job' => $job2));
+					return View::make('jobs.index', array('jobs' => $jobs));
 		}
 		else{
 			Return "Not Authorized To View!";
@@ -193,6 +154,8 @@ class JobsController extends \BaseController {
 		$servee_id = DB::table('servee')->insertGetId(
 			array('order_id' => input::get('orders_id'), 'client' => $client, 'user' => Auth::user()->id, 'defendant' => input::get('defendant'))
 			);
+
+        $order = Orders::whereId(Input::get('orders_id'))->first();
 		
 		//Mark to send back to new defendant form
 		
@@ -202,8 +165,9 @@ class JobsController extends \BaseController {
 		
 		$new = FALSE;
 		}
-		
-		$server = $this->orders->SelectServer(Input::get('zipcode'));
+
+        $serverData = array('jobId' => NULL, 'zipcode' => Input::get('zipcode'));
+        $server = $this->jobs->SelectServer($serverData);
 		$street2 = Input::get('street2');
 		$job = new Jobs;
 		$job->servee_id = $servee_id;
@@ -217,11 +181,26 @@ class JobsController extends \BaseController {
 		}
 		$job->city = input::get('city');
 		$job->state = input::get('state');
+        $job->county = input::get('county');
 		$job->zipcode = input::get('zipcode');
+
+        if(!empty(Input::get('notes'))) {
+            $job->notes = Input::get('notes');
+        }
 		$job->save();
-		
-		$send_task = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => Input::get('orders_id'));
-		$this->tasks->ServiceTasks($send_task);
+
+
+
+        //Create Service Tasks Array
+		$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => Input::get('process'), 'priority'=>Input::get('priority'), 'client' => $client, 'state' => $order->state );
+
+        //Create Service Tasks
+        $process = $this->tasks->CreateTasks($sendTask);
+
+		//Update job with process
+		$job->process = $process;
+		$job->save();
+
 		Cache::forget('input');
 		
 		if($new == TRUE){
@@ -244,32 +223,26 @@ class JobsController extends \BaseController {
 	public function show($id)
 	{
 
+        $token = Session::token();
+
 		if(!is_numeric($id)){
 		$id = Session::get('job_id');
 		}
-		$tasks = DB::table('tasks')->where('job_id', $id)->OrderBy('process', 'asc')->get();
-		$jobs = DB::table('jobs')->OrderBy('id', 'asc')->where('id', $id)->first();
-		$process = DB::table('tasks')->OrderBy('process', 'asc')
-						->where('job_id', $id)
-						->where('completion', NULL)->pluck('process');
-		if($process == 7){
+		$tasks = Tasks::wherejobId($id)->OrderBy('sort_order', 'asc')->get();
+		$jobs = Jobs::whereId($id)->OrderBy('id', 'asc')->first();
+
 		
 		$servers = DB::table('users')->where('company_id', $jobs->vendor)->orderBy('name', 'asc')->lists('name', 'name');
 		View::share(['servers' => $servers]);
-		}
-		
-		if(!empty($jobs->proof)){
-		View::share('proof', $jobs->proof);	
-		}
+
 		
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->company_id==$jobs->vendor){
-		$jobtask = array();
-		foreach ($tasks as $task){
-			$jobtask[$task->id]['description'] = $this->tasks->TaskStatus($task->process);
-			$jobtask[$task->id]['deadline'] = date("m/d/y", strtotime($task->deadline));
-		}
-		return View::make('jobs.show', ['jobtask' => $jobtask])->with('jobs', $jobs)->with('process', $process);
-		}
+
+				$first = 'true';
+
+                return View::make('jobs.view')->with('jobs', $jobs)->with('tasks', $tasks)->with('token', $token)->with('first', $first);
+            }
+
 		else{
 			return 'Not Authorized to View Page!';
 		}
@@ -286,25 +259,31 @@ class JobsController extends \BaseController {
 	{
 		return Redirect::back()->withInput()->withErrors($this->jobs->errors);	
 	}
+
+     $orderId = Jobs::whereId(Input::get('job_id'))->pluck('order_id');
+
 		//Save File
 		$destinationPath = public_path().'/proofs';
 		$file = str_random(6);
 		$filename = Input::get('job_id').'_'.$file.'.pdf';
-		Input::file('proof')->move($destinationPath, $filename);
+		Input::file('Executed_proof')->move($destinationPath, $filename);
 		
 		//Update Table
-		$jobs = Jobs::whereId(Input::get('job_id'))->first();
-		$jobs->proof = $filename;
-		$jobs->save();
+        $dbDoc = new Documents;
+        $dbDoc->document = 'Executed_Proof';
+        $dbDoc->jobId = Input::get('job_id');
+        $dbDoc->orderId = $orderId;
+        $dbDoc->filename = $filename;
+        $dbDoc->filepath = '/proofs';
+        $dbDoc->save();
 		
 		//Complete Task
-		$task = DB::table('tasks')->where('job_id', Input::get('job_id'))
-					  ->where('completion', NULL)->orderBy('completion', 'asc')->first();
 		
-		$complete = $this->tasks->TaskComplete($task->id);
+		$complete = $this->tasks->TaskComplete(Input::get('taskId'));
 		
 		//Mark Job as Complete
 		if($complete == TRUE){
+        $jobs = Jobs::whereId(Input::get('job_id'))->first();
 		$jobs->completed = Carbon::now();
 		$jobs->save();
 		
@@ -325,16 +304,23 @@ class JobsController extends \BaseController {
 	{
 		return Redirect::back()->withInput()->withErrors($this->jobs->errors);	
 	}
+        $orderId = Jobs::whereId(Input::get('job_id'))->pluck('order_id');
+        $jobs = Jobs::whereId(Input::get('job_id'))->first();
+
 		//Save File
 		$destinationPath = public_path().'/declarations';
 		$file = str_random(6);
 		$filename = Input::get('job_id').'_'.$file.'.pdf';
-		Input::file('declaration')->move($destinationPath, $filename);
+		Input::file('Executed_Declaration')->move($destinationPath, $filename);
 		
 		//Update Table
-		$jobs = Jobs::whereId(Input::get('job_id'))->first();
-		$jobs->declaration = $filename;
-		$jobs->save();
+        $dbDoc = new Documents;
+        $dbDoc->document = 'Executed_Declaration';
+        $dbDoc->jobId = Input::get('job_id');
+        $dbDoc->orderId = $orderId;
+        $dbDoc->filename = $filename;
+        $dbDoc->filepath = '/declarations';
+        $dbDoc->save();
 		
 		//Complete Task
 		$task = DB::table('tasks')->where('job_id', Input::get('job_id'))
@@ -444,14 +430,14 @@ class JobsController extends \BaseController {
 	//Find current task
 	$task = DB::table('tasks')->where('job_id', Input::get('id'))->whereNULL('completion')->first();
 	
-	if(($task->process > 1 AND $task->process < 5) OR $task->process >5){
+	if(($task->process == 1 AND $task->step > 1) OR ($task->process == 2 AND $task->step > 0)){
 
 	$this->invoices->CreateInvoice(Input::get('id'));
 	
 	}
 	
 	//Determine if filing job and service docs have been uploaded
-	if($task->process < 5){
+	if($task->step == 1){
 	
 	$canceledjob = DB::table('jobs')->where('id', Input::get('id'))->first();
 
@@ -470,7 +456,7 @@ class JobsController extends \BaseController {
 		foreach($jobs as $job){
 		$futuretask = DB::table('tasks')->where('job_id', $job->id)
 					 	->where('completion', NULL)
-					 	->where('process', '>', 4)->orderBy('completion', 'asc')->first();
+					 	->where('process', '=', 1)->orderBy('completion', 'asc')->first();
 
 		if(!empty($futuretask)){		  
 		$this->tasks->TaskForecast($futuretask->id);

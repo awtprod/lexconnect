@@ -46,8 +46,9 @@ class ServeController extends \BaseController {
 		return Redirect::back()->withInput()->withErrors($this->serve->errors);	
 	}
 	
-	$task = DB::table('tasks')->where('id', Input::get('tasks_id'))->first();
-	$job = DB::table('jobs')->where('id', $task->job_id)->first();
+	$task = Tasks::whereId(Input::get('tasksId'))->first();
+	$job = Jobs::whereId($task->job_id)->first();
+    $order = Orders::whereId($task->order_id)->first();
 //Save serve
             $serve = new Serve;
             $serve->date = Input::get('date');
@@ -64,31 +65,43 @@ class ServeController extends \BaseController {
             $serve->relationship = Input::get('relationship');
             $serve->hair = Input::get('hair'); 
             $serve->glasses = Input::get('glasses');
-            $serve->moustache = Input::get('moustache');
+            $serve->moustache = Input::get('Moustache');
             $serve->beard = Input::get('beard');            
             $serve->job_id = $task->job_id;
             $serve->order_id = $task->order_id;
             $serve->servee_id = $job->servee_id;
             $serve->save();
-        
+
+		//Find servee
+		$servee = Servee::whereId($job->servee_id)->first();
+
+		//Mark servee as "served" or set status to "1"
+		$servee->status = '1';
+		$servee->save();
+
 //Complete Task
-	$this->tasks->TaskComplete(Input::get('tasks_id'));
+	$this->tasks->TaskComplete(Input::get('tasksId'));
 
 	//Determine if Dec of Mailing is needed
         if (Input::get('sub-serve') === 'yes') {
-        
+      /*
        //Determin state that case is filed in
-        $state = DB::table('orders')->where('id', $job->order_id)->pluck('state');
+        $state = Orders::whereId($job->order_id)->pluck('state');
         
         if($this->rules->DecOfMailing($state)){
         
         //If Dec of Mailing is needed, launch tasks
-	$send_task = array('jobs_id' => $job->id, 'vendor' => $task->vendor, 'orders_id' => $task->order_id);
-	$this->tasks->DecOfMailing($send_task);	
+	$send_task = array('jobs_id' => $job->id, 'vendor' => $task->vendor, 'orders_id' => $task->order_id, 'court' =>$order->court, 'process' => $task->process);
+	$this->tasks->DecOfMailing($send_task);
+
+            //Reforecast all tasks
+
+            $this->tasks->TaskReproject(Input::get('tasks_id'));
+
         	}
-        }
+        */}
 	
-	return Redirect::route('jobs.index');
+	return Redirect::route('jobs.show', $job->id);
 	}
 
 

@@ -68,6 +68,18 @@ table#t01 th	{
 	{{ Form::text('zipcode', $input["zipcode"]) }}
 	{{ $errors->first('zipcode') }}
 	</div>
+<div>
+    {{ Form::label('notes', 'Notes to Server: ') }}
+    {{ Form::textarea('notes') }}
+    {{ $errors->first('notes') }}
+</div>
+<div>
+    {{ Form::label('type', 'Service Type: ') }}
+    {{ Form::label('type', 'Routine Serve', true) }}
+    {{ Form::radio('type', 'Routine Serve', true) }}<br>
+    {{ Form::label('type', 'Property Posting') }}
+    {{ Form::radio('type', 'Property Posting') }}
+</div>
 {{ Form::hidden('orders_id', $input["orders_id"]) }}
 
 	<div>{{ Form::submit('Add Defendant') }}{{ Form::reset('Reset') }}</div>
@@ -108,6 +120,18 @@ table#t01 th	{
 	{{ Form::text('zipcode') }}
 	{{ $errors->first('zipcode') }}
 	</div>
+<div>
+    {{ Form::label('notes', 'Notes to Server: ') }}
+    {{ Form::textarea('notes') }}
+    {{ $errors->first('notes') }}<p>
+</div>
+<div>
+    {{ Form::label('type', 'Service Type: ') }}<br>
+    {{ Form::label('type', 'Routine Serve', true) }}
+    {{ Form::radio('type', 'Routine Serve', true) }}<br>
+    {{ Form::label('type', 'Property Posting') }}
+    {{ Form::radio('type', 'Property Posting') }}<p>
+</div>
 {{ Form::hidden('orders_id', $orders_id) }}
 
 	<div>{{ Form::submit('Add Defendant') }}{{ Form::reset('Reset') }}</div>

@@ -1,0 +1,94 @@
+<html>
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            $('#state').change(function(){
+                $.get("<?php echo url('api/getcourts'); ?>", { option: $('#state').val() },
+                        function(data) {
+                            var numbers = $('#court');
+                            numbers.empty();
+                            $.each(data, function(key, value) {
+                                numbers .append($("<option></option>")
+                                        .attr("value",key)
+                                        .text(value));
+                            });
+                        });
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Edit Order</h1>
+
+
+<?php echo Form::open(['route' => 'orders.update']); ?>
+
+	<div>
+	<?php echo Form::label('plaintiff', 'Plaintiff: '); ?>
+
+	<?php echo Form::text('plaintiff', $data->plaintiff); ?>
+
+	<?php echo $errors->first('plaintiff'); ?>
+
+	</div>
+		<div>
+	<?php echo Form::label('defendant', 'Defendant: '); ?>
+
+	<?php echo Form::text('defendant', $data->defendant); ?>
+
+	<?php echo $errors->first('defendant'); ?>
+
+	</div>
+		<div>
+	<?php echo Form::label('case', 'Court Case: '); ?>
+
+	<?php echo Form::text('case', $data->case); ?>
+
+	<?php echo $errors->first('case'); ?>
+
+	</div>
+			<div>
+	<?php echo Form::label('reference', 'Reference: '); ?>
+
+	<?php echo Form::text('reference', $data->reference); ?>
+
+	<?php echo $errors->first('reference'); ?>
+
+	</div>
+
+	<div>
+	<?php echo Form::label('state', 'State: '); ?>
+
+	<?php echo Form::select('state', $states, $data->state, ['id' => 'state']); ?>
+
+	<?php echo $errors->first('state'); ?>
+
+	</div>
+<div class="row">
+    <div class="large-9 columns">
+        <label for="court">Court:</label>
+        <select id="court" name="court" selected>
+        </select>
+        <option selected><?php echo $data->court; ?></option>
+    </div>
+</div>
+
+<?php if(Auth::user()->user_role=='Admin'): ?>
+    	<?php echo Form::label('company', 'Client: '); ?>
+
+	<?php echo Form::select('company', $clients, $data->company); ?>
+
+	<?php echo $errors->first('company'); ?><p>
+<?php endif; ?>
+
+<?php echo Form::hidden('orderId', $data->id); ?>
+
+
+	<div><?php echo Form::submit('Edit Order'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+
+</body>
+</html>

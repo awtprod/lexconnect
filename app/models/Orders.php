@@ -9,16 +9,15 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['defendant','plaintiff','reference','court','state','case','company','documents'];
+	protected $fillable = ['county','courtcase','fileDate','defendant','plaintiff','reference','court','state','case','company','documents'];
 	
 	public static $rules = [
 		'defendant' => 'required',
 		'plaintiff' => 'required',
+		'court' => 'required',
 	];
 	
-	public static $file_rules = [
-		'documents' => 'mimes:pdf|max:10000',
-		];
+
 
 	public $errors;
 
@@ -49,16 +48,8 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		return false;
 	}
 	
-	public function ValidFiles()
-	{
-		$validation = Validator::make($this->attributes, static::$file_rules);
-		
-		if ($validation->passes()) return true;
-		
-		$this->errors = $validation->messages();
-		
-		return false;	
-	}
+
+    /*
 	public function SelectServer($zipcode)
 	{
 	if(!empty($zipcode)){
@@ -80,11 +71,13 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		
 	}
 	$server = array_keys($distance, min($distance));
+        dd($server);
 	foreach($server as $servers){
 		return $servers;
 	}
 
 	}
+    */
 
 
 }

@@ -1,0 +1,16 @@
+<?php $__env->startSection('head'); ?>
+<?php $__env->startSection('content'); ?>
+<h1>All Users</h1>
+<?php echo link_to('/users/create', 'Add User'); ?>
+
+<?php if($users->count()): ?>
+
+<?php foreach($users as $user): ?>
+<li><?php echo link_to("/users/{$user->id}", $user->name); ?> &nbsp; <?php echo link_to("/users/{$user->id}/edit", 'Edit'); ?></li> 
+<?php endforeach; ?>
+<?php else: ?>
+<h2>No Users to display!</h2>
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

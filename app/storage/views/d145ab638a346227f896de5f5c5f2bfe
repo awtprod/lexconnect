@@ -87,6 +87,25 @@ table#t01 th	{
 	<?php echo $errors->first('zipcode'); ?>
 
 	</div>
+<div>
+    <?php echo Form::label('notes', 'Notes to Server: '); ?>
+
+    <?php echo Form::textarea('notes'); ?>
+
+    <?php echo $errors->first('notes'); ?>
+
+</div>
+<div>
+    <?php echo Form::label('type', 'Service Type: '); ?>
+
+    <?php echo Form::label('type', 'Routine Serve', true); ?>
+
+    <?php echo Form::radio('type', 'Routine Serve', true); ?><br>
+    <?php echo Form::label('type', 'Property Posting'); ?>
+
+    <?php echo Form::radio('type', 'Property Posting'); ?>
+
+</div>
 <?php echo Form::hidden('orders_id', $input["orders_id"]); ?>
 
 
@@ -148,6 +167,22 @@ table#t01 th	{
 	<?php echo $errors->first('zipcode'); ?>
 
 	</div>
+<div>
+    <?php echo Form::label('notes', 'Notes to Server: '); ?>
+
+    <?php echo Form::textarea('notes'); ?>
+
+    <?php echo $errors->first('notes'); ?><p>
+</div>
+<div>
+    <?php echo Form::label('type', 'Service Type: '); ?><br>
+    <?php echo Form::label('type', 'Routine Serve', true); ?>
+
+    <?php echo Form::radio('type', 'Routine Serve', true); ?><br>
+    <?php echo Form::label('type', 'Property Posting'); ?>
+
+    <?php echo Form::radio('type', 'Property Posting'); ?><p>
+</div>
 <?php echo Form::hidden('orders_id', $orders_id); ?>
 
 

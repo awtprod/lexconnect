@@ -54,10 +54,10 @@ return array(
 
 		'mysql' => array(
 			'driver'    => 'mysql',
-			'host'      => '104.236.177.176',
-			'database'  => 'forge',
-			'username'  => 'forge',
-			'password'  => 'OZyXS27xCgjwNey9bull',
+			'host'      => 'localhost',
+			'database'  => 'learning-laravel',
+			'username'  => 'root',
+			'password'  => '',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',

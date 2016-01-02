@@ -39,7 +39,7 @@ table#t01 th	{
     <th>Task</th>		
     <th>Defendant</th>
     <th>Deadline</th>
-    <th></th>
+    <th>Actions</th>
   </tr>
 @foreach ($job as $jobs)
 <tr>

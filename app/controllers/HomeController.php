@@ -65,7 +65,7 @@ class HomeController extends BaseController {
 		
 		$vendor = DB::table('company')->where('id', $job->vendor)->pluck('name');
 		
-		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->process);
+		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->id);
 		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);
 		$tasklist[$job->job_id]['deadline'] = date("m/d/y", strtotime($job->deadline));
 		$tasklist[$job->job_id]['id'] = $job->job_id;
@@ -104,7 +104,7 @@ class HomeController extends BaseController {
 	$tasklist = array();
 	
 	foreach($openjobs as $job){
-		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->process);
+		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->id);
 		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);
 		$tasklist[$job->job_id]['deadline'] = date("m/d/y", strtotime($job->deadline));
 		$tasklist[$job->job_id]['id'] = $job->job_id;

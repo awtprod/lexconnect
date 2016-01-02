@@ -10,7 +10,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['defendant','street','street2','city','state','zipcode','name','company', 'date', 'recording', 'case', 'documents'];
+	protected $fillable = ['service','priority','process','defendant','street','street2','city','state','zipcode','name','company', 'date', 'recording', 'case', 'documents','completion','group','days','total_days','window','deadline','window'];
 	
 	public static $rules = [
 		'defendant' => 'required',
@@ -95,519 +95,303 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			}	
 	}
 	public function TaskForecast($id){
-			$tasks_first = Tasks::whereId($id)->first();
-			Cache::put('days', Carbon::now()->addDays($tasks_first->days), 5);
-			$tasks_first->deadline = Cache::get('days');
-			$tasks_first->save();
-			
-			Cache::put('process', $tasks_first->process, 5);
-			Cache::increment('process');
+			$taskFirst = Tasks::whereId($id)->first();
+			Cache::put('days', Carbon::now()->addDays($taskFirst->days), 5);
+			$taskFirst->deadline = Cache::get('days');
+			$taskFirst->save();
 
-			
-			for($process = Cache::get('process'); $process<=10; $process++){
-			$tasks_next = Tasks::OrderBy('id', 'desc')
-						->whereJobId($tasks_first->job_id)
-						->whereProcess($process)->first();
-			if(!empty($tasks_next)){
-			$days = Cache::get('days')->addDays($tasks_next->days);
-			$tasks_next->deadline = $days;
-			$tasks_next->save();	
-			Cache::put('days', $days, 5);
+		//Gather upcoming tasks
+
+		$nextTasks = Tasks::whereJobid($taskFirst->job_id)
+				->whereNull('completion')
+				->where('id', '!=', $id)->orderBy('sort_order', 'asc')->get();
+
+		if(!empty($nextTasks)){
+			//Update upcoming tasks
+
+			foreach($nextTasks as $nextTask){
+
+				$taskNext = Tasks::whereId($nextTask->id)->first();
+
+				//Update status of next task
+				$days = Cache::get('days')->addDays($taskNext->days);
+				$taskNext->deadline = $days;
+				$taskNext->save();
+				Cache::put('days', $days, 5);
 			}
-			}
-			Cache::forget('days', 'process');	
+		}
+		Cache::forget('days');
 	}
 	
 	public function TaskReproject($id){
-			$tasks_first = Tasks::whereId($id)->first();
+			$taskFirst = Tasks::whereId($id)->first();
 			
 			//Save process and date to cache to update the deadlines of upcoming tasks
-			Cache::put('process', $tasks_first->process, 5);
-			Cache::put('days', Carbon::now(), 5);
-			Cache::increment('process');
-			
-			//Determine if this was the last task for the job
-			$tasks_final = Tasks::OrderBy('id', 'desc')
-						->whereJobId($tasks_first->job_id)
-						->whereProcess(Cache::get('process'))->first();
-			
+			Cache::put('days', $taskFirst->deadline, 5);
+
+			//Gather upcoming tasks
+
+			$nextTasks = Tasks::whereJobid($taskFirst->job_id)
+								->whereNull('completion')
+								->where('id', '!=', $id)->orderBy('sort_order', 'asc')->get();
+
+			if(!empty($nextTasks)){
 			//Update upcoming tasks
-			$first = true;
-			
-			for($process = Cache::get('process'); $process<=10; $process++){
-			$tasks_next = Tasks::OrderBy('id', 'desc')
-						->whereJobId($tasks_first->job_id)
-						->whereProcess($process)->first();
-			if(!empty($tasks_next)){
-			
+
+			foreach($nextTasks as $nextTask){
+
+			$taskNext = Tasks::whereId($nextTask->id)->first();
+
 			//Update status of next task
-			if($first){
-			$days = Cache::get('days')->addDays($tasks_next->days);
-			$tasks_next->deadline = $days;
-			$tasks_next->save();	
-			$first = false;
+			$days = Cache::get('days')->addDays($taskNext->days);
+			$taskNext->deadline = $days;
+			$taskNext->save();
 			Cache::put('days', $days, 5);
 			}
-			//Update remaining tasks
-			else{
-			$days = Cache::get('days')->addDays($tasks_next->days);
-			$tasks_next->deadline = $days;
-			$tasks_next->save();	
-			Cache::put('days', $days, 5);			
 			}
-			}
-			}
-			Cache::forget('days', 'process');	
+			Cache::forget('days');
 	}	
-	public function TaskComplete($id){
-			//Retrieve Current Task
-			$tasks_first = Tasks::whereId($id)->first();
-			
-			//Convert deadline date to Carbon-friendly form
-			$y = date("Y", strtotime($tasks_first->deadline));
-			$m = date("m", strtotime($tasks_first->deadline));
-			$d = date("d", strtotime($tasks_first->deadline));
-			
-			//Save completion date for task
-			$tasks_first->completion = Carbon::now();
-			$tasks_first->save();
-			
-			//Find difference between completion and schedule deadline
-			$difference = Carbon::now()->diffInDays(Carbon::createFromDate($y, $m, $d),false);
-			
-			//If difference is positive, task is late, decrease server score
-			if($difference < 0){
-			$abs_difference = abs($difference);
-			DB::table('company')->where('id', $tasks_first->vendor)->increment('total_points', $abs_difference);
-			}
-			//Else on-time, increase score
-			else{
-			DB::table('company')->where('id', $tasks_first->vendor)->increment('points', $difference);
-			DB::table('company')->where('id', $tasks_first->vendor)->increment('total_points', $difference);		
-			}
-			
-			//Save process and date to cache to update the deadlines of upcoming tasks
-			Cache::put('process', $tasks_first->process, 5);
-			Cache::put('days', Carbon::now(), 5);
-			Cache::increment('process');
-			
-			//Determine if this was the last task for the job
-			$tasks_final = Tasks::OrderBy('id', 'desc')
-						->whereJobId($tasks_first->job_id)
-						->whereProcess(Cache::get('process'))->first();
-			
-			//If it is last job, return back to controller
-			if(empty($tasks_final)){
+	public function TaskComplete($id)
+	{
+		//Retrieve Current Task
+		$tasksFirst = Tasks::whereId($id)->first();
 
-			Return TRUE;
+		//Convert deadline date to Carbon-friendly form
+		$y = date("Y", strtotime($tasksFirst->deadline));
+		$m = date("m", strtotime($tasksFirst->deadline));
+		$d = date("d", strtotime($tasksFirst->deadline));
+
+		//Save completion date for task
+		$tasksFirst->completion = Carbon::now();
+		$tasksFirst->completed_by = Auth::user()->id;
+		$tasksFirst->save();
+
+		//Find difference between completion and schedule deadline
+		$difference = Carbon::now()->diffInDays(Carbon::createFromDate($y, $m, $d), false);
+
+		//If difference is positive, task is late, decrease server score
+		if ($difference < 0) {
+			$absDifference = abs($difference);
+			DB::table('company')->where('id', $tasksFirst->vendor)->increment('total_points', $absDifference);
+		} //Else on-time, increase score
+		else {
+			DB::table('company')->where('id', $tasksFirst->vendor)->increment('points', $difference);
+			DB::table('company')->where('id', $tasksFirst->vendor)->increment('total_points', $difference);
+		}
+
+		//Save date to cache to update the deadlines of upcoming tasks
+		Cache::put('days', Carbon::now(), 5);
+		Cache::increment('step');
+
+		//Determine if this was the last task for the job
+		$nextTasks = Tasks::whereJobId($tasksFirst->job_id)
+				->whereNull('completion')
+				->orderBy('sort_order', 'asc')->get();
+
+		//If it is last job, return back to controller
+		if (is_null($nextTasks->first())) {
+			//Mark Job as complete
+			$job = Jobs::whereId($tasksFirst->job_id)->first();
+			$job->completed = Carbon::now();
+			$job->save();
+
+			//Check to see if any dependent processes
+			$depProcess = Dependent::wherepredProcess($job->process)->get();
+
+			//Find jobs on pending completion of prior job, if any processes
+			if(!empty($depProcess)) {
+
+				$depJobs = array();
+
+				foreach ($depProcess as $process) {
+
+					$depJobs[$process->dep_process] = Jobs::whereProcess($process->dep_process)
+							->whereOrderId($job->order_id)
+							->whereStatus(0)->get();
+				}
+
+				//Check to see if any additional dependent jobs, if any
+				if(!empty($depJobs)){
+
+					foreach($depProcess as $proces){
+
+						foreach($depJobs[$process->dep_process] as $depJob){
+
+							$addProcesses = Dependent::wheredepProcess($depJob->process)
+									->where('process', '!=', $job->process)->get();
+
+							//If additional dependent processes exist, check for existing jobs
+
+							if(!empty($addProcesses)){
+
+								$addJob = array();
+
+								foreach($addProcesses as $addProcess){
+
+									$addJob = Jobs::whereProcess($addProcess->pred_process)
+											->whereNull('completed')
+											->whereorderId($job->order_id)->get();
+								}
+
+								if(!empty($addJob)){
+
+								}
+
+								//If no active dependent jobs, remove hold on task(s)
+								else{
+
+									$depTask = Tasks::wherejobId($depJob->id)
+											->whereNull('completion')
+											->orderBy('sort_order', 'asc')->first();
+
+									$depTask->status = 1;
+									$depTask->save();
+
+									$this->tasks->Forecast($depTask->id);
+								}
+							}
+
+						}
+					}
+
+				}
 			}
-			
+			Return TRUE;
+		}
+
+		//Determine if there are any dependent jobs
+		$predProcesses = Dependent::wheredepProcess($tasksFirst->process)->get();
+
+		//Find active processes
+
+		foreach ($predProcesses as $predProcess) {
+
+			$active = Jobs::whereProcess($predProcess)->whereNull('completed')->get();
+
+		}
+		if (empty($active)) {
 			//Update upcoming tasks
 			$first = true;
-			
-			for($process = Cache::get('process'); $process<=10; $process++){
-			$tasks_next = Tasks::OrderBy('id', 'desc')
-						->whereJobId($tasks_first->job_id)
-						->whereProcess($process)->first();
-			if(!empty($tasks_next)){
-			
-			//Update status of next task
-			if($first){
-				
-			$days = Cache::get('days')->addDays($tasks_next->days);
-			$tasks_next->deadline = $days;
-			
-			//If attempting to serve, check to see if docs have been uploaded/filed
-			if($process == 6){
-				
-			//Check to see if docs have been uploaded
-			$documents = Orders::whereId($tasks_next->order_id)->pluck('filed_docs');
-			
-			//Find all filing tasks with job
-			$alltasks = Tasks::whereJobId($tasks_next->job_id)
-									->where('process', '<', '4')
-									->whereNULL('completion')->get();
-									
-			//Hold service if filed docs are empty or active filing
-			if(empty($documents) OR !empty($alltasks)){
-			$tasks_next->status = 0;				
+
+			foreach ($nextTasks as $nextTask) {
+				$curTask = Tasks::whereId($nextTask->id)->first();
+
+					//Update status of next task
+					if ($first == true) {
+
+						$days = Cache::get('days')->addDays($curTask->days);
+						$curTask->deadline = $days;
+						$curTask->status = 1;
+						$curTask->save();
+
+						$first = false;
+						Cache::put('days', $days, 5);
+					} //Update remaining tasks
+					else {
+						$days = Cache::get('days')->addDays($curTask->days);
+						$curTask->deadline = $days;
+						$curTask->save();
+						Cache::put('days', $days, 5);
+					}
+				}
 			}
-			else{
-			$tasks_next->status = 1;				
-			}
-				
-			}
-			else{
-			$tasks_next->status = 1;
-			}
-			$tasks_next->save();	
-			$first = false;
-			Cache::put('days', $days, 5);
-			}
-			//Update remaining tasks
-			else{
-			$days = Cache::get('days')->addDays($tasks_next->days);
-			$tasks_next->deadline = $days;
-			$tasks_next->save();	
-			Cache::put('days', $days, 5);			
-			}
-			}
-			}
-			Cache::forget('days', 'process');
-	}
-	public function TaskLink($id)
+			Cache::forget('days', 'step');
+		}
+
+
+
+    public function QAFail ($taskDeatils){
+
+        $tasks = new Tasks;
+        $tasks->job_id = $taskDeatils['jobId'];
+        $tasks->order_id = $taskDeatils['orderId'];
+        $tasks->vendor = 1;
+        $tasks->process = 1;
+        $tasks->step = 4;
+        $tasks->days = 3;
+        $tasks->status = 0;
+        $tasks->deadline = Carbon::now()->addDays(3);
+        $tasks->save();
+    }
+		
+
+	public function CreateTasks($sendTask)
 	{
-	if(Auth::user()->user_role=='Vendor' OR Auth::user()->user_role=='Admin'){
-		$link = array();
-		$status = DB::table('tasks')->where('id', $id)->pluck('process');
+
+		//Find default process for county
+		$default = Counties::whereState($sendTask['state'])->whereCounty($sendTask['county'])->pluck($sendTask['process']);
+
+        //Find process is still active
+		$process = Processes::whereName($default)->first();
+
+		//If process is not active, find first active process for service type
+		if(empty($process)){
+
+			$process = Processes::whereService($sendTask['process'])->orderBy('id', 'asc')->first();
+		}
+		if(empty($process)){
+
+			$process = Processes::whereName(str_replace('_', ' ', $sendTask['process']))->orderBy('id', 'asc')->first();
+		}
+		//Find steps
+        $steps = Template::whereProcess($process->id)->orderBy('sort_order', 'asc')->get();
+
+        $first = 'true';
+
+        //Save Task List
+		foreach($steps as $step){
+
+        $tasks = new Tasks;
+		$tasks->job_id = $sendTask['jobs_id'];
+		$tasks->order_id = $sendTask['orders_id'];
+		$tasks->service = $sendTask['process'];
+		$tasks->process = $step->name;
+		$tasks->priority = $sendTask['priority'];
+			if($step->group == "Vendor") {
+                $tasks->group = $sendTask['vendor'];
+            }
+            if($step->group == "Admin"){
+
+                $tasks->group = 1;
+
+            }
+            if($step->group == "Client"){
+                $tasks->group = $sendTask['client'];
+            }
+		$tasks->process = $process->id;
+		$tasks->sort_order = $step->sort_order;
+          if($first == "true") {
+                $tasks->status = 1;
+                $first = 'false';
+            }
+            else{
+
+
+                $tasks->status = 0;
+           }
+
+		if($sendTask['priority'] == 'Routine') {
+			$tasks->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+			$tasks->days = $step->RoutineNewDueDate;
+		}
+		elseif($sendTask['priority'] == 'Rush') {
+				$tasks->deadline = Carbon::now()->addDays($step->RushOrigDueDate);
+				$tasks->days = $step->RushNewDueDate;
+		}
+		elseif($sendTask['priority'] == 'SameDay') {
+				$tasks->deadline = Carbon::now()->addDays($step->SameDayOrigDueDate);
+				$tasks->days = $step->SameDayNewDueDate;
+		}
+		$tasks->window = $step->window;
+		$tasks->save();
+
+			}
+		Return $process->id;
 	}
-	if($status == '0'){
-		$link['text'] = 'Documents Picked Up';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '1'){
-		$link['text'] = 'Documents Sent For Filing';
-		$link['link'] = $id;
-		Return $link;
-		}
-		
-	if($status == '2'){
-		$link['text'] = 'Received Documents For Filing';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '3'){
-		$link['text'] = 'Documents Filed';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '4'){
-		$link['text'] = 'Documents Recorded';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '5'){
-		$link['text'] = 'Accept';
-		$link['link'] = $id;
-		Return $link;
-		}
 
 	
-	if($status == '6'){
-		
-		$link['text'] = 'Attempt Serve';
-		$link['text2'] = 'Attempting to Serve Defendant';
-		$link['link'] = $id;
-		Return $link;
-		}
 
-	
-	if($status == '7'){
 
-		$link['text'] = 'Complete and Upload Proof of Service';
-		$link['link'] = $id;
-		Return $link;
-		}
 
-	
-	if($status == '8'){
-
-		$link['text'] = 'Send Proof of Service';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '9'){
-
-		$link['text'] = 'Mail Documents to Defendant';
-		$link['link'] = $id;
-		Return $link;
-		}
-	if($status == '10'){
-
-		$link['text'] = 'Send Declaration of Mailing to Court';
-		$link['link'] = $id;
-		Return $link;
-		}
-
-	
-	else{
-		Return false;
-	}
-	}
-	public function TaskStatus($status)
-	{
-	
-	if($status == '0'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Pick Up Documents from Firm';
-		}
-		else{
-		Return 'Documents are being picked up for filing';
-		}
-	}
-	if($status == '1'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Send Documents to Server';
-		}
-		else{
-		Return 'Documents dispatched to server for filing';
-		}
-	}
-	if($status == '2'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Documents for filing received';
-		}
-		else{
-		Return 'Documents for filing received by server';
-		}
-	}
-	if($status == '3'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'File Documents with court';
-		}
-		else{
-		Return 'Documents dispatched to court for filing';
-		}
-	}
-	if($status == '4'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Record documents';
-		}
-		else{
-		Return 'Documents dispatched for recording';
-		}
-	}
-
-	if($status == '5'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Accept New Serve';
-		}
-		else{
-		Return 'Waiting for Server to confirm new serve';
-		}
-	}
-	if($status == '6'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Attempt Serve';
-		}
-		else{
-		Return 'Out for Service';
-		}
-	}
-	if($status == '7'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Complete and Upload Proof of Service';
-		}
-		else{
-		Return 'Defendant Served';
-		}
-	}
-	if($status == '8'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Send Proof of Service';
-		}
-		else{
-		Return 'Proof Uploaded';
-		}
-	}
-	if($status == '9'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Mail Documents to Defendant';
-		}
-		else{
-		Return 'Documents being mailed to defendant';
-		}
-	}
-	if($status == '10'){
-		if(Auth::user()->user_role=='Vendor'){
-		Return 'Send and Upload Declaration of Mailing to Court';
-		}
-		else{
-		Return 'Declaration of Mailing Uploaded';
-		}
-	}
-	}
-	public function FilingTasks($send_task)
-	{
-		for($i=0; $i<=5; $i++){
-			if($i==0){ 
-		//Documents Picked Up
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = 1;
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 1;
-		$tasks->deadline = Carbon::now()->addDays(3);
-		$tasks->save();
-		
-			}
-			if($i==1){
-		//Send Documents to Server
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = 1;
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(6);
-		$tasks->save();
-			}
-			if($i==2){
-		//Server Receives Documents
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(11);
-		$tasks->save();
-			}
-			if($i==3){
-			if($send_task['filing']=='yes'){
-		//Server Files Documents
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(14);
-		$tasks->save();
-			}
-			}
-			if($i==4){
-			if($send_task['recording']=='yes'){
-		//Server Records Documents
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		if($send_task['filing']=='yes' AND $send_task['recording']=='yes'){
-		$tasks->days = 0;
-		}
-		else{
-		$tasks->days = 3;
-		}
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(14);
-		$tasks->save();
-			}
-			}
-
-		}
-		
-	}
-	public function ServiceTasks($send_task)
-	{
-		for($i=5; $i<=8; $i++){
-			if($i==5){ 
-		//Accept Refferal
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 1;
-		$tasks->deadline = Carbon::now()->addDays(3);
-		$tasks->save();
-		
-			}
-			if($i==6){
-		//First Service Attempt
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 7;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(10);
-		$tasks->save();
-			}
-			if($i==7){
-		//Complete Proof of Service
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(13);
-		$tasks->save();
-			}
-			if($i==8){
-		//Send Proof of Service
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 6;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(19);
-		$tasks->save();
-			}
-
-		}
-		
-	}
-	
-	public function DecOfMailing($send_task){
-		for($i=9; $i<=10; $i++){	
-			if($i==9){ 
-		//Mail Documents
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 1;
-		$tasks->deadline = Carbon::now()->addDays(3);
-		$tasks->save();
-		
-			}
-			if($i==10){ 
-		//Send Dec of Mailing
-		$tasks = new Tasks;
-		$tasks->job_id = $send_task['jobs_id'];
-		$tasks->order_id = $send_task['orders_id'];
-		$tasks->vendor = $send_task['vendor'];
-		$tasks->process = $i;
-		$tasks->days = 3;
-		$tasks->status = 0;
-		$tasks->deadline = Carbon::now()->addDays(6);
-		$tasks->save();
-		
-			}
-		}
-	}
-	
-	public function WaitingDocs($order_id){
-		
-		//Find all jobs
-		$currentjobs = Jobs::whereOrderId($order_id)->whereNULL('completed')->get();
-		
-		//loop through all service jobs
-		foreach($currentjobs as $job){
-		
-		$tasks = Tasks::whereJobId($job->id)->where('process', 6)->first();
-		if(!empty($tasks)){
-		$tasks->status = 1;
-		$tasks->save();	
-		}
-		}
-
-	}
 
 }

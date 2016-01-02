@@ -8,7 +8,7 @@
 @if (!empty($orders))
 <h2>Order # &nbsp; Order Date: </h2>
 @foreach ($orders as $order)
-<li>{{ link_to("/orders/{$order->id}", $order->id) }} &nbsp; {{ $order->created_at }} </li> 
+<li>{{ link_to("/orders/{$order->id}", $order->id) }} &nbsp; {{ $order->created_at }} </li>
 @endforeach
 @else
 <h2>No Orders to display!</h2>

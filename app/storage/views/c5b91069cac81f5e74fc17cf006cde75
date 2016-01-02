@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+table {
+    width:60%;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+table#t01 tr:nth-child(even) {
+    background-color: #eee;
+}
+table#t01 tr:nth-child(odd) {
+   background-color:#fff;
+}
+table#t01 th	{
+    background-color: black;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+<h1>Invoice</h1><p>
+<h2>Bill To:</h2><p>
+<?php echo $data['client']; ?><br>
+<?php echo $data['client_street']; ?><br>
+<?php echo $data['client_city']; ?>, <?php echo $data['client_state']; ?>&nbsp;<?php echo $data['client_zip']; ?><br>
+
+
+<div>
+Order #<?php echo $data['order']; ?><br>
+Job #<?php echo $data['job']; ?><p>
+<table>
+  <tr>
+    <th>Service</th>
+    <th>Service Date</th>	
+    <th>Servee</th>
+    <th>Location</th>
+    <th>Amount Due</th>
+    
+  </tr>
+
+  <tr>
+      <td><?php echo $data['product']; ?></td>
+      <td><?php echo $data['serve_date']; ?></td>
+      <td><?php echo $data['defendant']; ?></td>
+      <td><?php echo $data['street']; ?>,&nbsp;<?php echo $data['city']; ?>,&nbsp;<?php echo $data['state']; ?>&nbsp;<?php echo $data['zip']; ?></td>
+      <td>$<?php echo $data['client_fee']; ?>.00</td>
+
+
+  </tr>
+</table>
+</div>
+-------------------------------------------<p>
+<h2><table>
+<tr><td>Amount Due</td><td>$<?php echo $data['client_fee']; ?>.00</td>
+</tr>
+</table>
+
+</body>
+</html>

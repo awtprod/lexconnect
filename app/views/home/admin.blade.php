@@ -15,7 +15,6 @@
     <th>Task</th>		
     <th>Defendant</th>
     <th>Deadline</th>
-    <th></th>
   </tr>
 @foreach ($job as $jobs)
 <tr>
@@ -29,15 +28,7 @@
 @else
 <td>{{ $jobs["deadline"] }}</td> 
 @endif
-@if(!empty($jobs["link"]["text"]))
-<td>{{ Form::open(['route' => 'tasks.complete']) }}{{ Form::token() }}{{ Form::hidden('tasks_id', $jobs["link"]["link"]) }}{{ Form::submit($jobs["link"]["text"]) }}{{ Form::close() }}
-@if( !empty($jobs["link"]["text2"]))
-{{ Form::open(['route' => 'serve.add']) }}{{ Form::token() }}{{ Form::hidden('tasks_id', $jobs["link"]["link"]) }}{{ Form::submit($jobs["link"]["text2"]) }}{{ Form::close() }}
-@endif
-</td>
-@else
- <td></td>
-@endif
+
 @endforeach
 @else
 <h2>No Jobs to display!</h2>

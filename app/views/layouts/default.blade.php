@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <style>
 table {
-    width:100px;
+    height:70%;
+    width:70%;
+    padding:0;
+    margin:0;
+
 }
 table, th, td {
     border: 1px solid black;
@@ -18,9 +22,11 @@ table#t01 tr:nth-child(even) {
     background-color: #eee;
 }
 table#t01 tr:nth-child(odd) {
+
    background-color:#fff;
 }
 table#t01 th	{
+
     background-color: black;
     color: white;
 }

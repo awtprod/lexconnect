@@ -1,19 +1,22 @@
 <html>
 <head>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#state").change(function() {
-            $.getJSON("../orders/courts/" + $("#state").val(), function(data) {
-                var $courts = $("#courts");
-                $courts.empty();
-                $.each(data, function(index, value) {
-                    $courts.append('<option value="' + index +'">' + value + '</option>');
-                });
-            $("#courts").trigger("change"); /* trigger next drop down list not in the example */
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            $('#state').change(function(){
+                $.get("<?php echo url('api/getcourts'); ?>", { option: $('#state').val() },
+                        function(data) {
+                            var numbers = $('#court');
+                            numbers.empty();
+                            $.each(data, function(key, value) {
+                                numbers .append($("<option></option>")
+                                        .attr("value",key)
+                                        .text(value));
+                            });
+                        });
             });
         });
-    });
-</script>
+    </script>
 </head>
 <body>
 <h1>Create New Order</h1>
@@ -62,39 +65,58 @@
 	<?php echo $errors->first('state'); ?>
 
 	</div>
-	<?php echo Form::label('court', 'Court: '); ?>
+<div class="row">
+    <div class="large-9 columns">
+        <label for="court">Court:</label>
+        <select id="court" name="court">
+        </select>
+		<?php echo $errors->first('court'); ?>
 
-	<?php echo Form::select('court', $courts); ?>
-
-	<?php echo $errors->first('court'); ?>
-
+	</div>
+</div>
     	<div>
 	<?php echo Form::label('services', 'Services: '); ?>
 
-	<?php echo Form::checkbox('filing', 'yes'); ?> 
+	<?php echo Form::select('filing', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?>
+
 	<?php echo Form::label('filing', 'Filing '); ?>
 
-	<?php echo Form::checkbox('recording', 'yes'); ?>
+	<?php echo Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?>
 
 	<?php echo Form::label('recording', 'Recording '); ?>
 
 	<?php echo Form::checkbox('service', 'yes'); ?> 
 	<?php echo Form::label('service', 'Service '); ?>
 
-	<?php echo $errors->first('services'); ?>
-
+	<?php echo $errors->first('services'); ?><p>
 	</div>
+<div>
+
+    <?php echo Form::label('Documents Served', 'Documents Served: '); ?><br>
+
+    <?php foreach($documents as $document): ?>
+
+    <?php echo Form::checkbox($document[0], $document[1]); ?>
+
+    <?php echo Form::label($document[1],  $document[1]); ?><br>
+    <?php endforeach; ?>
+    <?php echo $errors->first('documentsServed'); ?><p>
+</div>
 <?php if(Auth::user()->user_role=='Admin'): ?>
     	<?php echo Form::label('company', 'Client: '); ?>
 
 	<?php echo Form::select('company', $company); ?>
 
-	<?php echo $errors->first('company'); ?>
-
+	<?php echo $errors->first('company'); ?><p>
 <?php else: ?>
 	<?php echo Form::hidden('company', $company); ?>
 
 <?php endif; ?>
+
+    <?php foreach($documents as $document): ?>
+   <?php echo '<input type="hidden" name="documents[]" value="'. $document[0]. '">'; ?>
+
+    <?php endforeach; ?>
 
 	<div><?php echo Form::submit('Create Order'); ?><?php echo Form::reset('Reset'); ?></div>
 <?php echo Form::close(); ?>

@@ -34,6 +34,8 @@ table#t01 th	{
 <h2> Verify Defendant</h2>
 
 <?php if(empty($result)): ?>
+<?php echo dd(Input::all()); ?>
+
 <?php echo Form::open(['route' => 'jobs.store']); ?>
 
 <h3><font color="red">Warning! The Address You Entered Cannot Be Verified. Please Verify That You Correctly Entered The Address. Click "Verify Defendant" If You Wish To Continue With This Address.</font></h3>
@@ -44,6 +46,11 @@ Defendant:<?php echo $input["defendant"]; ?><?php echo Form::hidden('defendant',
 <?php echo $input["city"]; ?><?php echo Form::hidden('city', $input["city"]); ?>,&nbsp;
 <?php echo $input["state"]; ?><?php echo Form::hidden('state', $input["state"]); ?>&nbsp;
 <?php echo $input["zipcode"]; ?><?php echo Form::hidden('zipcode', $input["zipcode"]); ?><p>
+
+    <?php echo Form::hidden('notes', Input::get('notes')); ?>
+
+    <?php echo Form::hidden('type', Input::get('type')); ?>
+
 
 <?php if(!empty($input["servee_id"])): ?>
 	<?php echo Form::hidden('orders_id', $input["orders_id"]); ?>
@@ -63,16 +70,22 @@ Defendant:<?php echo $input["defendant"]; ?><?php echo Form::hidden('defendant',
 
 
 <?php else: ?>
-<?php echo Form::open(['route' => 'jobs.store']); ?>
+    <?php echo Form::open(['route' => 'jobs.store']); ?>
 
 
 Defendant:<?php echo $input["defendant"]; ?><?php echo Form::hidden('defendant', $input["defendant"]); ?><p>
 
 <?php echo $result[0]['delivery_line_1']; ?><?php echo Form::hidden('street', $result[0]['delivery_line_1']); ?>&nbsp;
 <?php echo $result[0]['components']['city_name']; ?><?php echo Form::hidden('city', $result[0]['components']['city_name']); ?>,&nbsp;
+<?php echo $result[0]['metadata']['county_name']; ?><?php echo Form::hidden('county', $result[0]['metadata']['county_name']); ?>,&nbsp;
 <?php echo $result[0]['components']['state_abbreviation']; ?><?php echo Form::hidden('state', $result[0]['components']['state_abbreviation']); ?>&nbsp;
 <?php echo $result[0]['components']['zipcode']; ?><?php echo Form::hidden('zipcode', $result[0]['components']['zipcode']); ?><p>
 <b>Property Vacant:&nbsp;<?php echo $result[0]['analysis']['dpv_vacant']; ?></b>
+
+        <?php echo Form::hidden('notes', Input::get('notes')); ?>
+
+        <?php echo Form::hidden('type', Input::get('type')); ?>
+
 
 <?php if(!empty($input["servee_id"])): ?>
 	<?php echo Form::hidden('orders_id', $input["orders_id"]); ?>

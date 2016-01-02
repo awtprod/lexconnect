@@ -1,0 +1,36 @@
+<?php $__env->startSection('content'); ?>
+<h1>Upload Documents</h1>
+
+<?php echo Form::open(array('route'=>'documents.filedDocuments','files'=>true)); ?>
+
+<?php echo $errors->first('documents'); ?><p>
+
+<div>
+    <?php echo Form::label('date', 'Date Filed: '); ?>
+
+    <?php echo Form::input('date', 'date'); ?>
+
+    <?php echo $errors->first('date'); ?>
+
+</div>
+<div>
+    <?php echo Form::label('case', 'Court Case: '); ?>
+
+    <?php echo Form::text('case'); ?>
+
+    <?php echo $errors->first('case'); ?>
+
+</div>
+<?php echo $errors->first('filedDocuments'); ?><p>
+   Filed Documents: <input type="file" name="filedDocuments" id="">
+    <br/>
+
+    <p>
+    <?php echo Form::hidden('taskId', $taskId); ?>
+
+    <!-- submit buttons -->
+    <?php echo Form::submit('Upload Documents'); ?>
+
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

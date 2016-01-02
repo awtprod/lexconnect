@@ -1,0 +1,96 @@
+<?php $__env->startSection('content'); ?>
+
+<?php if(empty($clientId)): ?>
+
+<p>
+    <div>Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
+
+<?php echo Form::select('clientId', $clients); ?>
+
+<?php echo Form::submit('Select'); ?></div>
+
+<?php elseif(count($rates)>0): ?>
+
+Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
+
+    <?php echo Form::select('clientId', $clients); ?>
+
+    <?php echo Form::submit('Select'); ?>
+
+
+<h1>Rates for <?php echo $company->name; ?></h1>
+<?php echo link_to("/clientRates/edit/{$company->id}", 'Edit'); ?>
+
+
+<table>
+  <tr>
+    <th>State</th>
+    <th>Filing Flat Rate</th>
+    <th>Filing Surcharge</th>
+    <th>Serve Flat Rate</th>
+    <th>Serve Surcharge</th>
+  </tr>
+<?php foreach($rates as $rate): ?>
+<tr>
+	<div>
+        <?php if(!empty($rate["state"])): ?>
+	<td><?php echo $rate["state"]; ?></td>
+        <?php else: ?>
+        <td></td>
+        <?php endif; ?>
+	</div>
+
+    <div>
+        <?php if(!empty($rate["filingFlat"])): ?>
+            <td><?php echo $rate["filingFlat"]; ?></td>
+        <?php else: ?>
+            <td></td>
+        <?php endif; ?>
+    </div>
+
+    <div>
+        <?php if(!empty($rate["filingSurcharge"])): ?>
+            <td><?php echo $rate["filingSurcharge"]; ?></td>
+        <?php else: ?>
+            <td></td>
+        <?php endif; ?>
+    </div>
+
+
+
+    <div>
+        <?php if(!empty($rate["serveFlat"])): ?>
+            <td><?php echo $rate["serveFlat"]; ?></td>
+        <?php else: ?>
+            <td></td>
+        <?php endif; ?>
+    </div>
+
+    <div>
+        <?php if(!empty($rate["serveSurcharge"])): ?>
+            <td><?php echo $rate["serveSurcharge"]; ?></td>
+        <?php else: ?>
+            <td></td>
+        <?php endif; ?>
+    </div>
+
+<?php endforeach; ?>
+</tr>
+</table>
+
+<?php else: ?>
+
+
+    Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
+
+    <?php echo Form::select('clientId', $clients); ?>
+
+    <?php echo Form::submit('Select'); ?><p>
+
+    <h3>Enter rates for client: <?php echo link_to("/clientRates/create/{$company->id}", $company->name); ?></h3>
+
+<?php endif; ?>
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

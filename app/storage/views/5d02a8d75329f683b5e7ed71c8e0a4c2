@@ -1,0 +1,22 @@
+<?php $__env->startSection('content'); ?>
+<h1>Forgot Password</h1>
+<?php echo $errors->first();; ?>
+
+<?php echo Form::open(['route' => 'push_forgot_password']); ?>
+
+	<div>
+	<?php echo Form::label('email', 'Email: '); ?>
+
+	<?php echo Form::email('email'); ?>
+
+	<?php echo $errors->first('email'); ?>
+
+	</div>
+
+	<div><?php echo Form::submit('Send Password Reset Email'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

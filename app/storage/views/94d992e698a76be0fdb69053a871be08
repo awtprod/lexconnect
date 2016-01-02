@@ -1,0 +1,90 @@
+<?php $__env->startSection('content'); ?>
+
+<?php if(!empty($steps)): ?>
+
+    <h3><?php echo link_to("/steps/create/", 'Add/Edit a Step'); ?></h3>
+
+    <table>
+        <tr>
+            <th>Step Name</th>
+            <th>Sort Order</th>
+            <th>Starting Status <br>(Hold or Active)</th>
+            <th>Assign User Group</th>
+            <th>PopUp Window<br>(Leave Blank For No Popup)</th>
+            <th>Routine - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Routine - New Due Date<br>(Days for each reprojection)</th>
+            <th>Rush - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Rush - New Due Date<br>(Days for each reprojection)</th>
+            <th>Same Day - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Same Day - New Due Date<br>(Days for each reprojection)</th>
+        </tr>
+
+            <?php foreach($steps as $step): ?>
+                <tr>
+                    <div><td>
+                        <?php echo $step->name; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->sort_order; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->status; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->group; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->window; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->RoutineOrigDueDate; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->RoutineNewDueDate; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->RushOrigDueDate; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->RushNewDueDate; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->Same_DayOrigDueDate; ?>
+
+                    </div>
+                    </td>
+                    <div><td>
+                        <?php echo $step->Same_DayNewDueDate; ?>
+
+                    </div>
+                    </td>
+                </tr>
+    <?php endforeach; ?>
+    </table>
+<?php else: ?>
+    <h3><?php echo link_to("/steps/create/", 'Add/Edit a Step'); ?></h3>
+
+<?php endif; ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

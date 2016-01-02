@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+table {
+    width:60%;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+table#t01 tr:nth-child(even) {
+    background-color: #eee;
+}
+table#t01 tr:nth-child(odd) {
+   background-color:#fff;
+}
+table#t01 th	{
+    background-color: black;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+<td><?php echo Form::open(['route' => 'search.index']); ?><?php echo Form::text('search'); ?><?php echo Form::submit('Search'); ?><?php echo Form::close(); ?></td>
+
+<?php echo link_to('/orders/{$servee->order_id}', "Order # {$servee->order_id}"); ?>
+
+
+<h2>Defendant:<?php echo $servee->defendant; ?></h2><p>
+<?php if(!empty($serveeinvoices)): ?>
+<div>
+<h2> Invoices: </h2><p>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Invoice</th>
+    <th>Amount</th>
+  </tr> 
+
+<?php foreach($serveeinvoices as $invoice): ?>
+
+<tr>
+<td><?php echo date("m/d/y", strtotime($invoice->created_at)); ?></td>
+<td><a href="/invoices/<?php echo $invoice->invoice; ?>"> <?php echo $invoice->id; ?> </a></td>
+<td>$<?php echo $invoice->amount; ?>.00</td>
+</tr>
+
+<?php endforeach; ?>
+</table>
+</div>
+<br>
+<?php endif; ?>
+
+
+</table>
+<?php if(!empty($completed)): ?>
+
+<h2> Completed Serves: </h2><p>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Service</th>		
+    <th>Served Upon</th>
+    <th>Serve Address</th>
+    <th>Proof</th>
+  </tr>
+
+  <?php foreach($completed as $complete): ?>
+  <?php if(!empty($serves[$complete->id])): ?>
+<tr>
+<td><?php echo $serves[$complete->id]["date"]; ?></td>
+<td><?php echo $serves[$complete->id]["time"]; ?></td>
+<td><?php echo $serves[$complete->id]["description"]; ?></td>
+<td><?php echo $serves[$complete->id]["served_upon"]; ?></td>
+<td><?php echo $serves[$complete->id]["street"]; ?><br><?php echo $serves[$complete->id]["city"]; ?>,&nbsp;<?php echo $serves[$complete->id]["state"]; ?>&nbsp;<?php echo $serves[$complete->id]["zipcode"]; ?></td>
+<?php if($serves[$complete->id]["proof"] == NULL): ?>
+<td>N/A</td>
+<?php else: ?>
+<td><?php echo link_to("/proofs/{$serves[$complete->id]["proof"]}", 'Proof'); ?> 
+<?php endif; ?>
+<?php if(!empty($serves[$complete->id]["declaration"])): ?>
+<?php echo link_to("/proofs/{$serves[$complete->id]["declaration"]}", 'Declaration of Mailing'); ?>
+
+<?php endif; ?>
+</td>
+</tr>
+   <?php endif; ?>
+<?php endforeach; ?>
+</table>
+<?php endif; ?>
+
+<?php if(!empty($active)): ?>
+
+<h2> Serve In Progress: </h2><p>
+<table>
+  <tr>
+    <th>Task</th>
+    <th>Status</th>
+    <th>Due Date</th>
+    <th>Actions</th>
+  </tr>
+
+  <?php foreach($servees as $servee): ?>
+
+  <?php if(!empty($progress[$servee->id])): ?>
+<tr>
+<td><?php echo link_to("/servee/{$servee->id}", $servee->defendant); ?></td> 
+<td><?php echo $progress[$servee->id]["description"]; ?></td>
+
+<?php if($progress[$servee->id]["status"] == 1 OR $progress[$servee->id]["status"] == 2): ?>
+<td>
+<?php echo $progress[$servee->id]["hold"]; ?>
+
+</td>
+<?php elseif(!empty($progress[$servee->id]["status"]["date"])): ?>
+
+<td>
+<b><?php echo $progress[$servee->id]["status"]["date"]; ?></b> at <b> <?php echo $progress[$servee->id]["status"]["time"]; ?></b>: &nbsp; <?php echo $progress[$servee->id]["status"]["description"]; ?>
+
+</td>
+<?php else: ?>
+<td>
+<?php echo $progress[$servee->id]["status"]["description"]; ?>
+
+</td>
+<?php endif; ?>
+
+<td><?php echo $progress[$servee->id]["deadline"]; ?></td>
+
+<?php if($progress[$servee->id]["status"] == 1): ?>
+
+<td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Remove Job from Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Cancel Job'); ?><?php echo Form::close(); ?></td>
+
+<?php elseif($progress[$servee->id]["status"] == 2): ?>
+
+<td><?php echo Form::open(['route' => 'orders.status']); ?><?php echo Form::hidden('status', '0'); ?><?php echo Form::hidden('id', $progress[$servee->id]["order"]); ?><?php echo Form::submit('Remove Order from Hold'); ?><?php echo Form::close(); ?></td>
+
+<?php else: ?>
+<td><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '1'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Place Job on Hold'); ?><?php echo Form::close(); ?><?php echo Form::open(['route' => 'jobs.status']); ?><?php echo Form::hidden('status', '2'); ?><?php echo Form::hidden('id', $progress[$servee->id]["job"]); ?><?php echo Form::submit('Cancel Job'); ?><?php echo Form::close(); ?></td>
+<?php endif; ?>
+
+</tr>
+   <?php endif; ?>
+<?php endforeach; ?>
+
+</table>
+<?php else: ?> <h2>No Defendants to display!</h2>
+<?php endif; ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+
+</body>
+</html>

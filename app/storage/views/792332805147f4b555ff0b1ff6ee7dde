@@ -1,0 +1,44 @@
+<?php $__env->startSection('content'); ?>
+
+<?php if(!empty($processes)): ?>
+
+    <h3><?php echo link_to("/processes/create/", 'Create a process'); ?></h3>
+
+<table>
+  <tr>
+    <th>Process Id</th>
+    <th>Process Name</th>
+    <th>Service Type</th>
+    <th>Steps</th>
+    <th>Dependent Processes</th>
+    <th>Edit Process</th>
+    <th>Delete Process</th>
+
+  </tr>
+<?php foreach($processes as $process): ?>
+<tr>
+<td><?php echo $process->id; ?></td>
+    <td><?php echo $process->name; ?></td>
+    <?php if(empty($process->service)): ?>
+    <td></td>
+    <?php else: ?>
+    <td><?php echo $process->service; ?></td>
+    <?php endif; ?>
+    <td><?php echo link_to("/template/edit/{$process->id}", 'View Steps'); ?></td>
+    <td><?php echo link_to("/dependent/process/{$process->id}", 'Dependent Processes'); ?></td>
+    <td><?php echo link_to("/processes/edit/{$process->id}", 'Edit Process'); ?></td>
+    <td><?php echo link_to("/processes/destroy/{$process->id}", 'Delete process'); ?></td>
+
+<?php endforeach; ?>
+</tr>
+</table>
+
+<?php else: ?>
+
+    <h3><?php echo link_to("/processes/create/", 'Create a process'); ?></h3>
+
+<?php endif; ?>
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

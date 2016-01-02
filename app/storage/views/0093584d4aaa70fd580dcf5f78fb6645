@@ -1,0 +1,58 @@
+<?php $__env->startSection('content'); ?>
+<h1>Enter Rates for <?php echo $client->name; ?></h1>
+
+<?php echo Form::open(['route' => 'clientRates.store']); ?>
+
+<table>
+  <tr>
+    <th>State</th>
+    <th>Filing Surcharge</th>
+    <th>Filing Flat Rate</th>
+    <th>Serve Surcharge</th>
+    <th>Serve Flat Rate</th>
+  </tr>
+
+<?php foreach($states as $state): ?>
+<tr>
+	<div>
+	<td><?php echo Form::hidden('state['.$state->abbrev.']', $state->abbrev); ?><?php echo $state->name; ?></td></div>
+        <div><td>
+                <?php echo Form::label('filingSurcharge'); ?>
+
+                <?php echo Form::text('filingSurcharge['.$state->abbrev.']'); ?>
+
+        </div>
+        </td>
+    <div><td>
+            <?php echo Form::label('filingFlat'); ?>
+
+            <?php echo Form::text('filingFlat['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label('serveSurcharge'); ?>
+
+            <?php echo Form::text('serveSurcharge['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label('serveFlat'); ?>
+
+            <?php echo Form::text('serveFlat['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+<?php endforeach; ?>
+</tr>
+</table>
+<?php echo Form::hidden('clientId', $client->id); ?>
+
+	<div><?php echo Form::submit('Save Rates'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

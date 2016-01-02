@@ -1,0 +1,323 @@
+<?php $__env->startSection('content'); ?>
+<h1>Edit Steps for Process:<?php echo $process->name; ?></h1>
+
+<?php echo Form::open(['route' => 'template.update']); ?>
+
+<div id="table">
+    <table>
+        <tr>
+            <th>Step Name</th>
+            <th>Sort Order</th>
+            <th>Starting Status</th>
+            <th>Assign User Group</th>
+            <th>PopUp Window <br>(Leave Blank For No popup_</th>
+            <th>Routine - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Routine - New Due Date<br>(Days for each reprojection)</th>
+            <th>Rush - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Rush - New Due Date<br>(Days for each reprojection)</th>
+            <th>Same Day - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Same Day - New Due Date<br>(Days for each reprojection)</th>
+            <th>Delete Step</th>
+        </tr>
+
+        <tr>
+            <?php foreach($templates as $template): ?>
+
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('name['.$template->id.']',$template->name); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('sortOrder['.$template->id.']',$template->sort_order); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('status['.$template->id.']',$template->status); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label('', ''); ?>
+
+                    <?php echo Form::select('group['.$template->id.']', array('Vendor' => 'Vendor', 'Client' => 'Client', 'Admin' => 'Admin'),$template->group); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('window['.$template->id.']',$template->window); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RoutineOrigDueDate['.$template->id.']',$template->RoutineOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RoutineNewDueDate['.$template->id.']',$template->RoutineNewDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RushOrigDueDate['.$template->id.']',$template->RushOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RushNewDueDate['.$template->id.']',$template->RushNewDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('SameDayOrigDueDate['.$template->id.']',$template->Same_DayOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('SameDayNewDueDate['.$template->id.']',$template->Same_DayNewDueDate); ?>
+
+                </td>
+                <div><td><?php echo link_to("/template/destroy/{$template->id}", 'Delete Step'); ?></td></div>
+        </tr>
+
+        <?php endforeach; ?>
+    </table>
+</div>
+<?php echo Form::hidden('process', $process->id); ?>
+
+<div><?php echo Form::submit('Save Changes'); ?></div>
+<?php echo Form::close(); ?>
+
+
+<h1>Add Steps for Process:<?php echo $process->name; ?></h1>
+
+<?php echo Form::open(['route' => 'template.store']); ?>
+
+<div id="table">
+    <table>
+        <tr>
+            <th>Select Step</th>
+            <th>Step Name</th>
+            <th>Sort Order</th>
+            <th>Starting Status</th>
+            <th>Assign User Group</th>
+            <th>PopUp Window <br>(Leave Blank For No popup_</th>
+            <th>Routine - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Routine - New Due Date<br>(Days for each reprojection)</th>
+            <th>Rush - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Rush - New Due Date<br>(Days for each reprojection)</th>
+            <th>Same Day - Original Due Date<br>(Days from start of Process)</br></th>
+            <th>Same Day - New Due Date<br>(Days for each reprojection)</th>
+        </tr>
+        <tr>
+            <?php foreach($steps as $step): ?>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::checkbox('addStep['.$step->id.']', 'yes'); ?>
+
+                </td>
+
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('name['.$step->id.']',$step->name); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('sortOrder['.$step->id.']',$step->sort_order); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('status['.$step->id.']',$step->status); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label('', ''); ?>
+
+                    <?php echo Form::select('group['.$step->id.']', array('Vendor' => 'Vendor', 'Client' => 'Client', 'Admin' => 'Admin'),$step->group); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('window['.$step->id.']',$step->window); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RoutineOrigDueDate['.$step->id.']',$step->RoutineOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RoutineNewDueDate['.$step->id.']',$step->RoutineNewDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RushOrigDueDate['.$step->id.']',$step->RushOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('RushNewDueDate['.$step->id.']',$step->RushNewDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('SameDayOrigDueDate['.$step->id.']',$step->Same_DayOrigDueDate); ?>
+
+                </td>
+                <td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('SameDayNewDueDate['.$step->id.']',$step->Same_DayNewDueDate); ?>
+
+                </td>
+                <?php echo Form::hidden('stepId['.$step->id.']', $step->id); ?>
+
+        </tr>
+
+            <?php endforeach; ?>
+    </table>
+</div>
+<?php echo Form::hidden('process', $process->id); ?>
+
+<div><?php echo Form::submit('Save Changes'); ?></div>
+<?php echo Form::close(); ?>
+
+
+<h1>Create New Step</h1>
+
+<?php echo Form::open(['route' => 'template.add']); ?>
+
+<div id="table">
+
+<table>
+    <tr>
+        <th>Step Name</th>
+        <th>Sort Order</th>
+        <th>Starting Status</th>
+        <th>Assign User Group</th>
+        <th>PopUp Window <br>(Leave Blank For No popup_</th>
+        <th>Routine - Original Due Date<br>(Days from start of Process)</br></th>
+        <th>Routine - New Due Date<br>(Days for each reprojection)</th>
+        <th>Rush - Original Due Date<br>(Days from start of Process)</br></th>
+        <th>Rush - New Due Date<br>(Days for each reprojection)</th>
+        <th>Same Day - Original Due Date<br>(Days from start of Process)</br></th>
+        <th>Same Day - New Due Date<br>(Days for each reprojection)</th>
+    </tr>
+</div>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('name'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('sortOrder'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('status'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label('', ''); ?>
+
+    <?php echo Form::select('group', array('Vendor' => 'Vendor', 'Client' => 'Client', 'Admin' => 'Admin')); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('window'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('RoutineOrigDueDate'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('RoutineNewDueDate'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('RushOrigDueDate'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('RushNewDueDate'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('SameDayOrigDueDate'); ?>
+
+</div>
+</td>
+<div><td>
+    <?php echo Form::label(''); ?>
+
+    <?php echo Form::text('SameDayNewDueDate'); ?>
+
+</div>
+</td>
+</tr>
+</table>
+
+<?php echo Form::hidden('process', $process->id); ?>
+
+
+<div><?php echo Form::submit('Create Step'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
+
+
+<a href="<?php echo URL::previous(); ?>">Go Back</a>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.default', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

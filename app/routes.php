@@ -24,6 +24,8 @@
 //Route::get('users', 'UsersController@index');
 
 //Route::get('users/{username}', 'UsersController@show');
+Route::get('api/getcourts', 'OrdersController@getCourts');
+Route::get('api/getcounties', 'CountiesController@getCounties');
 Route::get('orders/courts/{id}', 'OrdersController@getCourts');
 Route::group(array('before'=>'auth'), function() { 
 Route::get('jobs/add', [
@@ -39,9 +41,144 @@ Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
 	]);
-
+    Route::get('clientRates/', [
+        'as' => 'clientRates.index',
+        'uses' => 'ClientRatesController@index'
+    ]);
+    Route::get('clientRates/{id}', [
+        'as' => 'clientRates.index',
+        'uses' => 'ClientRatesController@index'
+    ]);
+    Route::get('clientRates/create/{id}', [
+        'as' => 'clientRates.create',
+        'uses' => 'ClientRatesController@create'
+    ]);
+    Route::get('clientRates/edit/{id}', [
+        'as' => 'clientRates.edit',
+        'uses' => 'ClientRatesController@edit'
+    ]);
+    Route::get('vendorRates/', [
+        'as' => 'vendorrates.index',
+        'uses' => 'VendorRatesController@index'
+    ]);
+	Route::get('vendorRates/destroy/{id}', [
+			'as' => 'vendorrates.destroy',
+			'uses' => 'VendorRatesController@destroy'
+	]);
+    Route::get('orders/edit/{id}', [
+        'as' => 'orders.edit',
+        'uses' => 'OrdersController@edit'
+    ]);
+    Route::get('steps/edit/{id}', [
+        'as' => 'steps.edit',
+        'uses' => 'StepsController@edit'
+    ]);
+	Route::get('steps/', [
+			'as' => 'steps.index',
+			'uses' => 'StepsController@index'
+	]);
+    Route::get('steps/create/', [
+        'as' => 'steps.create',
+        'uses' => 'StepsController@create'
+    ]);
+	Route::get('steps/destroy/{id}', [
+			'as' => 'steps.destroy',
+			'uses' => 'StepsController@destroy'
+	]);
+    Route::get('processes/edit/{id}', [
+        'as' => 'processes.edit',
+        'uses' => 'ProcessesController@edit'
+    ]);
+	Route::get('processes/destroy/{id}', [
+			'as' => 'processes.destroy',
+			'uses' => 'ProcessesController@destroy'
+	]);
+    Route::get('dependent/process/{id}', [
+        'as' => 'dependent.edit',
+        'uses' => 'DependentController@edit'
+    ]);
+	Route::get('template/edit/{id}', [
+			'as' => 'template.edit',
+			'uses' => 'TemplateController@edit'
+	]);
+	Route::get('template/', [
+			'as' => 'template.index',
+			'uses' => 'TemplateController@index'
+	]);
+	Route::get('template/destroy/{id}', [
+			'as' => 'template.destroy',
+			'uses' => 'TemplateController@destroy'
+	]);
+	Route::match(array('GET', 'POST'),'counties/', [
+			'as' => 'counties.index',
+			'uses' => 'CountiesController@index'
+	]);
 });
-Route::group(array('before'=>'auth', 'before'=>'csrf'), function() { 
+Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
+	Route::post('vendorRates/store', [
+			'as' => 'vendorrates.store',
+			'uses' => 'VendorRatesController@store'
+	]);
+    Route::post('steps/store', [
+        'as' => 'steps.store',
+        'uses' => 'StepsController@store'
+    ]);
+    Route::post('steps/update', [
+        'as' => 'steps.update',
+        'uses' => 'StepsController@update'
+    ]);
+    Route::get('steps/edit/{id}', [
+        'as' => 'steps.edit',
+        'uses' => 'StepsController@edit'
+    ]);
+	Route::post('template/store', [
+			'as' => 'template.store',
+			'uses' => 'TemplateController@store'
+	]);
+	Route::post('template/update', [
+			'as' => 'template.update',
+			'uses' => 'TemplateController@update'
+	]);
+	Route::post('template/add', [
+			'as' => 'template.add',
+			'uses' => 'TemplateController@add'
+	]);
+    Route::post('clientRates/', [
+        'as' => 'clientRates.index',
+        'uses' => 'ClientRatesController@index'
+    ]);
+    Route::post('clientRates/{id}', [
+        'as' => 'clientRates.index',
+        'uses' => 'ClientRatesController@index'
+    ]);
+    Route::post('clientRates/store', [
+        'as' => 'clientRates.store',
+        'uses' => 'ClientRatesController@store'
+    ]);
+    Route::post('clientRates/update', [
+        'as' => 'clientRates.update',
+        'uses' => 'ClientRatesController@update'
+    ]);
+    Route::get('documents/upload', [
+        'as' => 'documents.upload',
+        'uses' => 'DocumentsController@upload'
+    ]);
+    Route::get('documents/view', [
+        'as' => 'documents.view',
+        'uses' => 'DocumentsController@view'
+    ]);
+	Route::post('documents/filedDocuments', [
+			'as' => 'documents.filedDocuments',
+			'uses' => 'DocumentsController@filedDocuments'
+	]);
+    Route::post('documents/storeDocuments', [
+        'as' => 'documents.storeDocuments',
+        'uses' => 'DocumentsController@storeDocuments'
+    ]);
+    Route::post('documents/storeFiledDocuments', [
+        'as' => 'documents.storeFiledDocuments',
+        'uses' => 'DocumentsController@storeFiledDocuments'
+    ]);
 Route::post('search/', [
 	'as' => 'search.index',
 	'uses' => 'SearchController@index'
@@ -57,6 +194,14 @@ Route::post('jobs/add', [
 Route::post('jobs/declaration', [
 	'as' => 'jobs.declaration',
 	'uses' => 'JobsController@declaration'
+	]);
+Route::post('tasks/accept', [
+			'as' => 'tasks.accept',
+			'uses' => 'TasksController@accept'
+	]);
+Route::post('tasks/attempt', [
+			'as' => 'tasks.attempt',
+			'uses' => 'TasksController@attempt'
 	]);
 Route::post('tasks/declaration', [
 	'as' => 'tasks.declaration',
@@ -80,7 +225,10 @@ Route::post('tasks/proof', [
 	'uses' => 'TasksController@proof'
 	]);
 
-
+    Route::post('tasks/proofFiled', [
+        'as' => 'tasks.proofFiled',
+        'uses' => 'TasksController@proofFiled'
+    ]);
 Route::post('orders/verify', [
 	'as' => 'orders.verify',
 	'uses' => 'OrdersController@verify'
@@ -110,9 +258,21 @@ Route::get('orders/revise/', [
 	'as' => 'orders.revise',
 	'uses' => 'OrdersController@revise'
 	]);
+    Route::post('orders/update', [
+        'as' => 'orders.update',
+        'uses' => 'OrdersController@update'
+    ]);
+    Route::post('processes/update', [
+        'as' => 'processes.update',
+        'uses' => 'ProcessesController@update'
+    ]);
 Route::post('serve/add', [
 	'as' => 'serve.add',
 	'uses' => 'ServeController@add'
+	]);
+Route::post('counties/update', [
+			'as' => 'counties.update',
+			'uses' => 'CountiesController@update'
 	]);
 
 });
@@ -137,6 +297,11 @@ Route::resource('serve', 'ServeController');
 Route::resource('servee', 'ServeeController');
 Route::resource('rules', 'RulesController');
 Route::resource('reprojections', 'ReprojectionsController');
+Route::resource('documents', 'DocumentsController');
+Route::resource('processes', 'ProcessesController');
+Route::resource('dependent', 'DependentController');
+
+
 
 
 });

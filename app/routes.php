@@ -41,22 +41,6 @@ Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
 	]);
-    Route::get('clientRates/', [
-        'as' => 'clientRates.index',
-        'uses' => 'ClientRatesController@index'
-    ]);
-    Route::get('clientRates/{id}', [
-        'as' => 'clientRates.index',
-        'uses' => 'ClientRatesController@index'
-    ]);
-    Route::get('clientRates/create/{id}', [
-        'as' => 'clientRates.create',
-        'uses' => 'ClientRatesController@create'
-    ]);
-    Route::get('clientRates/edit/{id}', [
-        'as' => 'clientRates.edit',
-        'uses' => 'ClientRatesController@edit'
-    ]);
     Route::get('vendorRates/', [
         'as' => 'vendorrates.index',
         'uses' => 'VendorRatesController@index'
@@ -113,6 +97,10 @@ Route::get('home/', [
 			'as' => 'counties.index',
 			'uses' => 'CountiesController@index'
 	]);
+	Route::match(array('GET', 'POST'),'clientRates/', [
+			'as' => 'clientRates.index',
+			'uses' => 'ClientRatesController@index'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorRates/store', [
@@ -143,18 +131,6 @@ Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 			'as' => 'template.add',
 			'uses' => 'TemplateController@add'
 	]);
-    Route::post('clientRates/', [
-        'as' => 'clientRates.index',
-        'uses' => 'ClientRatesController@index'
-    ]);
-    Route::post('clientRates/{id}', [
-        'as' => 'clientRates.index',
-        'uses' => 'ClientRatesController@index'
-    ]);
-    Route::post('clientRates/store', [
-        'as' => 'clientRates.store',
-        'uses' => 'ClientRatesController@store'
-    ]);
     Route::post('clientRates/update', [
         'as' => 'clientRates.update',
         'uses' => 'ClientRatesController@update'

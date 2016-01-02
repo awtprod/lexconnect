@@ -1,93 +1,204 @@
 <?php $__env->startSection('content'); ?>
 
-<?php if(empty($clientId)): ?>
+<br><div><?php echo Form::open(['route' => 'clientRates.index']); ?>
 
-<p>
-    <div>Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
+<?php echo Form::label('clientId', 'Select Client: '); ?>
 
+
+<?php if(!empty($company)): ?>
+<?php echo Form::select('clientId', $clients, $company->id); ?>
+
+<?php else: ?>
 <?php echo Form::select('clientId', $clients); ?>
 
-<?php echo Form::submit('Select'); ?></div>
-
-<?php elseif(count($rates)>0): ?>
-
-Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
-
-    <?php echo Form::select('clientId', $clients); ?>
-
-    <?php echo Form::submit('Select'); ?>
+<?php endif; ?>
+<?php echo Form::submit('Submit'); ?></div></br>
+<?php echo Form::close(); ?>
 
 
-<h1>Rates for <?php echo $company->name; ?></h1>
-<?php echo link_to("/clientRates/edit/{$company->id}", 'Edit'); ?>
+<?php if(!empty($company)): ?>
+<h1>Enter Rates for <?php echo $company->name; ?></h1>
 
+<?php echo Form::open(['route' => 'clientRates.update']); ?>
 
 <table>
   <tr>
     <th>State</th>
-    <th>Filing Flat Rate</th>
+    <th>ACH Discount</th>
+    <th>Filing Max Rate</th>
     <th>Filing Surcharge</th>
-    <th>Serve Flat Rate</th>
+    <th>Filing Flat Rate</th>
+    <th>Serve Max Rate</th>
     <th>Serve Surcharge</th>
+    <th>Serve Flat Rate</th>
+    <th>Recording Max Rate</th>
+    <th>Recording Surcharge</th>
+    <th>Recording Flat Rate</th>
   </tr>
+<?php if(count($rates)>0): ?>
+
 <?php foreach($rates as $rate): ?>
+            <tr>
+                <div>
+                    <td><?php echo $rate->state; ?></td></div>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('discount['.$rate->id.']',$rate->discount); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('filingMax['.$rate->id.']',$rate->filingMax); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('filingSurcharge['.$rate->id.']',$rate->filingSurcharge); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('filingFlat['.$rate->id.']',$rate->filingFlat); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('serveMax['.$rate->id.']',$rate->serveMax); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('serveSurcharge['.$rate->id.']',$rate->serveSurcharge); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('serveFlat['.$rate->id.']',$rate->serveFlat); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('recordingMax['.$rate->id.']',$rate->recordingMax); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('recordingSurcharge['.$rate->id.']',$rate->recordingSurcharge); ?>
+
+                </div>
+                </td>
+                <div><td>
+                    <?php echo Form::label(''); ?>
+
+                    <?php echo Form::text('recordingFlat['.$rate->id.']',$rate->recordingFlat); ?>
+
+                </div>
+                </td>
+                <?php endforeach; ?>
+            </tr>
+</table>
+<?php else: ?>
+
+<?php foreach($states as $state): ?>
 <tr>
 	<div>
-        <?php if(!empty($rate["state"])): ?>
-	<td><?php echo $rate["state"]; ?></td>
-        <?php else: ?>
-        <td></td>
-        <?php endif; ?>
-	</div>
+	<td><?php echo Form::hidden('state['.$state->abbrev.']'); ?><?php echo $state->name; ?></td></div>
+    <div><td>
+            <?php echo Form::label(''); ?>
 
-    <div>
-        <?php if(!empty($rate["filingFlat"])): ?>
-            <td><?php echo $rate["filingFlat"]; ?></td>
-        <?php else: ?>
-            <td></td>
-        <?php endif; ?>
+            <?php echo Form::text('discount['.$state->abbrev.']'); ?>
+
     </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
 
-    <div>
-        <?php if(!empty($rate["filingSurcharge"])): ?>
-            <td><?php echo $rate["filingSurcharge"]; ?></td>
-        <?php else: ?>
-            <td></td>
-        <?php endif; ?>
+            <?php echo Form::text('filingMax['.$state->abbrev.']'); ?>
+
     </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
 
+            <?php echo Form::text('filingSurcharge['.$state->abbrev.']'); ?>
 
-
-    <div>
-        <?php if(!empty($rate["serveFlat"])): ?>
-            <td><?php echo $rate["serveFlat"]; ?></td>
-        <?php else: ?>
-            <td></td>
-        <?php endif; ?>
     </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
 
-    <div>
-        <?php if(!empty($rate["serveSurcharge"])): ?>
-            <td><?php echo $rate["serveSurcharge"]; ?></td>
-        <?php else: ?>
-            <td></td>
-        <?php endif; ?>
+            <?php echo Form::text('filingFlat['.$state->abbrev.']'); ?>
+
     </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
 
+            <?php echo Form::text('serveMax['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
+
+            <?php echo Form::text('serveSurcharge['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
+
+            <?php echo Form::text('serveFlat['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
+
+            <?php echo Form::text('recordingMax['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
+
+            <?php echo Form::text('recordingSurcharge['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
+    <div><td>
+            <?php echo Form::label(''); ?>
+
+            <?php echo Form::text('recordingFlat['.$state->abbrev.']'); ?>
+
+    </div>
+    </td>
 <?php endforeach; ?>
 </tr>
 </table>
+<?php endif; ?>
+<?php echo Form::hidden('clientId', $company->id); ?>
 
-<?php else: ?>
+	<div><?php echo Form::submit('Save Rates'); ?><?php echo Form::reset('Reset'); ?></div>
+<?php echo Form::close(); ?>
 
-
-    Select client: <?php echo Form::open(['route' => 'clientRates.index']); ?>
-
-    <?php echo Form::select('clientId', $clients); ?>
-
-    <?php echo Form::submit('Select'); ?><p>
-
-    <h3>Enter rates for client: <?php echo link_to("/clientRates/create/{$company->id}", $company->name); ?></h3>
 
 <?php endif; ?>
 <a href="<?php echo URL::previous(); ?>">Go Back</a>

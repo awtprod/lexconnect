@@ -2,18 +2,20 @@
 
 class ClientRatesController extends \BaseController {
 
-    public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, ClientRates $ClientRates, VendorRates $VendorRates)
-    {
+	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	{
 
-        $this->orders = $orders;
-        $this->tasks = $tasks;
-        $this->reprojections = $reprojections;
-        $this->jobs = $jobs;
-        $this->invoices = $invoices;
-        $this->DocumentsServed = $DocumentsServed;
-        $this->ClientRates = $ClientRates;
-        $this->VendorRates = $VendorRates;
-    }
+		$this->orders = $orders;
+		$this->tasks = $tasks;
+		$this->reprojections = $reprojections;
+		$this->jobs = $jobs;
+		$this->invoices = $invoices;
+		$this->DocumentsServed = $DocumentsServed;
+		$this->Processes = $processes;
+		$this->Steps = $steps;
+		$this->Template = $template;
+		$this->Counties = $counties;
+	}
 
 	/**
 	 * Display a listing of the resource.
@@ -25,204 +27,101 @@ class ClientRatesController extends \BaseController {
 		if(Auth::user()->user_role == 'Admin'){
 
 
+		//Get client Id
+		$clientId = Input::get('clientId');
+
+		if(empty($clientId)) {
+
+				$clientId = Session::get('clientId');
+		}
+
         //Get list of clients
         $clients = DB::table('company')->where('v_c', 'Client')->orderBy('v_c', 'asc')->lists('name', 'id');
 
-        //Get client Id
-        $clientId = Input::get('clientId');
+		//Find states
+		$states = DB::table('states')->orderBy('name', 'asc')->get();
 
-            if(empty($clientId)){
-
-                $input = Input::all();
-
-                if(!empty($input["clientId"])) {
-
-                    $clientId = $input["clientId"];
-                }
-            }
-
-        //Get company data for client
-        $company = DB::table('company')->where('id', $clientId)->first();
+		//Get company data for client
+		$company = DB::table('company')->where('id', $clientId)->first();
 
         //Find rates for client
 		$rates = ClientRates::whereClient($clientId)->orderBy('state', 'asc')->get();
 		
-		Return View::make('clientRates.index')->with(['rates' => $rates])->with(['clients' => $clients])->with('company', $company)->with('clientId',$clientId);
+		Return View::make('clientRates.index')->with(['rates' => $rates])->with(['clients' => $clients])->with('states', $states)->with('clientId',$clientId)->with(['company' => $company]);
 		}
 		else{
 		Return "Not Authorized!";
 		}
 	}
-
-
-	/**
-	 * Show the form for creating a new resource.
-	 *
-	 * @return Response
-	 */
-	public function create($clientId)
-	{
-		if(Auth::user()->user_role == 'Admin'){
-		$states = DB::table('states')->orderBy('name', 'asc')->get();
-
-        //Find client information
-        $client = DB::table('company')->where('id', $clientId)->first();
-		
-		Return View::make('clientRates.create')->with(['states' => $states])->with('client', $client);
-		}
-		else{
-		Return "Not Authorized!";
-		}
-	}
-
 
 	/**
 	 * Store a newly created resource in storage.
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function update()
 	{
 		//Retrieve Data
 		$state = Input::get('state');
+		$discount = Input::get('discount');
+		$filingMax = Input::get('filingMax');
 		$filingSurcharge = Input::get('filingSurcharge');
 		$filingFlat = Input::get('filingFlat');
+		$serveMax = Input::get('serveMax');
 		$serveSurcharge = Input::get('serveSurcharge');
 		$serveFlat = Input::get('serveFlat');
-		
-		//Find states
-		$states = DB::table('states')->orderBy('name', 'asc')->get();
-		
-		//Save client rates
-		foreach($states as $state){
+		$recordingMax = Input::get('recordingMax');
+		$recordingSurcharge = Input::get('recordingSurcharge');
+		$recordingFlat = Input::get('recordingFlat');
 
-        $clientRates = new ClientRates;
+		if(empty($state)){
+			//Find rates for client
+			$rates = ClientRates::whereClient(Input::get('clientId'))->orderBy('state', 'asc')->get();
 
-        $clientRates->state = $state->abbrev;
+			//Update client rates
+			foreach ($rates as $rate) {
 
-        $clientRates->client = Input::get('clientId');
+				$clientRates = ClientRates::whereId($rate->id)->first();
 
-		if(!empty($filingSurcharge[$state->abbrev])){
-
-		$clientRates->filingSurcharge = $filingSurcharge[$state->abbrev];
-
+				$clientRates->discount = $discount[$rate->id];
+				$clientRates->filingMax = $filingMax[$rate->id];
+				$clientRates->filingSurcharge = $filingSurcharge[$rate->id];
+				$clientRates->filingFlat = $filingFlat[$rate->id];
+				$clientRates->serveMax = $serveMax[$rate->id];
+				$clientRates->serveSurcharge = $serveSurcharge[$rate->id];
+				$clientRates->serveFlat = $serveFlat[$rate->id];
+				$clientRates->recordingMax = $recordingMax[$rate->id];
+				$clientRates->recordingSurcharge = $recordingSurcharge[$rate->id];
+				$clientRates->recordingFlat = $recordingFlat[$rate->id];
+				$clientRates->save();
+			}
 		}
 
-         if(!empty($filingFlat[$state->abbrev])){
+		if(!empty($state)) {
+			//Find states
+			$states = DB::table('states')->orderBy('name', 'asc')->get();
 
-         $clientRates->filingFlat = $filingFlat[$state->abbrev];
+			//Save client rates
+			foreach ($states as $state) {
 
-         }
-
-         if(!empty($serveSurcharge[$state->abbrev])){
-
-         $clientRates->serveSurcharge = $serveSurcharge[$state->abbrev];
-
-         }
-
-         if(!empty($serveFlat[$state->abbrev])){
-
-         $clientRates->serveFlat = $serveFlat[$state->abbrev];
-
-         }
-
-         $clientRates->save();
+				$clientRates = new ClientRates;
+				$clientRates->state = $state->name;
+				$clientRates->client = Input::get('clientId');
+				$clientRates->discount = $discount[$state->abbrev];
+				$clientRates->filingMax = $filingMax[$state->abbrev];
+				$clientRates->filingSurcharge = $filingSurcharge[$state->abbrev];
+				$clientRates->filingFlat = $filingFlat[$state->abbrev];
+				$clientRates->serveMax = $serveMax[$state->abbrev];
+				$clientRates->serveSurcharge = $serveSurcharge[$state->abbrev];
+				$clientRates->serveFlat = $serveFlat[$state->abbrev];
+				$clientRates->recordingMax = $recordingMax[$state->abbrev];
+				$clientRates->recordingSurcharge = $recordingSurcharge[$state->abbrev];
+				$clientRates->recordingFlat = $recordingFlat[$state->abbrev];
+				$clientRates->save();
+			}
 		}
 
-        Return Redirect::route('clientRates.index', Input::get('clientId'));
-	}
-
-
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function show($id)
-	{
-		//
-	}
-
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($clientId)
-	{
-        if(Auth::user()->user_role == 'Admin'){
-
-            //Find client rates
-            $rates = ClientRates::whereClient($clientId)->get();
-
-            //Find client information
-            $client = DB::table('company')->where('id', $clientId)->first();
-
-            Return View::make('clientRates.edit')->with(['rates' => $rates])->with('clientId', $clientId)->with(['client' => $client]);
-        }
-        else{
-            Return "Not Authorized!";
-        }
-
-	}
-
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update()
-	{
-        //Retrieve Data
-        $state = Input::get('state');
-        $filingSurcharge = Input::get('filingSurcharge');
-        $filingFlat = Input::get('filingFlat');
-        $serveSurcharge = Input::get('serveSurcharge');
-        $serveFlat = Input::get('serveFlat');
-
-
-        //Find client rates
-        $rates = ClientRates::whereClient(Input::get('clientId'))->get();
-
-        //Enter new rates
-        foreach($rates as $rate){
-            $clientRate = ClientRates::whereId($rate->id)->first();
-
-            $clientRate->state = $state[$rate->id];
-
-            if(!empty($filingSurcharge[$rate->id])){
-
-                $clientRate->filingSurcharge = $filingSurcharge[$rate->id];
-
-            }
-
-            if(!empty($filingFlat[$rate->id])){
-
-                $clientRate->filingFlat = $filingFlat[$rate->id];
-
-            }
-
-            if(!empty($serveSurcharge[$rate->id])){
-
-                $clientRate->serveSurcharge = $serveSurcharge[$rate->id];
-
-            }
-
-            if(!empty($serveFlat[$rate->id])){
-
-                $clientRate->serveFlat = $serveFlat[$rate->id];
-
-            }
-
-            $clientRate->save();
-        }
-
-        Return Redirect::route('clientRates.index', Input::get('clientId'));
+        Return Redirect::route('clientRates.index')->with('clientId', Input::get('clientId'));
 	}
 
 

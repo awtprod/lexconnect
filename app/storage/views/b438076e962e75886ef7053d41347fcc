@@ -30,19 +30,6 @@
 
     </div>
     </td>
-    <div><td>
-                <?php echo Form::label('state', 'State: '); ?>
-
-                <?php echo Form::select('state', $states, null, ['id' => 'state']); ?>
-
-        </td></div>
-    <div><td>
-        <?php echo Form::label('priority', 'Assign Priority Level: '); ?>
-
-        <?php echo Form::select('priority', array(''=>'Select','Routine' => 'Routine', 'Rush' => 'Rush', 'Same Day' => 'Same Day')); ?>
-
-    </div>
-    </td>
 
 </tr>
 </table>

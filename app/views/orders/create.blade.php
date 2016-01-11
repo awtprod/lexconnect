@@ -59,12 +59,10 @@
 </div>
     	<div>
 	{{ Form::label('services', 'Services: ') }}
+	{{ Form::label('filing', 'Filing: ') }}
 	{{ Form::select('filing', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
-	{{ Form::label('filing', 'Filing ') }}
+	{{ Form::label('recording', 'Recording: ') }}
 	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
-	{{ Form::label('recording', 'Recording ') }}
-	{{ Form::checkbox('service', 'yes') }} 
-	{{ Form::label('service', 'Service ') }}
 	{{ $errors->first('services') }}<p>
 	</div>
 <div>
@@ -89,6 +87,52 @@
     @foreach($documents as $document)
    {{  '<input type="hidden" name="documents[]" value="'. $document[0]. '">' }}
     @endforeach
+
+<h1>Add New Defendant</h1>
+<div>
+	{{ Form::label('type', 'Service Type: ') }}
+	{{ Form::label('type', 'Process Service', true) }}
+	{{ Form::radio('service[type]', 'Process Service', true) }}
+	{{ Form::label('type', 'Property Posting') }}
+	{{ Form::radio('service[type]', 'Property Posting') }}
+	{{ Form::label('priority', 'Priority: ') }}
+	{{ Form::select('service[posting]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
+</div>
+<div>
+	{{ Form::label('defendant', 'Defendant: ') }}
+	{{ Form::text('service[defendant]') }}
+	{{ $errors->first('defendant') }}
+</div>
+<div>
+	{{ Form::label('street', 'Street: ') }}
+	{{ Form::text('service[street]') }}
+	{{ $errors->first('street') }}
+</div>
+<div>
+	{{ Form::label('street2', 'Apt/Unit/Suite: ') }}
+	{{ Form::text('service[street2]') }}
+	{{ $errors->first('street2') }}
+</div>
+<div>
+	{{ Form::label('city', 'City: ') }}
+	{{ Form::text('service[city]') }}
+	{{ $errors->first('city') }}
+</div>
+<div>
+	{{ Form::label('state', 'State: ') }}
+	{{ Form::select('service[state]', $states, null, ['id' => 'state']) }}
+	{{ $errors->first('state') }}
+</div>
+<div>
+	{{ Form::label('zipcode', 'Zip Code: ') }}
+	{{ Form::text('service[zipcode]') }}
+	{{ $errors->first('zipcode') }}
+</div>
+<div>
+	{{ Form::label('notes', 'Notes to Server: ') }}
+	{{ Form::textarea('service[notes]') }}
+	{{ $errors->first('notes') }}<p>
+</div>
 
 	<div>{{ Form::submit('Create Order') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}

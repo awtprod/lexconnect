@@ -49,6 +49,7 @@ class TemplateController extends \BaseController {
         $status = Input::get('status');
         $sortOrder = Input::get('sortOrder');
         $name = Input::get('name');
+        $jud = Input::get('jud');
         $group = Input::get('group');
         $RoutineOrigDueDate = Input::get('RoutineOrigDueDate');
         $RoutineNewDueDate = Input::get('RoutineNewDueDate');
@@ -70,6 +71,7 @@ class TemplateController extends \BaseController {
                 $template->process = Input::get('process');
                 $template->step = $stepId[$step->id];
                 $template->name = $name[$step->id];
+                $template->judicial = $jud[$step->id];
                 $template->status = $status[$step->id];
                 $template->sort_order = $sortOrder[$step->id];
                 $template->group = $group[$step->id];
@@ -87,6 +89,7 @@ class TemplateController extends \BaseController {
 
             $revStep = Steps::whereId($step->id)->first();
             $revStep->name = $name[$step->id];
+            $revStep->judicial = $jud[$step->id];
             $revStep->status = $status[$step->id];
             $revStep->sort_order = $sortOrder[$step->id];
             $revStep->group = $group[$step->id];
@@ -115,6 +118,7 @@ class TemplateController extends \BaseController {
         $template = new Template;
         $template->process = Input::get('process');
         $template->name = Input::get('name');
+        $template->judicial = Input::get('jud');
         $template->status = Input::get('status');
         $template->sort_order = Input::get('sortOrder');
         $template->group = Input::get('group');
@@ -129,6 +133,7 @@ class TemplateController extends \BaseController {
 
         $step = new Steps;
         $step->name = Input::get('name');
+        $step->judicial = Input::get('jud');
         $step->status = Input::get('status');
         $step->sort_order = Input::get('sortOrder');
         $step->group = Input::get('group');
@@ -186,6 +191,7 @@ class TemplateController extends \BaseController {
         $status = Input::get('status');
         $sortOrder = Input::get('sortOrder');
         $name = Input::get('name');
+        $jud = Input::get('jud');
         $group = Input::get('group');
         $RoutineOrigDueDate = Input::get('RoutineOrigDueDate');
         $RoutineNewDueDate = Input::get('RoutineNewDueDate');
@@ -202,6 +208,7 @@ class TemplateController extends \BaseController {
         foreach($templates as $template) {
             $template = Template::whereId($template->id)->first();
             $template->name = $name[$template->id];
+            $template->judicial = $jud[$template->id];
             $template->sort_order = $sortOrder[$template->id];
             $template->status = $status[$template->id];
             $template->group = $group[$template->id];

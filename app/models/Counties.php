@@ -10,7 +10,7 @@ class Counties extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['state', 'county', 'filing', 'service','recording'];
+	protected $fillable = ['state', 'county', 'filing', 'service','recording','verify_documents','posting'];
 	
 	public static $rules = [
 		'defendant' => 'required',

@@ -5,6 +5,7 @@
 <table>
     <tr>
         <th>Step Name</th>
+        <th>Judicial/Non-Judicial</th>
         <th>Sort Order</th>
         <th>Starting Status <br>(Hold or Active)</th>
         <th>Assign User Group</th>
@@ -29,6 +30,11 @@
         <div><td>
                 {{ Form::label('') }}
                 {{ Form::text('revName['.$step->id.']',$step->name) }}
+        </div>
+        </td>
+        <div><td>
+            {{ Form::label('') }}
+            {{ Form::select('revJud['.$step->id.']', array('Both' => 'Both', 'Judicial' => 'Judicial', 'Non-Judicial' => 'Non-Judicial'),$step->judicial) }}
         </div>
         </td>
         <div><td>
@@ -92,6 +98,11 @@
                 {{ Form::text('name') }}
         </div>
         </td>
+        <div><td>
+            {{ Form::label('') }}
+            {{ Form::select('jud', array('Both' => 'Both', 'Judicial' => 'Judicial', 'Non-Judicial' => 'Non-Judicial')) }}
+        </div>
+    </td>
      <div><td>
              {{ Form::label('') }}
              {{ Form::text('sortOrder') }}

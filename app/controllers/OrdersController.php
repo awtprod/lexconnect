@@ -44,7 +44,7 @@ class OrdersController extends \BaseController {
 	 */
 	public function create()
 	{
-		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
+		$states = ['' => 'Select State']+DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
 
@@ -55,7 +55,7 @@ class OrdersController extends \BaseController {
 			$company = Auth::user()->company;
 		}
 
-        $documents = array(['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
+        $documents = array(['Notice of Trustee Sale', 'Notice of Trustee Sale'],['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
 
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->user_role=='Client'){
 		Return View::make('orders.create', array('states' => $states, 'courts' => $courts, 'company' => $company, 'documents' => $documents));
@@ -77,10 +77,7 @@ class OrdersController extends \BaseController {
          $input = Input::get('option');
 	$courts = DB::table('courts')->where('state', $input)->get();
 
-         $numbers = DB::table('courts')
-             ->where('state', $input)
-             ->orderBy('id', 'asc')
-             ->lists('court','id');
+         $numbers = ['' => 'Select Court']+DB::table('courts')->where('state', $input)->orderBy('id', 'asc')->lists('court','court');
 
          return Response::json($numbers);
 	 }
@@ -98,20 +95,29 @@ class OrdersController extends \BaseController {
 	{
 
         $input = Input::all();
-        $court = DB::table('courts')->where('id', Input::get('court'))->first();
-		
-		if ( ! $this->orders->fill($input)->isValid())
-	{
-		return Redirect::back()->withInput()->withErrors($this->orders->errors);	
-	}
+
+		$court = DB::table('courts')->where('court', Input::get('court'))->first();
+
+
+		//Check if judicial or non-judicial
+		if(empty($input["Notice_of_Trustee_Sale"])) {
+
+			if (!$this->orders->fill($input)->isValid()) {
+				return Redirect::back()->withInput()->withErrors($this->orders->errors);
+			}
+		}
 		$orders = new Orders;
 		$orders->plaintiff = Input::get('plaintiff');
 		$orders->defendant = Input::get('defendant');
 		$orders->reference = Input::get('reference');
 		$orders->courtcase = Input::get('case');
 		$orders->state = Input::get('state');
-		$orders->county = $court->county;
-		$orders->court = $court->court;
+
+		if(!empty($court)) {
+			$orders->county = $court->county;
+			$orders->court = $court->court;
+		}
+
 		$orders->user = Auth::user()->id;
 		$orders->company = Input::get('company');
 		$orders->save();

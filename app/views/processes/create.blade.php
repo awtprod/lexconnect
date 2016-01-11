@@ -22,7 +22,7 @@
     <div><td>
         {{ Form::label('service', 'Service Type: ') }}
 
-            {{ Form::select('service', array(''=>'Select', 'Filing' => 'Filing', 'Posting' => 'Posting', 'Process Service' => 'Process Service', 'Recording' => 'Recording', 'Supplemental' => 'Supplemental')) }}
+            {{ Form::select('service', array(''=>'Select', 'Filing' => 'Filing', 'Posting' => 'Posting', 'Service' => 'Service', 'Recording' => 'Recording', 'Supplemental' => 'Supplemental')) }}
     </div>
     </td>
 

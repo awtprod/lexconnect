@@ -66,6 +66,7 @@ class StepsController extends \BaseController {
         //Get revised variables
         $stepId = Input::get('stepId');
         $revName = Input::get('revName');
+        $revJud = Input::get('revJud');
         $revStatus = Input::get('revStatus');
         $revSortOrder = Input::get('revSortOrder');
         $revGroup = Input::get('revGroup');
@@ -85,6 +86,7 @@ class StepsController extends \BaseController {
         foreach($steps as $step) {
             $revStep = Steps::whereId($step->id)->first();
             $revStep->name = $revName[$step->id];
+            $revStep->judicial = $revJud[$step->id];
             $revStep->status = $revStatus[$step->id];
             $revStep->sort_order = $revSortOrder[$step->id];
             $revStep->group = $revGroup[$step->id];
@@ -104,6 +106,7 @@ class StepsController extends \BaseController {
         if(!empty($name)) {
             $step = new Steps;
             $step->name = Input::get('name');
+            $step->judicial = Input::get('jud');
             $step->status = Input::get('status');
             $step->sort_order = Input::get('sortOrder');
             $step->group = Input::get('group');
@@ -172,6 +175,7 @@ class StepsController extends \BaseController {
         $status = Input::get('status');
         $sortOrder = Input::get('sortOrder');
         $name = Input::get('name');
+        $jud = Input::get('jud');
         $group = Input::get('group');
         $RoutineOrigDueDate = Input::get('RoutineOrigDueDate');
         $RoutineNewDueDate = Input::get('RoutineNewDueDate');
@@ -188,6 +192,7 @@ class StepsController extends \BaseController {
         foreach($steps as $step) {
             $step = Steps::whereId($step->id)->first();
             $step->name = $name[$step->id];
+            $step->judicial = $jud[$step->id];
             $step->sortOrder = $sortOrder[$step->id];
             $step->status = $status[$step->id];
             $step->group = $group[$step->id];

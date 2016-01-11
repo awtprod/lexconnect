@@ -10,7 +10,7 @@ class Steps extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['name', 'process', 'status', 'sortOrder','RoutineOrigDueDate','RushOrigDueDate','SameDayOrigDueDate','RoutineNewDueDate','RushNewDueDate','SameDayNewDueDate','window','group'];
+	protected $fillable = ['name','judicial', 'process', 'status', 'sortOrder','RoutineOrigDueDate','RushOrigDueDate','SameDayOrigDueDate','RoutineNewDueDate','RushNewDueDate','SameDayNewDueDate','window','group'];
 	
 	public static $rules = [
 		'defendant' => 'required',

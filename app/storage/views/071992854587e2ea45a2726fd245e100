@@ -77,16 +77,13 @@
     	<div>
 	<?php echo Form::label('services', 'Services: '); ?>
 
+	<?php echo Form::label('filing', 'Filing: '); ?>
+
 	<?php echo Form::select('filing', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?>
 
-	<?php echo Form::label('filing', 'Filing '); ?>
+	<?php echo Form::label('recording', 'Recording: '); ?>
 
 	<?php echo Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?>
-
-	<?php echo Form::label('recording', 'Recording '); ?>
-
-	<?php echo Form::checkbox('service', 'yes'); ?> 
-	<?php echo Form::label('service', 'Service '); ?>
 
 	<?php echo $errors->first('services'); ?><p>
 	</div>
@@ -117,6 +114,78 @@
    <?php echo '<input type="hidden" name="documents[]" value="'. $document[0]. '">'; ?>
 
     <?php endforeach; ?>
+
+<h1>Add New Defendant</h1>
+<div>
+	<?php echo Form::label('type', 'Service Type: '); ?>
+
+	<?php echo Form::label('type', 'Process Service', true); ?>
+
+	<?php echo Form::radio('service[type]', 'Process Service', true); ?>
+
+	<?php echo Form::label('type', 'Property Posting'); ?>
+
+	<?php echo Form::radio('service[type]', 'Property Posting'); ?>
+
+	<?php echo Form::label('priority', 'Priority: '); ?>
+
+	<?php echo Form::select('service[posting]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?><p>
+</div>
+<div>
+	<?php echo Form::label('defendant', 'Defendant: '); ?>
+
+	<?php echo Form::text('service[defendant]'); ?>
+
+	<?php echo $errors->first('defendant'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('street', 'Street: '); ?>
+
+	<?php echo Form::text('service[street]'); ?>
+
+	<?php echo $errors->first('street'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('street2', 'Apt/Unit/Suite: '); ?>
+
+	<?php echo Form::text('service[street2]'); ?>
+
+	<?php echo $errors->first('street2'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('city', 'City: '); ?>
+
+	<?php echo Form::text('service[city]'); ?>
+
+	<?php echo $errors->first('city'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('state', 'State: '); ?>
+
+	<?php echo Form::select('service[state]', $states, null, ['id' => 'state']); ?>
+
+	<?php echo $errors->first('state'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('zipcode', 'Zip Code: '); ?>
+
+	<?php echo Form::text('service[zipcode]'); ?>
+
+	<?php echo $errors->first('zipcode'); ?>
+
+</div>
+<div>
+	<?php echo Form::label('notes', 'Notes to Server: '); ?>
+
+	<?php echo Form::textarea('service[notes]'); ?>
+
+	<?php echo $errors->first('notes'); ?><p>
+</div>
 
 	<div><?php echo Form::submit('Create Order'); ?><?php echo Form::reset('Reset'); ?></div>
 <?php echo Form::close(); ?>

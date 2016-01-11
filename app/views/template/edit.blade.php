@@ -8,6 +8,7 @@
     <table>
         <tr>
             <th>Step Name</th>
+            <th>Judicial/Non-Judicial</th>
             <th>Sort Order</th>
             <th>Starting Status</th>
             <th>Assign User Group</th>
@@ -27,6 +28,10 @@
                 <td>
                     {{ Form::label('') }}
                     {{ Form::text('name['.$template->id.']',$template->name) }}
+                </td>
+                <td>
+                    {{ Form::label('') }}
+                    {{ Form::select('jud['.$template->id.']', array('Both' => 'Both', 'Judicial' => 'Judicial', 'Non-Judicial' => 'Non-Judicial'),$template->judicial) }}
                 </td>
                 <td>
                     {{ Form::label('') }}
@@ -86,6 +91,7 @@
         <tr>
             <th>Select Step</th>
             <th>Step Name</th>
+            <th>Judicial/Non-Judicial</th>
             <th>Sort Order</th>
             <th>Starting Status</th>
             <th>Assign User Group</th>
@@ -107,6 +113,10 @@
                 <td>
                     {{ Form::label('') }}
                     {{ Form::text('name['.$step->id.']',$step->name) }}
+                </td>
+                <td>
+                    {{ Form::label('') }}
+                    {{ Form::select('jud['.$step->id.']', array('Both' => 'Both', 'Judicial' => 'Judicial', 'Non-Judicial' => 'Non-Judicial'),$step->judicial) }}
                 </td>
                 <td>
                     {{ Form::label('') }}
@@ -166,6 +176,7 @@
 <table>
     <tr>
         <th>Step Name</th>
+        <th>Judicial/Non-Judicial</th>
         <th>Sort Order</th>
         <th>Starting Status</th>
         <th>Assign User Group</th>
@@ -181,6 +192,11 @@
 <div><td>
     {{ Form::label('') }}
     {{ Form::text('name') }}
+</div>
+</td>
+<div><td>
+    {{ Form::label('') }}
+    {{ Form::select('jud', array('Both' => 'Both', 'Judicial' => 'Judicial', 'Non-Judicial' => 'Non-Judicial')) }}
 </div>
 </td>
 <div><td>

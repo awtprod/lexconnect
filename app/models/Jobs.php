@@ -63,6 +63,28 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		return false;
 	}
 
+	public function addressVerification($input){
+
+		// Customize this (get ID/token values in your SmartyStreets account)
+		$authId = urlencode("e7bbbae3-ebf8-4909-91bb-3de8c08b3047");
+		$authToken = urlencode("XfHAxXlymvPsLfi0X6UQ");
+
+// Address input
+		$input1 = urlencode($input["street"]);
+		$input2 = urlencode($input["street2"]);
+		$input3 = urlencode($input["city"]);
+		$input4 = urlencode($input["state"]);
+		$input5 = urlencode($input["zipcode"]);
+
+// Build the URL
+		$req = "https://api.smartystreets.com/street-address/?street={$input1}&street2={$input2}&city={$input3}&state={$input4}&zipcode={$input5}&auth-id={$authId}&auth-token={$authToken}";
+
+// GET request and turn into associative array
+		$result = (array) json_decode(file_get_contents($req), true);
+
+		return $result;
+	}
+
 	public function SelectServer($serverData)
 	{
 	if(!empty($serverData['zipcode'])){

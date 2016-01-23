@@ -9,12 +9,10 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['date', 'time', 'orderId',];
+	protected $fillable = ['documentServed','date', 'time', 'orderId',];
 	
 	public static $rules = [
-		'date' => 'required|date',
-		'time' => 'required',
-		'served_upon' => 'required'
+		'documentServed' => 'min:1'
 		];
 
 	
@@ -49,10 +47,12 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
     }
     }
 
-	public function isValid()
+	public function isValid($input)
 	{
-		
-		$validation = Validator::make($this->attributes, static::$rules);
+		$validation = Validator::make(
+				[ 'documentServed' => $input["documentServed"] ],
+				[ 'documentServed' => 'min:1' ]
+		);
 		
 		if ($validation->passes()) return true;
 		

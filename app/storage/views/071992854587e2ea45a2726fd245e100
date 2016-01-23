@@ -22,7 +22,7 @@
 <h1>Create New Order</h1>
 
 
-<?php echo Form::open(['route' => 'orders.store']); ?>
+<?php echo Form::open(array('route' => 'orders.store','files'=>true)); ?>
 
 	<div>
 	<?php echo Form::label('plaintiff', 'Plaintiff: '); ?>
@@ -32,14 +32,14 @@
 	<?php echo $errors->first('plaintiff'); ?>
 
 	</div>
-		<div>
+<div>
 	<?php echo Form::label('defendant', 'Defendant: '); ?>
 
 	<?php echo Form::text('defendant'); ?>
 
 	<?php echo $errors->first('defendant'); ?>
 
-	</div>
+</div>
 		<div>
 	<?php echo Form::label('case', 'Court Case: '); ?>
 
@@ -58,11 +58,11 @@
 	</div>
 
 	<div>
-	<?php echo Form::label('state', 'State: '); ?>
+	<?php echo Form::label('caseState', 'State: '); ?>
 
-	<?php echo Form::select('state', $states, null, ['id' => 'state']); ?>
+	<?php echo Form::select('caseState', $states, null, ['id' => 'state']); ?>
 
-	<?php echo $errors->first('state'); ?>
+	<?php echo $errors->first('caseState'); ?>
 
 	</div>
 <div class="row">
@@ -89,15 +89,19 @@
 	</div>
 <div>
 
+	<?php echo $errors->first('service_documents'); ?><p>
+		<?php echo Form::label('Upload Service Documents: '); ?><input type="file" name="service_documents" id="">
+		<br/>
+
     <?php echo Form::label('Documents Served', 'Documents Served: '); ?><br>
 
     <?php foreach($documents as $document): ?>
 
-    <?php echo Form::checkbox($document[0], $document[1]); ?>
+    <?php echo Form::checkbox('documentServed['.$document[0].']', $document[1]); ?>
 
-    <?php echo Form::label($document[1],  $document[1]); ?><br>
+    <?php echo Form::label('documentServed['.$document[1].']',  $document[1]); ?><br>
     <?php endforeach; ?>
-    <?php echo $errors->first('documentsServed'); ?><p>
+    <?php echo $errors->first('documentServed'); ?><p>
 </div>
 <?php if(Auth::user()->user_role=='Admin'): ?>
     	<?php echo Form::label('company', 'Client: '); ?>
@@ -121,22 +125,22 @@
 
 	<?php echo Form::label('type', 'Process Service', true); ?>
 
-	<?php echo Form::radio('service[type]', 'Process Service', true); ?>
+	<?php echo Form::radio('type', 'Process Service', true); ?>
 
 	<?php echo Form::label('type', 'Property Posting'); ?>
 
-	<?php echo Form::radio('service[type]', 'Property Posting'); ?>
+	<?php echo Form::radio('type', 'Property Posting'); ?>
 
-	<?php echo Form::label('priority', 'Priority: '); ?>
+	<?php echo Form::label('service[priority]', 'Priority: '); ?>
 
-	<?php echo Form::select('service[posting]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?><p>
+	<?php echo Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')); ?><p>
 </div>
 <div>
-	<?php echo Form::label('defendant', 'Defendant: '); ?>
+	<?php echo Form::label('[dasdasd]', 'Defendant: '); ?>
 
 	<?php echo Form::text('service[defendant]'); ?>
 
-	<?php echo $errors->first('defendant'); ?>
+	<?php echo $errors->first('service[defendant]'); ?>
 
 </div>
 <div>

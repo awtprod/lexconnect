@@ -89,7 +89,6 @@ class OrdersController extends \BaseController {
 	public function verify()
 	{
 		$input = Input::all();
-		dd($input);
 	}
 	public function store()
 	{
@@ -98,20 +97,37 @@ class OrdersController extends \BaseController {
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
+		//Check to see if at least one service document type has been selected
+
+		if (empty($input["documentServed"])) {
+			return Redirect::back()->withInput()->withErrors($this->orders->errors);
+		}
 
 		//Check if judicial or non-judicial
-		if(empty($input["Notice_of_Trustee_Sale"])) {
+		if(empty($input["documentServed"]["Notice_of_Trustee_Sale"])) {
 
 			if (!$this->orders->fill($input)->isValid()) {
 				return Redirect::back()->withInput()->withErrors($this->orders->errors);
 			}
 		}
+
+
 		$orders = new Orders;
 		$orders->plaintiff = Input::get('plaintiff');
 		$orders->defendant = Input::get('defendant');
 		$orders->reference = Input::get('reference');
 		$orders->courtcase = Input::get('case');
-		$orders->state = Input::get('state');
+		$orders->state = Input::get('caseState');
+
+		if(empty($input["documentServed"]["Notice_of_Trustee_Sale"])){
+
+		$orders->judicial = "Judicial";
+		}
+		else{
+
+		$orders->judicial = "Non-Judicial";
+
+		}
 
 		if(!empty($court)) {
 			$orders->county = $court->county;
@@ -123,8 +139,33 @@ class OrdersController extends \BaseController {
 		$orders->save();
 		$orders_id =  $orders->id;
 
+		//Save service types
+
         $docArray = array('input' => $input, 'orderId' => $orders_id);
         $this->DocumentsServed->insertDocs($docArray);
+
+		//If docs are uploaded, validate them
+		if(!empty($input["service_documents"])){
+
+			if (!$this->orders->fill($input)->validFile()) {
+				return Redirect::back()->withInput()->withErrors($this->orders->errors);
+			}
+
+			//If valid file, move to service documents dir
+			$destinationPath = public_path().'/service_documents';
+			$file = str_random(6);
+			$filename =  $orders_id.$file . '_'. 'serviceDocs.pdf';
+			//$filepath = public_path('service_documents/' . $filename);
+			Input::file('service_documents')->move($destinationPath, $filename);
+
+
+			$document = new Documents;
+			$document->document = 'Service Documents';
+			$document->orderId = $orders_id;
+			$document->filename = $filename;
+			$document->filepath = 'service_documents';
+			$document->save();
+		}
 
 		//Set job to verify that docs are uploaded
 
@@ -202,7 +243,35 @@ class OrdersController extends \BaseController {
 			}
 		}
 
-			Cache::put('orders_id', $orders_id, 30);
+		//Determine if defendant was added
+		$service = Input::get('service');
+
+		//If defendant was added, validate data
+		if(!empty($service["defendant"])){
+
+			if (!$this->orders->fill($service)->isValidDefendant()) {
+				return Redirect::back()->withInput()->withErrors($this->orders->errors);
+			}
+
+		//Verfiy Address
+			$result = $this->jobs->addressVerification($service);
+
+			//Retrieve previously entered defendants
+			$jobs = DB::table('jobs')
+					->where('order_id', $orders_id)
+					->whereNotNull('street')->orderBy('id', 'asc')->get();
+
+			if(!empty($result)){
+
+				Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input]);
+
+			}
+			else {
+				Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input]);
+			}
+		}
+
+		Cache::put('orders_id', $orders_id, 30);
 		Return Redirect::route('orders.show')->with('orders_id', $orders_id);
 	}
 

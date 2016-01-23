@@ -9,12 +9,25 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['county','courtcase','fileDate','defendant','plaintiff','reference','court','state','case','company','documents'];
-	
+	protected $fillable = ['service_documents','street','city','state','zipcode','county','courtcase','fileDate','defendant','plaintiff','reference','court','state','case','company','documents'];
+
 	public static $rules = [
 		'defendant' => 'required',
 		'plaintiff' => 'required',
 		'court' => 'required',
+	];
+
+	public static $defendant = [
+		'defendant' => 'required',
+		'street' => 'required',
+		'city' => 'required',
+		'state' => 'required',
+		'zipcode' => 'required'
+
+	];
+
+	public static $file = [
+		'service_documents' =>  'mimes:pdf|max:20000',
 	];
 	
 
@@ -47,7 +60,33 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		
 		return false;
 	}
-	
+
+	public function isValidDefendant()
+	{
+		$messages = array(
+				'required' => 'This field is required.',
+		);
+
+		$validation = Validator::make($this->attributes, static::$defendant, $messages);
+
+		if ($validation->passes()) return true;
+
+		$this->errors = $validation->messages();
+
+		return false;
+	}
+
+	public function validFile()
+	{
+
+		$validation = Validator::make($this->attributes, static::$file);
+
+		if ($validation->passes()) return true;
+
+		$this->errors = $validation->messages();
+
+		return false;
+	}
 
     /*
 	public function SelectServer($zipcode)

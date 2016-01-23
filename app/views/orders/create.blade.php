@@ -22,17 +22,17 @@
 <h1>Create New Order</h1>
 
 
-{{ Form::open(['route' => 'orders.store']) }}
+{{ Form::open(array('route' => 'orders.store','files'=>true)) }}
 	<div>
 	{{ Form::label('plaintiff', 'Plaintiff: ') }}
 	{{ Form::text('plaintiff') }}
 	{{ $errors->first('plaintiff') }}
 	</div>
-		<div>
+<div>
 	{{ Form::label('defendant', 'Defendant: ') }}
 	{{ Form::text('defendant') }}
 	{{ $errors->first('defendant') }}
-	</div>
+</div>
 		<div>
 	{{ Form::label('case', 'Court Case: ') }}
 	{{ Form::text('case') }}
@@ -45,9 +45,9 @@
 	</div>
 
 	<div>
-	{{ Form::label('state', 'State: ') }}
-	{{ Form::select('state', $states, null, ['id' => 'state']) }}
-	{{ $errors->first('state') }}
+	{{ Form::label('caseState', 'State: ') }}
+	{{ Form::select('caseState', $states, null, ['id' => 'state']) }}
+	{{ $errors->first('caseState') }}
 	</div>
 <div class="row">
     <div class="large-9 columns">
@@ -67,14 +67,18 @@
 	</div>
 <div>
 
+	{{ $errors->first('service_documents') }}<p>
+		{{ Form::label('Upload Service Documents: ') }}<input type="file" name="service_documents" id="">
+		<br/>
+
     {{ Form::label('Documents Served', 'Documents Served: ') }}<br>
 
     @foreach($documents as $document)
 
-    {{ Form::checkbox($document[0], $document[1]) }}
-    {{ Form::label($document[1],  $document[1]) }}<br>
+    {{ Form::checkbox('documentServed['.$document[0].']', $document[1]) }}
+    {{ Form::label('documentServed['.$document[1].']',  $document[1]) }}<br>
     @endforeach
-    {{ $errors->first('documentsServed') }}<p>
+    {{ $errors->first('documentServed') }}<p>
 </div>
 @if (Auth::user()->user_role=='Admin')
     	{{ Form::label('company', 'Client: ') }}
@@ -92,16 +96,16 @@
 <div>
 	{{ Form::label('type', 'Service Type: ') }}
 	{{ Form::label('type', 'Process Service', true) }}
-	{{ Form::radio('service[type]', 'Process Service', true) }}
+	{{ Form::radio('type', 'Process Service', true) }}
 	{{ Form::label('type', 'Property Posting') }}
-	{{ Form::radio('service[type]', 'Property Posting') }}
-	{{ Form::label('priority', 'Priority: ') }}
-	{{ Form::select('service[posting]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
+	{{ Form::radio('type', 'Property Posting') }}
+	{{ Form::label('service[priority]', 'Priority: ') }}
+	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 </div>
 <div>
-	{{ Form::label('defendant', 'Defendant: ') }}
+	{{ Form::label('[dasdasd]', 'Defendant: ') }}
 	{{ Form::text('service[defendant]') }}
-	{{ $errors->first('defendant') }}
+	{{ $errors->first('service[defendant]') }}
 </div>
 <div>
 	{{ Form::label('street', 'Street: ') }}

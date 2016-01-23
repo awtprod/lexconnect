@@ -107,22 +107,10 @@ class JobsController extends \BaseController {
 					->where('order_id', Input::get('orders_id'))
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
 					
-		// Customize this (get ID/token values in your SmartyStreets account)
-		$authId = urlencode("e7bbbae3-ebf8-4909-91bb-3de8c08b3047");
-		$authToken = urlencode("XfHAxXlymvPsLfi0X6UQ");
+		//Verify Address
 
-// Address input
-		$input1 = urlencode(Input::get('street'));
-		$input2 = urlencode(Input::get('street2'));
-		$input3 = urlencode(Input::get('city'));
-		$input4 = urlencode(Input::get('state'));
-		$input5 = urlencode(Input::get('zipcode'));
+		$result = $this->jobs->addressVerification($input);
 
-// Build the URL
-		$req = "https://api.smartystreets.com/street-address/?street={$input1}&street2={$input2}&city={$input3}&state={$input4}&zipcode={$input5}&auth-id={$authId}&auth-token={$authToken}";
-
-// GET request and turn into associative array
-		$result = (array) json_decode(file_get_contents($req), true);
 		if(!empty($result)){
 
 		Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input]);

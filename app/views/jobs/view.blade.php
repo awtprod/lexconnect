@@ -15,7 +15,7 @@
 
 @foreach($tasks as $task)
 <tr>
-<td>{{ $task->step }}</td>
+<td>{{ $task->process }}</td>
 <td>{{ $task->deadline }}</td>
 @if (is_null($task->completion) AND $first  == 'true')
         @if($jobs->status == '0')

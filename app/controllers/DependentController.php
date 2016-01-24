@@ -72,7 +72,7 @@ class DependentController extends \BaseController {
         $predProcess = Input::get('processId');
 
         //Find processes in table
-        $processes = DB::table('Processes')->where('id', '!=', $predProcess)->get();
+        $processes = Processes::where('id', '!=', $predProcess)->get();
 
         //Save new data
         foreach($processes as $process) {

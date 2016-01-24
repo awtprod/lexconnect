@@ -31,7 +31,7 @@ class DependentController extends \BaseController {
             $process = Processes::whereId($id)->first();
 
             //Find processes in table
-            $processes = DB::table('Processes')->where('id', '!=', $id)->get();
+            $processes = Processes::where('id', '!=', $id)->get();
 
             //Determine if process is dependent on current process
 

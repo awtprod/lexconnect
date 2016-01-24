@@ -123,9 +123,20 @@ class JobsController extends \BaseController {
 	}
 	public function store()
 	{
+
+		$input = Input::all();
+
+		$jobs = DB::table('jobs')->where('order_id', $input["orders_id"])
+				->whereNotNull('street')->orderBy('id', 'asc')->get();
+		$states = DB::table('states')->orderBy('name', 'asc')->lists('abbrev', 'abbrev');
+
+		View::share(['states'=>$states]);
+		View::share(['jobs'=>$jobs]);
+
 		//Return to new defendant form
 		if(Input::get('edit_create')){
-			Return Redirect::route('jobs.create')->with('edit', TRUE);
+
+			Return View::make('jobs.create')->with(['input' => $input]);
 		}
 		
 		//Return to new serve address form
@@ -178,9 +189,8 @@ class JobsController extends \BaseController {
 		$job->save();
 
 
-
         //Create Service Tasks Array
-		$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => Input::get('process'), 'priority'=>Input::get('priority'), 'client' => $client, 'state' => $order->state );
+		$sendTask = array('county'=>$order->county,'judicial'=>$order->judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => $input["type"], 'priority'=>$input["service"]["priority"], 'client' => $client, 'state' => $order->state );
 
         //Create Service Tasks
         $process = $this->tasks->CreateTasks($sendTask);

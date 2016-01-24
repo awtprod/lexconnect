@@ -1,6 +1,8 @@
-/bootstrap/compiled.php
+bootstrap/compiled.php
+app/storage/
 /vendor
-app\config\database.php
+app/config/
+node_modules/
 composer.phar
 .env.*.php
 .env.php

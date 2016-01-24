@@ -71,12 +71,16 @@ Defendant:{{ $input["defendant"] }}{{ Form::hidden('defendant', $input["defendan
 {{ $result[0]['metadata']['county_name'] }}{{ Form::hidden('county', $result[0]['metadata']['county_name']) }},&nbsp;
 {{ $result[0]['components']['state_abbreviation'] }}{{ Form::hidden('state', $result[0]['components']['state_abbreviation']) }}&nbsp;
 {{ $result[0]['components']['zipcode'] }}{{ Form::hidden('zipcode', $result[0]['components']['zipcode']) }}<p>
-<b>Property Vacant:&nbsp;{{ $result[0]['analysis']['dpv_vacant'] }}</b>
+<b>Property Vacant:&nbsp;{{ $result[0]['analysis']['dpv_vacant'] }}</b><p>
 
         {{ Form::hidden('notes', Input::get('notes')) }}
-        {{ Form::hidden('type', Input::get('type')) }}
+    {{Input::get('type')}}{{ Form::hidden('type', Input::get('type')) }}
 
-@if(!empty($input["servee_id"]))
+    @if(!empty($input["service"]["priority"]))
+        {{ Form::hidden('service[priority]', $input["service"]["priority"]) }}
+    @endif
+
+    @if(!empty($input["servee_id"]))
 	{{ Form::hidden('orders_id', $input["orders_id"]) }}
 	{{ Form::hidden('servee_id', $input["servee_id"]) }}
 	

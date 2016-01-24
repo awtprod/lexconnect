@@ -99,7 +99,7 @@ class DependentController extends \BaseController {
 
             }
         }
-		Return Redirect::Route('dependent.edit', $predProcess);
+		Return Redirect::Route('processes.index');
 	}
 
 

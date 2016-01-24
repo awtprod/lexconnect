@@ -49,9 +49,19 @@ table#t01 th	{
 	{{ $errors->first('street') }}
 	</div>
 			<div>
+	@if(!empty($input["street2"]))
+
 	{{ Form::label('street2', 'Apt/Unit/Suite: ') }}
 	{{ Form::text('street2', $input["street2"]) }}
 	{{ $errors->first('street2') }}
+
+	@else
+
+	{{ Form::label('street2', 'Apt/Unit/Suite: ') }}
+	{{ Form::text('street2') }}
+	{{ $errors->first('street2') }}
+
+	@endif
 	</div>
 			<div>
 	{{ Form::label('city', 'City: ') }}
@@ -74,12 +84,25 @@ table#t01 th	{
     {{ $errors->first('notes') }}
 </div>
 <div>
-    {{ Form::label('type', 'Service Type: ') }}
-    {{ Form::label('type', 'Routine Serve', true) }}
-    {{ Form::radio('type', 'Routine Serve', true) }}<br>
-    {{ Form::label('type', 'Property Posting') }}
-    {{ Form::radio('type', 'Property Posting') }}
+	@if($input["type"]=="service")
+	{{ Form::label('type', 'Service Type: ') }}
+	{{ Form::radio('type', 'service', true) }}
+	{{ Form::label('type', 'Process Service', true) }}
+	{{ Form::radio('type', 'posting') }}
+	{{ Form::label('type', 'Property Posting') }}
+
+		@else
+			{{ Form::label('type', 'Service Type: ') }}
+			{{ Form::radio('type', 'service') }}
+			{{ Form::label('type', 'Process Service') }}
+			{{ Form::radio('type', 'posting',true) }}
+			{{ Form::label('type', 'Property Posting') }}
+		@endif
+
+	{{ Form::label('service[priority]', 'Priority: ') }}
+	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day'),$input["service"]["priority"]) }}<p>
 </div>
+
 {{ Form::hidden('orders_id', $input["orders_id"]) }}
 
 	<div>{{ Form::submit('Add Defendant') }}{{ Form::reset('Reset') }}</div>
@@ -126,12 +149,15 @@ table#t01 th	{
     {{ $errors->first('notes') }}<p>
 </div>
 <div>
-    {{ Form::label('type', 'Service Type: ') }}<br>
-    {{ Form::label('type', 'Routine Serve', true) }}
-    {{ Form::radio('type', 'Routine Serve', true) }}<br>
-    {{ Form::label('type', 'Property Posting') }}
-    {{ Form::radio('type', 'Property Posting') }}<p>
+	{{ Form::label('type', 'Service Type: ') }}
+	{{ Form::radio('type', 'service', true) }}
+	{{ Form::label('type', 'Process Service', true) }}
+	{{ Form::radio('type', 'posting') }}
+	{{ Form::label('type', 'Property Posting') }}
+	{{ Form::label('service[priority]', 'Priority: ') }}
+	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 </div>
+
 {{ Form::hidden('orders_id', $orders_id) }}
 
 	<div>{{ Form::submit('Add Defendant') }}{{ Form::reset('Reset') }}</div>

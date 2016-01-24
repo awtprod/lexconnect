@@ -334,17 +334,8 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			$process = Processes::whereName(str_replace('_', ' ', $sendTask['process']))->orderBy('id', 'asc')->first();
 		}
 
-		//Determine if non-judicial or judicial order
-		$order = Orders::whereId($sendTask['orders_id'])->first();
-
-		if(!empty($order->court)){
-			$jud = 'Judicial';
-		}
-		else{
-			$jud = 'Non-Judicial';
-		}
 		//Find steps
-        $steps = Template::whereProcess($process->id)->where('judicial','Both')->orWhere('judicial',$jud)->orderBy('sort_order', 'asc')->get();
+        $steps = Template::whereProcess($process->id)->where('judicial','Both')->orWhere('judicial',$sendTask['judicial'])->orderBy('sort_order', 'asc')->get();
 
         $first = 'true';
 
@@ -368,7 +359,6 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
             if($step->group == "Client"){
                 $tasks->group = $sendTask['client'];
             }
-		$tasks->process = $process->id;
 		$tasks->sort_order = $step->sort_order;
           if($first == "true") {
                 $tasks->status = 1;

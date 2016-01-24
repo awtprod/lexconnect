@@ -95,15 +95,15 @@
 <h1>Add New Defendant</h1>
 <div>
 	{{ Form::label('type', 'Service Type: ') }}
+	{{ Form::radio('type', 'service', true) }}
 	{{ Form::label('type', 'Process Service', true) }}
-	{{ Form::radio('type', 'Process Service', true) }}
+	{{ Form::radio('type', 'posting') }}
 	{{ Form::label('type', 'Property Posting') }}
-	{{ Form::radio('type', 'Property Posting') }}
 	{{ Form::label('service[priority]', 'Priority: ') }}
-	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
+	{{ Form::select('service[priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 </div>
 <div>
-	{{ Form::label('[dasdasd]', 'Defendant: ') }}
+	{{ Form::label('[defendant]', 'Defendant: ') }}
 	{{ Form::text('service[defendant]') }}
 	{{ $errors->first('service[defendant]') }}
 </div>

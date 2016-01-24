@@ -122,11 +122,13 @@ class OrdersController extends \BaseController {
 		if(empty($input["documentServed"]["Notice_of_Trustee_Sale"])){
 
 		$orders->judicial = "Judicial";
+		$judicial = "Judicial";
+
 		}
 		else{
 
 		$orders->judicial = "Non-Judicial";
-
+		$judicial = "Non-Judicial";
 		}
 
 		if(!empty($court)) {
@@ -178,7 +180,7 @@ class OrdersController extends \BaseController {
 		$job->save();
 
 		//Create task array
-		$sendTask = array('jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => Input::get('state'));
+		$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => Input::get('state'));
 
 		//Load task into db
 		$process = $this->tasks->CreateTasks($sendTask);
@@ -208,7 +210,7 @@ class OrdersController extends \BaseController {
 				$job->save();
 
 				//Create task array
-				$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Filing', 'priority' => $input["filing"], 'client' => Input::get('company'), 'state' => Input::get('state'));
+				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Filing', 'priority' => $input["filing"], 'client' => Input::get('company'), 'state' => Input::get('state'));
 
 				//Load task into db
 				$process = $this->tasks->CreateTasks($sendTask);
@@ -232,7 +234,7 @@ class OrdersController extends \BaseController {
 				$job->save();
 
 				//Create task array
-				$sendTask = array('jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Recording', 'priority' => $input["recording"], 'client' => Input::get('company'), 'state' => Input::get('state'));
+				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Recording', 'priority' => $input["recording"], 'client' => Input::get('company'), 'state' => Input::get('state'));
 
 				//Load task into db
 				$process = $this->tasks->CreateTasks($sendTask);
@@ -260,6 +262,8 @@ class OrdersController extends \BaseController {
 			$jobs = DB::table('jobs')
 					->where('order_id', $orders_id)
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
+
+			$input["orders_id"] = $orders_id;
 
 			if(!empty($result)){
 

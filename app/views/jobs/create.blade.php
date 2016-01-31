@@ -100,7 +100,7 @@ table#t01 th	{
 		@endif
 
 	{{ Form::label('service[priority]', 'Priority: ') }}
-	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day'),$input["service"]["priority"]) }}<p>
+	{{ Form::select('service[priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day'),$input["service"]["priority"]) }}<p>
 </div>
 
 {{ Form::hidden('orders_id', $input["orders_id"]) }}
@@ -155,7 +155,7 @@ table#t01 th	{
 	{{ Form::radio('type', 'posting') }}
 	{{ Form::label('type', 'Property Posting') }}
 	{{ Form::label('service[priority]', 'Priority: ') }}
-	{{ Form::select('service[priority]', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
+	{{ Form::select('service[priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 </div>
 
 {{ Form::hidden('orders_id', $orders_id) }}

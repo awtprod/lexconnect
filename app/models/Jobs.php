@@ -98,7 +98,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	if(empty($result)){
 		return 1;
 	}
-	$distance = array();
+	$vendor = array();
+
 	foreach($result as $key => $select){
 
      //Find status of server
@@ -106,34 +107,94 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
                                       ->where('id', $select["UserData"])
                                       ->where('status', 1)->pluck('status');
 
+	//Find job
+		$job = Jobs::whereId($serverData['jobId'])->first();
+
      //Find if server has been previously assigned to job
-     if($serverData['jobId'] != NULL) {
+     if($serverData['jobId'] != 'NULL') {
+
          $previousAssignment = DB::table('tasks')
-             ->where('vendor', $select["UserData"])
-             ->where('job_id', $serverData['jobId'])->pluck('vendor');
+             ->where('group', $select["UserData"])
+             ->where('job_id', $serverData['jobId'])->pluck('group');
      }
 
-     //Remove unqualified servers
-        if(!empty($suspended)){
+	//Retrieve rates for vendor
+		$rates = DB::table('vendorrates')->where('vendor', $select["UserData"])
+										->where('state', $serverData['state'])
+										->where('county', $serverData['county'])->first();
 
-        unset($result[$key]);
+	//If server does not serve area, remove
+		if(empty($rates)){
 
-        }
-        elseif(!empty($previousAssignment)){
+			unset($result[$key]);
 
-        unset($result[$key]);
+		}
+		else {
+			//Set variables
+			$flatVar = $serverData['process'] . 'Flat';
+			$rate = $rates->$flatVar;
 
-        }
-	else {
-        $score = DB::table('company')->where('id', $select["UserData"])->pluck('score');
-        $distance[$select["UserData"]] = (1 - ($score)) * ($select["Distance"]["Value"]);
-    }
-		
+			$baseVar = $serverData['process'] . 'Base';
+			$base = $rates->$baseVar;
+
+			$mileVar = $serverData['process'] . 'Mileage';
+			$mileage = $rates->$mileVar;
+
+			//Determine cost for job
+
+			if (empty($rate) OR $rate == '0') {
+
+				$vendor["rate"][$select["UserData"]] = ($base) + (($mileage) * ($select["Distance"]["Value"]));
+
+				if($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
+
+					$surVar = $serverData['process'] . $serverData['priority'];
+					$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + (($base) + (($mileage) * ($select["Distance"]["Value"])));
+				}
+
+			}
+			elseif($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
+
+				$surVar = $serverData['process'] . $serverData['priority'];
+				$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + $rates->$flatVar;
+			}
+
+			//Find client
+			$client = DB::table('company')->where('name', $serverData['client'])->first();
+
+			//Find maximum rate set by client
+			$maxRate = DB::table('clientrates')->where('client', $client->id)->where('state', $job->state)->pluck($serverData['process'] . 'Max');
+
+			//Remove unqualified servers
+			if (!empty($suspended)) {
+
+				unset($result[$key]);
+
+			} elseif (!empty($previousAssignment)) {
+
+				unset($result[$key]);
+
+			} elseif ($vendor["rate"][$select["UserData"]] > $maxRate) {
+
+				unset($result[$key]);
+
+			} else {
+				$score = DB::table('company')->where('id', $select["UserData"])->pluck('score');
+
+				$vendor["weight"][$select["UserData"]] = (((0.45) * ((1 - ($score)) * ($select["Distance"]["Value"]))) + ((0.55) * ((1 - ($score)) * $vendor["rate"][$select["UserData"]])));
+			}
+		}
 	}
-	$server = array_keys($distance, min($distance));
+	$server = array_keys($vendor["weight"], min($vendor["weight"]));
+
+		$data = array();
 
 	foreach($server as $servers){
-		return $servers;
+
+		$data["server"] = $servers;
+		$data["rate"] = $vendor["rate"][$servers];
+
+		return $data;
 	}
 
 	}

@@ -39,7 +39,7 @@ class ClientRatesController extends \BaseController {
         $clients = DB::table('company')->where('v_c', 'Client')->orderBy('v_c', 'asc')->lists('name', 'id');
 
 		//Find states
-		$states = DB::table('states')->orderBy('name', 'asc')->get();
+		$states = DB::table('states')->orderBy('abbrev', 'asc')->get();
 
 		//Get company data for client
 		$company = DB::table('company')->where('id', $clientId)->first();
@@ -105,7 +105,7 @@ class ClientRatesController extends \BaseController {
 			foreach ($states as $state) {
 
 				$clientRates = new ClientRates;
-				$clientRates->state = $state->name;
+				$clientRates->state = $state->abbrev;
 				$clientRates->client = Input::get('clientId');
 				$clientRates->discount = $discount[$state->abbrev];
 				$clientRates->filingMax = $filingMax[$state->abbrev];

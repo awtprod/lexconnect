@@ -165,40 +165,45 @@ class JobsController extends \BaseController {
 		$new = FALSE;
 		}
 
-        $serverData = array('jobId' => NULL, 'zipcode' => Input::get('zipcode'));
-        $server = $this->jobs->SelectServer($serverData);
+
 		$street2 = Input::get('street2');
+
 		$job = new Jobs;
 		$job->servee_id = $servee_id;
-		$job->vendor = $server;
+		$job->service = 'Process Service';
+		$job->priority = $input["service"]["priority"];
 		$job->client = $client;
-		$job->order_id = input::get('orders_id');
-		$job->defendant = input::get('defendant');
-		$job->street = input::get('street');
+		$job->order_id = Input::get('orders_id');
+		$job->defendant = Input::get('defendant');
+		$job->street = Input::get('street');
 		if(!empty($street2)){
 		$job->street2 = Input::get('street2');
 		}
-		$job->city = input::get('city');
-		$job->state = input::get('state');
-        $job->county = input::get('county');
-		$job->zipcode = input::get('zipcode');
+		$job->city = Input::get('city');
+		$job->state = Input::get('state');
+        $job->county = Input::get('county');
+		$job->zipcode = Input::get('zipcode');
 
         if(!empty(Input::get('notes'))) {
             $job->notes = Input::get('notes');
         }
 		$job->save();
 
+		//Select Server
+		$serverData = array('zipcode' => Input::get('zipcode'), 'state' => Input::get('state'), 'county' => Input::get('county'), 'jobId' => $job->id, 'process' => 'service', 'priority' => $input["service"]["priority"], 'client' => $client);
+		$server = $this->jobs->SelectServer($serverData);
 
-        //Create Service Tasks Array
-		$sendTask = array('county'=>$order->county,'judicial'=>$order->judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => $input["type"], 'priority'=>$input["service"]["priority"], 'client' => $client, 'state' => $order->state );
+			//Create Service Tasks Array
+		$sendTask = array('county'=>$order->county,'judicial'=>$order->judicial,'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => $input["type"], 'priority'=>$input["service"]["priority"], 'client' => $client, 'state' => $order->state );
+
 
         //Create Service Tasks
         $process = $this->tasks->CreateTasks($sendTask);
 
 		//Update job with process
+		$job->vendor = $server["server"];
 		$job->process = $process;
 		$job->save();
-
 		Cache::forget('input');
 		
 		if($new == TRUE){

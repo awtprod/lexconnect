@@ -348,9 +348,11 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 		$tasks->service = $sendTask['process'];
 		$tasks->process = $step->name;
 		$tasks->priority = $sendTask['priority'];
+
 			if($step->group == "Vendor") {
                 $tasks->group = $sendTask['vendor'];
             }
+
             if($step->group == "Admin"){
 
                 $tasks->group = 1;
@@ -373,19 +375,24 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 		if($sendTask['priority'] == 'Routine') {
 			$tasks->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
 			$tasks->days = $step->RoutineNewDueDate;
+
 		}
 		elseif($sendTask['priority'] == 'Rush') {
-				$tasks->deadline = Carbon::now()->addDays($step->RushOrigDueDate);
+			$tasks->deadline = Carbon::now()->addDays($step->RushOrigDueDate);
 				$tasks->days = $step->RushNewDueDate;
+
 		}
 		elseif($sendTask['priority'] == 'SameDay') {
 				$tasks->deadline = Carbon::now()->addDays($step->SameDayOrigDueDate);
 				$tasks->days = $step->SameDayNewDueDate;
-		}
-		$tasks->window = $step->window;
-		$tasks->save();
 
-			}
+		}
+
+			$tasks->window = $step->window;
+			$tasks->save();
+
+
+		}
 		Return $process->id;
 	}
 

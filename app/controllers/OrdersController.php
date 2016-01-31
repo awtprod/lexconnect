@@ -111,7 +111,6 @@ class OrdersController extends \BaseController {
 			}
 		}
 
-
 		$orders = new Orders;
 		$orders->plaintiff = Input::get('plaintiff');
 		$orders->defendant = Input::get('defendant');
@@ -141,10 +140,13 @@ class OrdersController extends \BaseController {
 		$orders->save();
 		$orders_id =  $orders->id;
 
+
 		//Save service types
 
         $docArray = array('input' => $input, 'orderId' => $orders_id);
         $this->DocumentsServed->insertDocs($docArray);
+
+
 
 		//If docs are uploaded, validate them
 		if(!empty($input["service_documents"])){
@@ -190,24 +192,27 @@ class OrdersController extends \BaseController {
 		$job->save();
 
 
-
 		if (!empty($input["filing"]) OR !empty($input["recording"])) {
 
-        $serverData = array('zipcode' => $court->zip, 'jobId' => 'NULL');
-		$server = $this->jobs->SelectServer($serverData);
 
 			if(!empty($input["filing"])) {
+
 
 				//Create job for filing
 
 				$job = new Jobs;
-				$job->vendor = $server;
+				$job->defendant = $court->court;
 				$job->client = Input::get('company');
 				$job->order_id = $orders_id;
-				$job->service = Filing;
+				$job->service = 'Filing';
 				$job->priority = $input["filing"];
+				$job->state = $court->state;
 				$job->zipcode = $court->zip;
 				$job->save();
+
+				//Select Server
+				$serverData = array('zipcode' => $court->zip, 'state' => Input::get('caseState'), 'county' => $court->county, 'jobId' => $job->id, 'process' => 'filing', 'priority' => $input["filing"], 'client' => Input::get('company'));
+				$server = $this->jobs->SelectServer($serverData);
 
 				//Create task array
 				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Filing', 'priority' => $input["filing"], 'client' => Input::get('company'), 'state' => Input::get('state'));
@@ -216,22 +221,29 @@ class OrdersController extends \BaseController {
 				$process = $this->tasks->CreateTasks($sendTask);
 
 				//Update job with process
+				$job->vendor = $server["server"];
 				$job->process = $process;
 				$job->save();
 			}
 
 			if(!empty($input["recording"])) {
 
+
 				//Create job for recording
 
 				$job = new Jobs;
-				$job->vendor = $server;
+				$job->defendant = $court->court;
 				$job->client = Input::get('company');
 				$job->order_id = $orders_id;
-				$job->service = Recording;
+				$job->service = 'Recording';
 				$job->priority = $input["recording"];
+				$job->state = $court->state;
 				$job->zipcode = $court->zip;
 				$job->save();
+
+				//Select Server
+				$serverData = array('zipcode' => $court->zip, 'state' => Input::get('caseState'), 'county' => $court->county, 'jobId' => $job->id, 'process' => 'recording','priority' => $input["recording"], 'client' => Input::get('company'));
+				$server = $this->jobs->SelectServer($serverData);
 
 				//Create task array
 				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Recording', 'priority' => $input["recording"], 'client' => Input::get('company'), 'state' => Input::get('state'));
@@ -240,6 +252,7 @@ class OrdersController extends \BaseController {
 				$process = $this->tasks->CreateTasks($sendTask);
 
 				//Update job with process
+				$job->vendor = $server["server"];
 				$job->process = $process;
 				$job->save();
 			}

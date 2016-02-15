@@ -59,7 +59,7 @@ class DocumentsController extends \BaseController {
         if(Auth::user()->user_role=='Admin' OR $order->client == Auth::user()->company OR $vendor == true){
 
         //Load pdf
-            $filepath = public_path().'/'.$document->filepath.'/'.$document->filename;
+            $filepath = storage_path().'/'.$document->filepath.'/'.$document->filename;
 
             return Response::make(file_get_contents($filepath), 200, [
                 'Content-Type' => 'application/pdf',

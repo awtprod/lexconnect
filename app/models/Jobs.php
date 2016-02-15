@@ -63,6 +63,36 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		return false;
 	}
 
+	public function depProcess ($process){
+
+		$depProcesses = Dependent::wheredepProcess($process["process"])->get();
+
+		//If additional dependent processes exist, check for existing jobs
+
+		if(!empty($depProcesses)){
+
+			$addJob = array();
+
+			foreach($depProcesses as $depProcess){
+
+				$addJob = Jobs::whereProcess($depProcess->pred_process)
+						->whereNull('completed')
+						->whereorderId($process["orderId"])->get();
+			}
+
+			if(!empty($addJob)){
+
+				return true;
+			}
+
+			//If no active dependent jobs, remove hold on task(s)
+			else{
+
+				return false;
+			}
+		}
+	}
+
 	public function addressVerification($input){
 
 		// Customize this (get ID/token values in your SmartyStreets account)

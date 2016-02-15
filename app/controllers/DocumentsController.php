@@ -1,7 +1,8 @@
 <?php
 
 class DocumentsController extends \BaseController {
-    public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Documents $documents)
+
+    public function __construct (Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
     {
 
         $this->orders = $orders;
@@ -10,7 +11,67 @@ class DocumentsController extends \BaseController {
         $this->jobs = $jobs;
         $this->invoices = $invoices;
         $this->DocumentsServed = $DocumentsServed;
-        $this->documents = $documents;
+        $this->Processes = $processes;
+        $this->Steps = $steps;
+        $this->Template = $template;
+        $this->Counties = $counties;
+        $this->User = $user;
+        $this->Documents = $Documents;
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function show($id)
+    {
+        //Find document data
+        $document = Documents::whereId($id)->first();
+
+        //Find task data
+        if($document->job_id == 'NULL'){
+
+            $tasks = Tasks::whereorderId($document->order_id)->get();
+        }
+        else{
+
+            $tasks = Tasks::wherejobId($document->job_id)->get();
+        }
+
+        //Find Order data
+        $order = Orders::whereId($document->order_id)->first();
+
+        //Find if vendor is assigned to job
+
+        $vendor = false;
+        foreach($tasks as $task){
+
+            if($task->group == Auth::user()->company_id){
+
+                $vendor = true;
+            }
+        }
+
+        //Determine user access
+        if(Auth::user()->user_role=='Admin' OR $order->client == Auth::user()->company OR $vendor == true){
+
+        //Load pdf
+            $filepath = public_path().DIRECTORY_SEPARATOR.$document->filepath;
+
+            return Response::make(file_get_contents($filepath), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; '.$document->filename,
+            ]);
+
+        }
+        else{
+
+            Return "Not Authorized To View!";
+
+        }
     }
 
     public function upload(){
@@ -572,16 +633,6 @@ class DocumentsController extends \BaseController {
 	}
 
 
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function show($id)
-	{
-		//
-	}
 
 
 	/**

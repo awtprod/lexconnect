@@ -1,6 +1,6 @@
 <?php
 use Carbon\Carbon;
-class TasksController extends \BaseController {
+class BackupTasksController extends \BaseController {
     public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Documents $documents)
     {
 

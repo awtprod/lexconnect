@@ -3,7 +3,7 @@
 class OrdersController extends \BaseController {
 	protected $order;
 
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template)
+	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -15,6 +15,8 @@ class OrdersController extends \BaseController {
 		$this->Processes = $processes;
 		$this->Steps = $steps;
 		$this->Template = $template;
+		$this->Counties = $counties;
+		$this->User = $user;
 	}
 
 
@@ -165,7 +167,7 @@ class OrdersController extends \BaseController {
 
 			$document = new Documents;
 			$document->document = 'Service Documents';
-			$document->orderId = $orders_id;
+			$document->order_id = $orders_id;
 			$document->filename = $filename;
 			$document->filepath = 'service_documents';
 			$document->save();
@@ -179,6 +181,7 @@ class OrdersController extends \BaseController {
 		$job->order_id = $orders_id;
 		$job->service = 'Verify Documents';
 		$job->priority = 'Routine';
+		$job->status = 1;
 		$job->save();
 
 		//Create task array
@@ -220,6 +223,20 @@ class OrdersController extends \BaseController {
 				//Load task into db
 				$process = $this->tasks->CreateTasks($sendTask);
 
+				//Check for dependent jobs
+				$depData = array('process' => $process, 'orderId'=>$orders_id);
+
+				if(! $this->jobs->depProcess($depData)){
+
+					$job->status = 1;
+
+				}
+				else{
+
+					$job->status = 0;
+
+				}
+
 				//Update job with process
 				$job->vendor = $server["server"];
 				$job->process = $process;
@@ -250,6 +267,20 @@ class OrdersController extends \BaseController {
 
 				//Load task into db
 				$process = $this->tasks->CreateTasks($sendTask);
+
+				//Check for dependent jobs
+				$depData = array('process' => $process, 'orderId'=>$orders_id);
+
+				if(! $this->jobs->depProcess($depData)){
+
+					$job->status = 1;
+
+				}
+				else{
+
+					$job->status = 0;
+
+				}
 
 				//Update job with process
 				$job->vendor = $server["server"];

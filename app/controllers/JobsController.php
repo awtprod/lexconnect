@@ -1,7 +1,7 @@
 <?php
 use Carbon\Carbon;
 class JobsController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template)
+	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -13,8 +13,9 @@ class JobsController extends \BaseController {
 		$this->Processes = $processes;
 		$this->Steps = $steps;
 		$this->Template = $template;
+		$this->Counties = $counties;
+		$this->User = $user;
 	}
-
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -200,6 +201,20 @@ class JobsController extends \BaseController {
         //Create Service Tasks
         $process = $this->tasks->CreateTasks($sendTask);
 
+		//Check for dependent jobs
+		$depData = array('process' => $process, 'orderId'=>Input::get('orders_id'));
+
+		if(! $this->jobs->depProcess($depData)){
+
+		$job->status = 1;
+
+			}
+		else{
+
+		$job->status = 0;
+
+			}
+
 		//Update job with process
 		$job->vendor = $server["server"];
 		$job->process = $process;
@@ -226,17 +241,20 @@ class JobsController extends \BaseController {
 	public function show($id)
 	{
 
+		//Save session token to variable
         $token = Session::token();
 
+		//Retrieve job Id from session data, if available
 		if(!is_numeric($id)){
 		$id = Session::get('job_id');
 		}
+
+		//Find task data
 		$tasks = Tasks::wherejobId($id)->OrderBy('sort_order', 'asc')->get();
+
+		//Find job data
 		$jobs = Jobs::whereId($id)->OrderBy('id', 'asc')->first();
 
-		
-		$servers = DB::table('users')->where('company_id', $jobs->vendor)->orderBy('name', 'asc')->lists('name', 'name');
-		View::share(['servers' => $servers]);
 
 		
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->company_id==$jobs->vendor){

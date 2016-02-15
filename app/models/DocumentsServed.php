@@ -9,7 +9,7 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['documentServed','date', 'time', 'orderId',];
+	protected $fillable = ['documentServed','date', 'time', 'order_id',];
 	
 	public static $rules = [
 		'documentServed' => 'min:1'

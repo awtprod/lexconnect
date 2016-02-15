@@ -1,7 +1,7 @@
 <?php
 use Carbon\Carbon;
 class TasksController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -14,6 +14,7 @@ class TasksController extends \BaseController {
 		$this->Steps = $steps;
 		$this->Template = $template;
 		$this->Counties = $counties;
+		$this->User = $user;
 	}
 	/**
 	 * Display a listing of the resource.
@@ -42,6 +43,15 @@ class TasksController extends \BaseController {
         //Get zip code of serve address
         $job = DB::table('jobs')->where('id', $CurrentTask->job_id)->first();
 
+		//Find servers
+		$servers = User::whereCompanyId($job->vendor)->orderBy('fname')->get();
+		$servers = $servers->lists('FullName', 'id');
+
+		//Find latest proof
+		$proof = Documents::whereJobId($job->id)
+							->where('document', 'Unexecuted_Proof')->orderBy('created_at', 'desc')->first();
+
+		//Get order data
         $order = Orders::whereId($CurrentTask->order_id)->first();
 
         //Find current task due
@@ -55,13 +65,13 @@ class TasksController extends \BaseController {
             Return "Not Authorized To View!";
 
         //Check to see if user is authorized to complete task
-        } elseif (Auth::user()->user_role=='Admin' OR Auth::user()->company_id == $CurrentTask->vendor) {
+        } elseif (Auth::user()->user_role=='Admin' OR Auth::user()->company_id == $CurrentTask->group) {
 
 
 			//see if there is a popup window for task
 			if(!empty($CurrentTask->window)){
 
-				Return View::make($CurrentTask->window)->with('taskId', $tasksId);
+				Return View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['job'=>$job])->with(['servers'=>$servers])->with('proof', $proof);
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -122,6 +132,110 @@ class TasksController extends \BaseController {
 
 			Return View::make('attempt.create')->with('taskId', Input::get('taskId'))->with('job', $job);
 
+		}
+	}
+
+	public function proof(){
+
+		//Get job info
+		$job = Jobs::whereId(Input::get('jobId'))->first();
+
+		//Get task info
+		$taskId = Tasks::whereJobId(Input::get('jobId'))->first();
+
+		//Get order info
+		$order = Orders::whereId($job->order_id)->first();
+
+		//Find server information
+		$server = User::whereId(Input::get('server'))->first();
+
+		//Find server firm
+		$serverFirm = Company::whereId($server->company_id)->first();
+
+		//Find court information
+		$court = DB::table('courts')->whereCourt($order->court)->first();
+
+		//Find what documents were served
+		$docsServed = DocumentsServed::whereorderId($order->id)->get();
+
+		//Determine if Serve or Non-Serve
+		$serve = DB::table('serve')->where('job_id', Input::get('jobId'))->first();
+
+		View::share(['order' => $order]);
+		View::share(['serve' => $serve]);
+		View::share(['server'=>$server]);
+		View::share(['court'=>$court]);
+		View::share(['docsServed'=>$docsServed]);
+		View::share(['serverFirm'=>$serverFirm]);
+
+
+		//If Defendant was served, Generate Proof of Service
+		if(!empty($serve)){
+
+			$data = array();
+
+			$data['date'] = date('jS \d\a\y \of F Y', strtotime($serve->date));
+			$data['time'] = date('h:i A', strtotime($serve->time));
+			$data['served'] = $serve->served_upon;
+			if($serve->sub_served == 0){
+				$data['relationship'] = "NAMED DEFENDANT";
+			}
+			else{
+				$data['relationship'] = $serve->relationship;
+			}
+
+			$file = str_random(6);
+			$filename =  $file . '_'. 'proof.pdf';
+			$filepath = public_path().DIRECTORY_SEPARATOR.'proofs'. $filename;
+
+			//Determine correct template
+			$state = $job->state . 'proof';
+
+			//Create proof
+			$pdf = PDF::loadView('tasks.'.$state, ['data' => $data], ['job' => $job], ['serve' => $serve])->save($filepath);
+
+			//Update Table
+			$dbDoc = new Documents;
+			$dbDoc->document = 'Unexecuted_Proof';
+			$dbDoc->job_id = Input::get('jobId');
+			$dbDoc->order_id = $job->order_id;
+			$dbDoc->filename = $filename;
+			$dbDoc->filepath = 'proofs';
+			$dbDoc->save();
+
+			return $pdf->download($filename);
+		}
+
+		//If defendant was NOT served
+		else{
+			$attempts = DB::table('attempts')->OrderBy('date', 'asc')->where('job', Input::get('jobId'))->get();
+			$a = array();
+			foreach( $attempts as $attempt){
+
+				$a[$attempt->job]['date'] = date("m/d/y", strtotime($attempt->date));
+				$a[$attempt->job]['time'] = date('h:i A', strtotime($attempt->time));
+				$a[$attempt->job]['description'] = $attempt->description;
+			}
+			$file = str_random(6);
+			$filename =  $file . '_'. 'proof.pdf';
+			$filepath = public_path().DIRECTORY_SEPARATOR.'proofs'. $filename;
+
+			//Determine correct template
+			$state = $job->state . 'non';
+
+			//Create proof
+			$pdf = PDF::loadView('tasks.'.$state, ['a' => $a], ['job' => $job], ['serve' => $serve])->save($filepath);
+
+			//Update Table
+			$dbDoc = new Documents;
+			$dbDoc->document = 'Unexecuted_Proof';
+			$dbDoc->job_id = Input::get('jobId');
+			$dbDoc->order_id = $job->order_id;
+			$dbDoc->filename = $filename;
+			$dbDoc->filepath = 'proofs';
+			$dbDoc->save();
+
+			return $pdf->download($filename);
 		}
 	}
 
@@ -206,86 +320,7 @@ class TasksController extends \BaseController {
 		Return Redirect::route('jobs.index');
 		
 	}
-	public function proof(){
 
-        $orderId = Jobs::whereId(Input::get('job_id'))->pluck('order_id');
-
-        $taskId = Tasks::whereJobId(Input::get('job_id'))->first();
-
-        //Determine if Serve or Non-Serve
-		$serve = DB::table('serve')->where('job_id', Input::get('job_id'))->first();
-		View::share(['serve' => $serve]);
-		View::share('server', Input::get('server'));
-		//If Defendant was served, Generate Proof of Service
-		if(!empty($serve)){
-
-		$data = array();
-		
-		$data['date'] = date("m/d/y", strtotime($serve->date));
-		$data['time'] = $serve->time;
-		$data['served'] = $serve->served_upon;
-		if($serve->sub_served == 0){
-		$data['relationship'] = "NAMED DEFENDANT";
-		}
-		else{
-		$data['relationship'] = $serve->relationship;
-		}
-		
-		$proof = DB::table('jobs')->where('id', Input::get('job_id'))->first();
-
-		$file = str_random(6);
-		$filename =  $file . '_'. 'proof.pdf';
-		$filepath = public_path('proofs/' . $filename);
-
-            if($taskId->process == 3){
-
-                $pdf = PDF::loadView('tasks.post', ['data' => $data], ['proof' => $proof], ['serve' => $serve])->save($filepath);
-
-            }
-            else {
-                $pdf = PDF::loadView('tasks.serve', ['data' => $data], ['proof' => $proof], ['serve' => $serve])->save($filepath);
-            }
-            //Update Table
-            $dbDoc = new Documents;
-            $dbDoc->document = 'Unexecuted_Proof';
-            $dbDoc->jobId = Input::get('job_id');
-            $dbDoc->orderId = $orderId;
-            $dbDoc->filename = $filename;
-            $dbDoc->filepath = '/proofs';
-            $dbDoc->save();
-
-		return $pdf->download($filename);		
-		}
-
-        //If defendant was NOT served
-		else{
-		$attempts = DB::table('attempts')->OrderBy('date', 'asc')->where('job', Input::get('job_id'))->get();
-		$a = array();
-		foreach( $attempts as $attempt){
-			
-		$a[$attempt->job]['date'] = date("m/d/y", strtotime($attempt->date));
-		$a[$attempt->job]['time'] = $attempt->time;
-		$a[$attempt->job]['description'] = $attempt->description;
-		}
-		$proof = DB::table('jobs')->where('id', Input::get('job_id'))->first();
-		$file = str_random(6);
-		$filename =  $file . '_'. 'proof.pdf';
-		$filepath = public_path('proofs/' . $filename);
-
-		$pdf = PDF::loadView('tasks.non', ['a' => $a], ['proof' => $proof], ['serve' => $serve])->save($filepath);
-
-            //Update Table
-            $dbDoc = new Documents;
-            $dbDoc->document = 'Unexecuted_Proof';
-            $dbDoc->jobId = Input::get('job_id');
-            $dbDoc->orderId = $orderId;
-            $dbDoc->filename = $filename;
-            $dbDoc->filepath = '/proofs';
-            $dbDoc->save();
-
-		return $pdf->download($filename);
-		}
-	}
 	public function create_dec(){
 	
 	}

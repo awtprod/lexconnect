@@ -46,7 +46,8 @@ class AttemptsController extends \BaseController {
 	public function store()
 	{
 		$input = Input::all();
-		
+
+
 		if ( ! $this->attempts->fill($input)->isValid())
 			{
 				return Redirect::back()->withInput()->withErrors($this->attempts->errors);	
@@ -56,7 +57,7 @@ class AttemptsController extends \BaseController {
             'date' => Input::get('date'),
             'time' => Input::get('time'),
             'description' => Input::get('description'),
-            'job' => Input::get('job'),
+            'job' => Input::get('jobId'),
         ]);	
 //Update server score
 	$this->tasks->ServerScore(Input::get('taskId'));

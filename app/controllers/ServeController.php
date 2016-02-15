@@ -46,8 +46,8 @@ class ServeController extends \BaseController {
 		return Redirect::back()->withInput()->withErrors($this->serve->errors);	
 	}
 	
-	$task = Tasks::whereId(Input::get('tasksId'))->first();
-	$job = Jobs::whereId($task->job_id)->first();
+	$task = Tasks::whereId(Input::get('taskId'))->first();
+	$job = Jobs::whereId(Input::get('jobId'))->first();
     $order = Orders::whereId($task->order_id)->first();
 //Save serve
             $serve = new Serve;
@@ -80,7 +80,7 @@ class ServeController extends \BaseController {
 		$servee->save();
 
 //Complete Task
-	$this->tasks->TaskComplete(Input::get('tasksId'));
+	$this->tasks->TaskComplete(Input::get('taskId'));
 
 	//Determine if Dec of Mailing is needed
         if (Input::get('sub-serve') === 'yes') {
@@ -96,7 +96,7 @@ class ServeController extends \BaseController {
 
             //Reforecast all tasks
 
-            $this->tasks->TaskReproject(Input::get('tasks_id'));
+            $this->tasks->TaskReproject(Input::get('taskId'));
 
         	}
         */}

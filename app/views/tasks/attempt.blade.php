@@ -58,8 +58,9 @@
         {{ $errors->first('non-serve') }}
     </div>
 
-    {{ Form::hidden('served', 'true') }}
+    {{ Form::hidden('served', 'false') }}
     {{ Form::hidden('taskId', $taskId) }}
+    {{ Form::hidden('jobId', $job->id) }}
 
     <div>{{ Form::submit('Add Attempt') }}{{ Form::reset('Reset') }}</div>
     {{ Form::close() }}
@@ -115,13 +116,16 @@
         {{ Form::checkbox('sub-serve', 'yes') }}
         {{ $errors->first('sub-serve') }}
     </div>
-    {{ Form::hidden('served', 'false') }}
+    {{ Form::hidden('served', 'true') }}
     {{ Form::hidden('taskId', $taskId) }}
+    {{ Form::hidden('jobId', $job->id) }}
+
             <!-- submit buttons -->
     <div>{{ Form::submit('Defendant Served') }}{{ Form::reset('Reset') }}</div>
 
     {{ Form::close() }}
 </div>
+    </div>
 <a href="{{ URL::previous() }}">Go Back</a>
 </body>
 </html>

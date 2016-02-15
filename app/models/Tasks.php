@@ -102,7 +102,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 		//Gather upcoming tasks
 
-		$nextTasks = Tasks::whereJobid($taskFirst->job_id)
+		$nextTasks = Tasks::whereJobId($taskFirst->job_id)
 				->whereNull('completion')
 				->where('id', '!=', $id)->orderBy('sort_order', 'asc')->get();
 

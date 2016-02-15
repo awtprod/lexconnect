@@ -13,10 +13,10 @@
         {{ Form::close() }}
 
 </div>
-
+{{dd($proof) }}
 @if(!empty($proof))
 
-    <a href="/proofs/{{ $proof }}"> Unexecuted Proof </a><br>
+    <a href="/documents/{{ $proof->id }}" target="_blank"> Unexecuted Proof </a><br>
 
     {{ Form::open(array('route'=>'jobs.proof','files'=>true)) }}
     {{ $errors->first('proof') }}<p>

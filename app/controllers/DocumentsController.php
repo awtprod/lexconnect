@@ -61,7 +61,7 @@ class DocumentsController extends \BaseController {
         //Load pdf
             $filepath = public_path().'/'.$document->filepath.'/'.$document->filename;
 
-            return Response::make(base64_decode($filepath), 200, [
+            return Response::make(file_get_contents($filepath), 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; '.$document->filename,
             ]);

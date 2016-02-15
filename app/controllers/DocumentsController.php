@@ -63,7 +63,7 @@ class DocumentsController extends \BaseController {
 
             return Response::make(file_get_contents($filepath), 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; '.$document->filename,
+                'Content-Disposition' => 'inline; '."A3aKQO_proof.pdf",
             ]);
 
         }

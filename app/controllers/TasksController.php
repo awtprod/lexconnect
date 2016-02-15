@@ -186,7 +186,7 @@ class TasksController extends \BaseController {
 
 			$file = str_random(6);
 			$filename =  $file . '_'. 'proof.pdf';
-			$filepath = public_path().'/proofs'. $filename;
+			$filepath = public_path().'/proofs/'. $filename;
 
 			//Determine correct template
 			$state = $job->state . 'proof';
@@ -218,7 +218,7 @@ class TasksController extends \BaseController {
 			}
 			$file = str_random(6);
 			$filename =  $file . '_'. 'proof.pdf';
-			$filepath = public_path().'/proofs'. $filename;
+			$filepath = public_path().'/proofs/'. $filename;
 
 			//Determine correct template
 			$state = $job->state . 'non';

@@ -9,7 +9,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['email','email_confirmation','role','fname','lname','password','activation_code','activation','password_confirmation','company', 'user_role', 'company_id'];
+	protected $fillable = ['email','email_confirmation','role','name','password','activation_code','activation','password_confirmation','company', 'user_role', 'company_id'];
 	
 	public static $rules = [
 		'password' => 'confirmed|min:8',

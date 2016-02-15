@@ -241,7 +241,6 @@ class JobsController extends \BaseController {
 	public function show($id)
 	{
 
-		dd($id);
 		//Save session token to variable
         $token = Session::token();
 

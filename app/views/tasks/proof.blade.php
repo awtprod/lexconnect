@@ -15,11 +15,12 @@
     <a href="/documents/{{ $proof->id }}" target="_blank"> Unexecuted Proof </a><br>
 @endif
 
-    {{ Form::open(array('route'=>'jobs.proof','files'=>true)) }}
+    {{ Form::open(array('route'=>'tasks.upload','files'=>true)) }}
     {{ $errors->first('proof') }}<p>
         <input type="file" name="proof" id="">
         <br/>
         {{ Form::hidden('jobId', $job->id) }}
+        {{ Form::hidden('taskId', $taskId) }}
                 <!-- submit buttons -->
         {{ Form::submit('Upload Executed Proof') }}
 

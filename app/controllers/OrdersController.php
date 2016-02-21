@@ -3,7 +3,7 @@
 class OrdersController extends \BaseController {
 	protected $order;
 
-	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -17,6 +17,8 @@ class OrdersController extends \BaseController {
 		$this->Template = $template;
 		$this->Counties = $counties;
 		$this->User = $user;
+		$this->Documents = $Documents;
+		$this->Servee = $Servee;
 	}
 
 
@@ -158,7 +160,7 @@ class OrdersController extends \BaseController {
 			}
 
 			//If valid file, move to service documents dir
-			$destinationPath = public_path().'/service_documents';
+			$destinationPath = storage_path().'/service_documents';
 			$file = str_random(6);
 			$filename =  $orders_id.$file . '_'. 'serviceDocs.pdf';
 			//$filepath = public_path('service_documents/' . $filename);
@@ -303,8 +305,7 @@ class OrdersController extends \BaseController {
 			$result = $this->jobs->addressVerification($service);
 
 			//Retrieve previously entered defendants
-			$jobs = DB::table('jobs')
-					->where('order_id', $orders_id)
+			$jobs = Jobs::whereorderId($orders_id)
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
 
 			$input["orders_id"] = $orders_id;
@@ -338,28 +339,93 @@ class OrdersController extends \BaseController {
 
 
 		//Retrieve Order
-		$showorders = $this->orders->whereId($id)->first();
+		$order = Orders::whereId($id)->first();
 		
 		//Check if user is Admin or Client
-		if(Auth::user()->company==$showorders->company OR Auth::user()->user_role=='Admin'){
+		if(Auth::user()->company==$order->company OR Auth::user()->user_role=='Admin'){
 		
 		//If Admin, find all defendants
 		if(Auth::user()->user_role=='Admin'){
-		$viewservees = DB::table('servee')->where('order_id', $id)->orderBy('id', 'asc')->get();
+		$viewservees = Servee::whereorderId($id)->orderBy('id', 'asc')->get();
 		}
 		else{
 		//find all defendants in this case
-		$viewservees = DB::table('servee')
-			->where('order_id', $id)
-			->where('client', Auth::user()->company)->orderBy('id', 'asc')->get();
+		$viewservees = Servee::whereorderId($id)
+					   ->where('client', Auth::user()->company)->orderBy('id', 'asc')->get();
 		}
 
+		//Find if verify docs process exists
+		$verify = Jobs::whereService('Verify Documents')
+				  ->whereorderId($id)->first();
+
+			//Find verify task
+			$verifyTask = Tasks::wherejobId($verify->id)
+					      ->whereNull('completion')->first();
+
+
+		//Find filing jobs
+		$filing = Jobs::whereService('Filing')
+				  ->whereorderId($id)->first();
+
+			//Find filing tasks
+				$filingTasks = Tasks::wherejobId($filing->id)
+							   ->whereStatus(1)->first();
+
+			//Filing status
+			$filingStatus = $this->orders->status($filing->id);
+
+			//Find recording actions
+			$filingActions = $this->orders->actions($filing->id);
+
+			View::share(['filingActions'=>$filingActions]);
+			View::share('filingStatus', $filingStatus);
+
+
+		//Find recording jobs
+		$recording = Jobs::whereService('Recording')
+				     ->whereorderId($id)->first();
+
+
+			//Find recording tasks
+			$recordingTasks = Tasks::wherejobId($recording->id)
+							  ->whereStatus(1)->first();
+
+			//Recording status
+			$recordingStatus = $this->orders->status($recording->id);
+
+			//Find recording actions
+			$recordingActions = $this->orders->actions($recording->id);
+
+			View::share(['recordingActions'=>$recordingActions]);
+			View::share('recordingStatus', $recordingStatus);
+
+
+		$defendants = array();
+
+		//Find status for defendants
+		foreach($viewservees as $viewservee){
+
+		//Find current job
+		$jobId = Jobs::whereserveeId($viewservee->id)
+				 	 ->whereNull('completed')->pluck('id');
+
+		//Find current task
+		$defendants[$viewservee->id]["job"] = Tasks::wherejobId($jobId)
+											         ->whereStatus(1)->first();
+
+		//Find current status
+		$defendants[$viewservee->id]["status"] = $this->orders->status($jobId);
+
+		//Find job actions
+		$defendants[$viewservee->id]["actions"] = $this->orders->actions($jobId);
+
+		}
 
 
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $showorders)->with('servees', $viewservees)->with('token', $token);
+		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with(['recordingTasks'=>$recordingTasks])->with(['fililngTasks'=>$filingTasks])->with('token', $token);
 		}
 		else{
 		Return redirect::to('login');	

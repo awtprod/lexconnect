@@ -88,6 +88,95 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		return false;
 	}
 
+	public function status($id){
+
+		//Find job info
+		$job = Jobs::whereId($id)->first();
+
+		//Find task info
+		$task = Tasks::wherejobId($id)
+						->whereNULL('completion')->orderBy('sort_order', 'asc')->first();
+
+		//Find servee info
+		$servee = Servee::whereId($job->servee_id)->first();
+
+		//Determine current status of job
+		if($job->status == 0){
+
+			return "On Hold";
+		}
+		elseif($job->status == 1){
+
+			return $task->process;
+		}
+		elseif($job->status == 2){
+
+			return "Job Canceled";
+		}
+		elseif($job->completed AND ($servee->status == 1  OR $servee->status == 2)){
+
+			return "Completed";
+		}
+		elseif($servee->status == 1){
+
+			return "Served";
+		}
+		elseif($servee->status == 2){
+
+			return "Non Served";
+		}
+
+	}
+
+	public function actions($id){
+
+		//Find job info
+		$job = Jobs::whereId($id)->first();
+
+		//if job associated with a servee
+		if($job->servee_id != 0){
+
+			//Find servee info
+			$servee = Servee::whereId($job->servee_id)->first();
+
+			//If job is on hold
+			if ($job->status == 0) {
+
+				return $selections = array('1' => 'Resume', '2' => 'Cancel');
+			}
+
+			//If job is active
+			if ($job->status == 1) {
+
+				return $selections = array('0' => 'Hold', '2' => 'Cancel');
+			}
+
+			//If job is canceled or defendant is marked as served/non-served
+			if($job->status == 2 OR $servee->status == 1 OR $servee->status == 2){
+
+				return $selections = array('3' => 'Submit New Address');
+
+			}
+
+		}
+		else {
+
+			//If job is on hold
+			if ($job->status == 0) {
+
+				return $selections = array('1' => 'Resume', '2' => 'Cancel');
+			}
+
+			//If job is active
+			if ($job->status == 1) {
+
+				return $selections = array('0' => 'Hold', '2' => 'Cancel');
+			}
+
+		}
+
+	}
+
     /*
 	public function SelectServer($zipcode)
 	{

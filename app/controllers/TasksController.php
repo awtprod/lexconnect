@@ -1,7 +1,7 @@
 <?php
 use Carbon\Carbon;
 class TasksController extends \BaseController {
-	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -15,7 +15,10 @@ class TasksController extends \BaseController {
 		$this->Template = $template;
 		$this->Counties = $counties;
 		$this->User = $user;
+		$this->Documents = $Documents;
+		$this->Servee = $Servee;
 	}
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -237,6 +240,42 @@ class TasksController extends \BaseController {
 
 			return $pdf->download($filename);
 		}
+	}
+
+	public function upload(){
+
+		$input = Input::all();
+
+		//Find job data
+		$job = Jobs::whereId(Input::get('jobId'))->first();
+
+		//Validate File
+		if ( ! $this->tasks->fill($input)->ValidProof())
+		{
+			return Redirect::back()->withInput()->withErrors($this->tasks->errors);
+		}
+
+		//If valid file, move to service documents dir
+		$destinationPath = storage_path().'/proofs';
+		$file = str_random(6);
+		$filename =  $file . '_'. 'proof.pdf';
+
+		Input::file('proof')->move($destinationPath, $filename);
+
+		//Update Table
+		$document = new Documents;
+		$document->document = 'Executed_Proof';
+		$document->job_id = Input::get('jobId');
+		$document->order_id = $job->order_id;
+		$document->filename = $filename;
+		$document->filepath = 'proofs';
+		$document->save();
+
+		//Complete task
+		$this->tasks->TaskComplete(Input::get('taskId'));
+
+		Return Redirect::route('jobs.show', $job->id);
+
 	}
 
 	public function filed(){

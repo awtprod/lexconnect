@@ -341,93 +341,31 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	}
 	
-	public function HoldJob($id){
-	
-	$job = Jobs::whereId($id)->first();
-	$job->status = 1;
-	$job->save();
-	
-	return true;
-	
-	}
-	
-	public function RemoveHold($id){
-	
-	$job = Jobs::whereId($id)->first();
-	$job->status = 0;
-	$job->save();
-	
-	return true;
-		
-	}
-	
-	public function CancelJob($id){
-		
-	//Find what step the job is on
-	$task = Tasks::whereJobId($id)->whereNULL('completion')->first();
-	
-	//If filing task, complete all tasks
-	if($task->process <= 5){
-	
-	//Save completion date for task
-	$task->completion = Carbon::now();
-	$task->save();	
-	
-	//Save process to cache to complete upcoming tasks
-	Cache::put('process', $task->process, 5);
-	Cache::increment('process');
-	
-	//Determine if this was the last task for the job
-	$tasks_final = Tasks::OrderBy('id', 'desc')
-						->whereJobId($task->job_id)
-						->whereProcess(Cache::get('process'))->first();
-			
-	//If it is not the last task, complete remaining tasks
-	if(!empty($tasks_final)){
-		
-			$first = true;
-			
-			for($process = Cache::get('process'); $process<=10; $process++){
-			$tasks_next = Tasks::OrderBy('id', 'desc')
-						->whereJobId($task->job_id)
-						->whereProcess($process)->first();
-			if(!empty($tasks_next)){
-			
-			//Update status of next task
-			if($first){
-			$tasks_next->completion = Carbon::now();
-			$tasks_next->save();	
-			$first = false;
-			}
-			//Update remaining tasks
-			else{
-			$tasks_next->completion = Carbon::now();
-			$tasks_next->save();	
-			}
-			}
-			}
-			Cache::forget('process');
-			}
-	//Complete Job
-	$job = Jobs::whereId($id)->first();
-	$job->status = 2;
-	$job->completed = Carbon::now();
-	$job->save();
-	
-	return true;
-	}
-	
-	//If service task, complete all but proof task
-	elseif($task->process == 6){
-		
-	//Save completion date for task
-	$task->completion = Carbon::now();
-	$task->save();
-	
-	return true;
-	
-	}
-	
-	}
+public function vendorNotification($data){
+
+	//Get job info
+	$job = Jobs::whereId($data["job"])->first();
+
+	//Find previous task
+	$sortOrder = Tasks::wherejobId($job->id)
+					    ->whereNotNull('competion')->orderBy('sort_order', 'asc')->pluck('sort_order');
+
+	//Add one to sort order
+	$sortOrder++;
+
+	//Create hold task for vendor
+	$tasks = new Tasks;
+	$tasks->job_id = $job->id;
+	$tasks->order_id = $job->order_id;
+	$tasks->service = $job->service;
+	$tasks->process = $data["type"];
+	$tasks->priority = "Routine";
+	$tasks->group = $job->vendor;
+	$tasks->sort_order = $sortOrder;
+	$tasks->status = 1;
+	$tasks->deadline = Carbon::now();
+	$tasks->days = 0;
+	$tasks->save();
+}
 
 }

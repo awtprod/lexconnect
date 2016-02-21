@@ -2,7 +2,7 @@
 
 class DocumentsController extends \BaseController {
 
-    public function __construct (Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+    public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
     {
 
         $this->orders = $orders;
@@ -17,6 +17,7 @@ class DocumentsController extends \BaseController {
         $this->Counties = $counties;
         $this->User = $user;
         $this->Documents = $Documents;
+        $this->Servee = $Servee;
     }
 
 

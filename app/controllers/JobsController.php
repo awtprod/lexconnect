@@ -1,7 +1,7 @@
 <?php
 use Carbon\Carbon;
 class JobsController extends \BaseController {
-	public function __construct (User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
@@ -15,7 +15,10 @@ class JobsController extends \BaseController {
 		$this->Template = $template;
 		$this->Counties = $counties;
 		$this->User = $user;
+		$this->Documents = $Documents;
+		$this->Servee = $Servee;
 	}
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -127,8 +130,9 @@ class JobsController extends \BaseController {
 
 		$input = Input::all();
 
-		$jobs = DB::table('jobs')->where('order_id', $input["orders_id"])
+		$jobs = Jobs::whereorderId($input["orders_id"])
 				->whereNotNull('street')->orderBy('id', 'asc')->get();
+
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('abbrev', 'abbrev');
 
 		View::share(['states'=>$states]);
@@ -147,13 +151,26 @@ class JobsController extends \BaseController {
 		}
 		elseif(Input::get('verify')){
 		$client = DB::table('orders')->where('id', Input::get('orders_id'))->pluck('company');
-		
+
+		//Retrieve servee id from form
 		$servee_id = Input::get('servee_id');
-		if(empty($servee_id)){
-			
-		$servee_id = DB::table('servee')->insertGetId(
-			array('order_id' => input::get('orders_id'), 'client' => $client, 'user' => Auth::user()->id, 'defendant' => input::get('defendant'))
-			);
+
+		//If adding new service address, set status to 0
+		if(!empty($servee_id)) {
+
+			$servee = Servee::whereId($servee_id)->first();
+			$servee->status = 0;
+			$servee->save();
+
+		}
+
+		//If new defendant, create servee
+			else {
+
+				$servee_id = DB::table('servee')->insertGetId(
+						array('order_id' => input::get('orders_id'), 'client' => $client, 'user' => Auth::user()->id, 'defendant' => input::get('defendant'))
+				);
+			}
 
         $order = Orders::whereId(Input::get('orders_id'))->first();
 		
@@ -267,6 +284,172 @@ class JobsController extends \BaseController {
 		else{
 			return 'Not Authorized to View Page!';
 		}
+
+	}
+
+	public function actions(){
+
+		//Get job info
+		$jobs = Jobs::whereId(Input::get('jobId'))->first();
+
+		//If taking an action for all jobs for an order
+		if(empty($jobs)){
+
+			$jobs = Jobs::whereorderId(Input::get('orderId'))
+						  ->whereNull('completed')->get();
+
+		}
+
+		//Place job on hold
+		if(Input::get('action')==0){
+
+			//Update jobs
+			foreach($jobs as $job){
+
+				//Update status to 0
+				$status = Jobs::whereId($job->id)->first();
+
+				//Check if job is already on hold
+				if($status->status == 0){
+
+				}
+				else {
+					$status->status = 0;
+					$status->save();
+
+					//Put current task on hold
+					$curTask = Tasks::wherejobId($job->id)
+							->whereStatus(1)->first();
+					$curTask->status = 0;
+					$curTask->save();
+
+				//Create array to notify vendor
+				$data = array('job'=>$job, 'type'=>'Hold Job');
+
+				//Create task to notify vendor
+				$this->jobs->vendorNotification($data);
+
+				}
+
+				$orderId = $job->id;
+			}
+
+		}
+
+		//Remove hold
+		elseif(Input::get('action')==1){
+
+			//Update jobs
+			foreach($jobs as $job) {
+
+				//Update status to 1
+				$status = Jobs::whereId($job->id)->first();
+				$status->status = 1;
+				$status->save();
+
+				//Resume current task
+				$curTask = Tasks::wherejobId($job->id)
+								  ->whereNull('completion')->orderBy('sort_order','asc')->first();
+				$curTask->status = 1;
+				$curTask->save();
+
+				//Update tasks
+				$this->tasks->TaskForecast($curTask->id);
+
+				//Create array to notify vendor
+				$data = array('job'=>$job, 'type'=>'Resume Job');
+
+				//Create task to notify vendor
+				$this->jobs->vendorNotification($data);
+
+				$orderId = $job->id;
+
+			}
+
+		}
+
+		//Cancel job
+		elseif(Input::get('action')==2){
+
+			foreach($jobs as $job){
+
+				//Update status to 1
+				$status = Jobs::whereId($job->id)->first();
+				$status->status = 3;
+				$status->save();
+
+				//Determine if process service job
+				if($job->service == "Process Service"){
+
+				//Determine if any attempts have been made
+				$attempts = Attempts::wherejobId($job->id)->get();
+
+				//Determine if defendant has been served
+				$served = Serve::wherejobId($job->id)->first();
+
+				//Find servee info
+				$servee = Servee::wherejobId($job->id)->first();
+
+				//If no attempts have been made, cancel current task
+				if(empty($attempts) AND empty($served)){
+
+					$curTask = Tasks::wherejobId($job->id)
+							          ->whereNull('completion')->orderBy('sort_order','asc')->first();
+					$curTask->status = 0;
+					$curTask->save();
+
+				}
+
+				//If attempts have been made but defendant has not been served, cancel attempts
+				elseif(empty($served) AND $servee->status == 0){
+
+					//Complete current task
+					$curTask = Tasks::wherejobId($job->id)
+									  ->whereNull('completion')->orderBy('sort_order','asc')->first();
+					$curTask->completion = Carbon::now();
+					$curTask->completed_by = Auth::user()->id;
+					$curTask->save();
+
+					//Update next task
+					$nextTask = Tasks::wherejobId($job->id)
+									   ->whereNull('completion')->orderBy('sort_order','asc')->first();
+					$nextTask->status = 1;
+					$nextTask->save();
+
+					//Mark serve as "non-serve"
+					$servee->status = 2;
+					$servee->save();
+				}
+
+				}
+				else{
+
+					//Pause current task
+					$curTask = Tasks::wherejobId($job->id)
+								  ->whereNull('completion')->orderBy('sort_order','asc')->first();
+					$curTask->status = 0;
+					$curTask->save();
+
+				}
+
+				//Create array to notify vendor
+				$data = array('job'=>$job, 'type'=>'Stop Job');
+
+				//Create task to notify vendor
+				$this->jobs->vendorNotification($data);
+
+				$orderId = $job->id;
+
+			}
+
+		}
+
+		//Submit new address
+		elseif(Input::get('action')==3){
+
+		}
+
+		Return Redirect::route('orders.show', $orderId);
 
 	}
 

@@ -171,6 +171,10 @@ Route::post('jobs/declaration', [
 	'as' => 'jobs.declaration',
 	'uses' => 'JobsController@declaration'
 	]);
+Route::post('jobs/actions', [
+	'as' => 'jobs.actions',
+	'uses' => 'JobsController@actions'
+	]);
 Route::post('tasks/accept', [
 			'as' => 'tasks.accept',
 			'uses' => 'TasksController@accept'
@@ -199,6 +203,11 @@ Route::post('tasks/documents', [
 Route::post('tasks/proof', [
 	'as' => 'tasks.proof',
 	'uses' => 'TasksController@proof'
+	]);
+
+Route::post('tasks/upload', [
+			'as' => 'tasks.upload',
+			'uses' => 'TasksController@upload'
 	]);
 
     Route::post('tasks/proofFiled', [

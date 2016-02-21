@@ -1,5 +1,6 @@
-<html>
-<head>
+@extends('layouts.default')
+@section('head')
+
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
@@ -17,8 +18,8 @@
             });
         });
     </script>
-</head>
-<body>
+@stop
+@section('content')
 <h1>Create New Order</h1>
 
 
@@ -142,5 +143,4 @@
 {{ Form::close() }}
 <a href="{{ URL::previous() }}">Go Back</a>
 
-</body>
-</html>
+@stop

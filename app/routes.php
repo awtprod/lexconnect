@@ -33,10 +33,13 @@ Route::get('jobs/add', [
 	'uses' => 'JobsController@add'
 	]);
 Route::get('tasks/filing', [
-	'as' => 'tasks.filing',
-	'uses' => 'TasksController@filing'
+			'as' => 'tasks.filing',
+			'uses' => 'TasksController@filing'
 	]);
-
+Route::get('tasks/', [
+			'as' => 'tasks.index',
+			'uses' => 'TasksController@index'
+	]);
 Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'

@@ -144,6 +144,49 @@ Reference: {{ $orders->reference }}<p>
 
 @if(!empty($defendants))
 
+@foreach($servees as $servee)
+    <div>
+        <table>
+            <tr>
+                <th>Defendant</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+            </tr>
+
+            <tr>
+
+                //Defendant
+                <td>{{ $servee->defendant }}</td>
+
+                //Status
+                <td> {{ $defendants[$servee->id]["status"] }} </td>
+
+                //Due Date
+                @if(!empty($defendants[$servee->id]["due"]))
+                    <td>{{ date("m/d/y", strtotime($defendants[$servee->id]["due"])) }} </td>
+
+                @else
+
+                    <td></td>
+
+                @endif
+
+                //Actions
+                <td>
+                    {{ Form::open(['route' => 'jobs.actions']) }}
+                    {{ Form::select('action', $defendants[$servee->id]["actions"]) }}
+                    {{ Form::hidden('jobId', $defendants[$servee->id]["jobId"]) }}
+                    {{ Form::submit('Submit') }}
+                    {{ Form::close() }}
+                </td>
+            </tr>
+
+        </table>
+    </div>
+    <br>
+@endforeach
+
 @else
  <h2>No Defendants to display!</h2>
 

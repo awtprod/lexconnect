@@ -130,6 +130,7 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function actions($id){
 
+
 		//Find job info
 		$job = Jobs::whereId($id)->first();
 

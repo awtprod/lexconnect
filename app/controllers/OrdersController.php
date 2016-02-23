@@ -359,8 +359,10 @@ class OrdersController extends \BaseController {
 				  ->whereorderId($id)->first();
 
 			//Find verify task
-			$verifyTask = Tasks::wherejobId($verify->id)
-					      ->whereNull('completion')->first();
+			if(!empty($verify)) {
+				$verifyTask = Tasks::wherejobId($verify->id)
+						->whereNull('completion')->first();
+			}
 
 
 		//Find filing jobs
@@ -368,17 +370,20 @@ class OrdersController extends \BaseController {
 				  ->whereorderId($id)->first();
 
 			//Find filing tasks
+			if(!empty($filing)) {
 				$filingTasks = Tasks::wherejobId($filing->id)
-							   ->whereStatus(1)->first();
+						->whereStatus(1)->first();
 
-			//Filing status
-			$filingStatus = $this->orders->status($filing->id);
+				//Filing status
+				$filingStatus = $this->orders->status($filing->id);
 
-			//Find recording actions
-			$filingActions = $this->orders->actions($filing->id);
+				//Find recording actions
+				$filingActions = $this->orders->actions($filing->id);
 
-			View::share(['filingActions'=>$filingActions]);
-			View::share('filingStatus', $filingStatus);
+				View::share(['filingTasks' => $filingTasks]);
+				View::share(['filingActions' => $filingActions]);
+				View::share('filingStatus', $filingStatus);
+			}
 
 
 		//Find recording jobs
@@ -387,45 +392,52 @@ class OrdersController extends \BaseController {
 
 
 			//Find recording tasks
-			$recordingTasks = Tasks::wherejobId($recording->id)
-							  ->whereStatus(1)->first();
+			if(!empty($recording)) {
+				$recordingTasks = Tasks::wherejobId($recording->id)
+						->whereStatus(1)->first();
 
-			//Recording status
-			$recordingStatus = $this->orders->status($recording->id);
+				//Recording status
+				$recordingStatus = $this->orders->status($recording->id);
 
-			//Find recording actions
-			$recordingActions = $this->orders->actions($recording->id);
+				//Find recording actions
+				$recordingActions = $this->orders->actions($recording->id);
 
-			View::share(['recordingActions'=>$recordingActions]);
-			View::share('recordingStatus', $recordingStatus);
+				View::share(['recordingTasks' => $recordingTasks]);
+				View::share(['recordingActions' => $recordingActions]);
+				View::share('recordingStatus', $recordingStatus);
+			}
 
 
 		$defendants = array();
 
 		//Find status for defendants
-		foreach($viewservees as $viewservee){
+		if(!empty($viewservees)) {
+			foreach ($viewservees as $viewservee) {
 
-		//Find current job
-		$jobId = Jobs::whereserveeId($viewservee->id)
-				 	 ->whereNull('completed')->pluck('id');
+				//Find current job
+				$defendants[$viewservee->id]["jobId"] = Jobs::whereserveeId($viewservee->id)
+						->whereNull('completed')->pluck('id');
 
-		//Find current task
-		$defendants[$viewservee->id]["job"] = Tasks::wherejobId($jobId)
-											         ->whereStatus(1)->first();
 
-		//Find current status
-		$defendants[$viewservee->id]["status"] = $this->orders->status($jobId);
+				//Find current task
+				$defendants[$viewservee->id]["due"] = Tasks::wherejobId($defendants[$viewservee->id]["jobId"])
+						->whereStatus(1)->pluck('deadline');
 
-		//Find job actions
-		$defendants[$viewservee->id]["actions"] = $this->orders->actions($jobId);
 
+				//Find current status
+				$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["jobId"]);
+
+
+				//Find job actions
+				$defendants[$viewservee->id]["actions"] = $this->orders->actions($defendants[$viewservee->id]["jobId"]);
+
+			}
 		}
-
 
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with(['recordingTasks'=>$recordingTasks])->with(['fililngTasks'=>$filingTasks])->with('token', $token);
+		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token);
 		}
 		else{
 		Return redirect::to('login');	

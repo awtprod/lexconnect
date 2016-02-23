@@ -18,7 +18,7 @@
 <td>{{ $task->process }}</td>
 <td>{{ $task->deadline }}</td>
 @if (is_null($task->completion) AND $first  == 'true')
-        @if($jobs->status == '0')
+        @if($task->status == '0')
 <td>Job on Hold</td>
             {{ $first = false; }}
         @else
@@ -29,7 +29,7 @@
 @elseif(is_null($task->completion) AND $first  == 'false')
     <td></td>
 @else
-<td>{{ $task->completion }}</td>
+<td>{{ date("m/d/y", strtotime($task->completion)) }}</td>
 @endif
 
 </tr>

@@ -31,9 +31,8 @@ class JobsController extends \BaseController {
 
 		}
 		elseif(Auth::user()->user_role=='Vendor'){
-		$jobs = DB::table('jobs')->OrderBy('id', 'asc')
-								->where('vendor', Auth::user()->company_id)
-								->where('completed', NULL)->get();
+		$jobs = Jobs::whereVendor(Auth::user()->company_id)
+				      ->where('completed', NULL)->OrderBy('id', 'asc')->get();
 
 		}
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->user_role=='Vendor'){
@@ -106,6 +105,7 @@ class JobsController extends \BaseController {
 	{
 		return Redirect::back()->withInput()->withErrors($this->jobs->errors);	
 	}
+
 		//Retrieve previously entered defendants
 		$jobs = DB::table('jobs')
 					->where('order_id', Input::get('orders_id'))
@@ -119,14 +119,14 @@ class JobsController extends \BaseController {
 
 		Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input]);
 
-	}
+			}
 		else {
 			Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input]);
 		}
 
 	}
-	public function store()
-	{
+
+	public function store(){
 
 		$input = Input::all();
 
@@ -146,10 +146,13 @@ class JobsController extends \BaseController {
 		
 		//Return to new serve address form
 		elseif(Input::get('edit_add')){
+
 			Return Redirect::route('jobs.add')->with('edit', TRUE)->with(['input' => Input::all()]);
 			
 		}
+
 		elseif(Input::get('verify')){
+
 		$client = DB::table('orders')->where('id', Input::get('orders_id'))->pluck('company');
 
 		//Retrieve servee id from form
@@ -165,19 +168,19 @@ class JobsController extends \BaseController {
 		}
 
 		//If new defendant, create servee
-			else {
+			elseif(empty($servee_id)) {
 
 				$servee_id = DB::table('servee')->insertGetId(
 						array('order_id' => input::get('orders_id'), 'client' => $client, 'user' => Auth::user()->id, 'defendant' => input::get('defendant'))
 				);
-			}
 
-        $order = Orders::whereId(Input::get('orders_id'))->first();
-		
-		//Mark to send back to new defendant form
-		
-		$new = TRUE;
-		}
+
+				$order = Orders::whereId(Input::get('orders_id'))->first();
+
+				//Mark to send back to new defendant form
+
+				$new = TRUE;
+			}
 		else{
 		
 		$new = FALSE;
@@ -290,7 +293,7 @@ class JobsController extends \BaseController {
 	public function actions(){
 
 		//Get job info
-		$jobs = Jobs::whereId(Input::get('jobId'))->first();
+		$jobs = Jobs::whereId(Input::get('jobId'))->get();
 
 		//If taking an action for all jobs for an order
 		if(empty($jobs)){
@@ -303,8 +306,10 @@ class JobsController extends \BaseController {
 		//Place job on hold
 		if(Input::get('action')==0){
 
+
 			//Update jobs
 			foreach($jobs as $job){
+
 
 				//Update status to 0
 				$status = Jobs::whereId($job->id)->first();
@@ -324,14 +329,14 @@ class JobsController extends \BaseController {
 					$curTask->save();
 
 				//Create array to notify vendor
-				$data = array('job'=>$job, 'type'=>'Hold Job');
+				$data = array('job'=>$job->id, 'type'=>'Hold Job');
 
 				//Create task to notify vendor
 				$this->jobs->vendorNotification($data);
 
 				}
 
-				$orderId = $job->id;
+				$orderId = $job->order_id;
 			}
 
 		}
@@ -357,12 +362,12 @@ class JobsController extends \BaseController {
 				$this->tasks->TaskForecast($curTask->id);
 
 				//Create array to notify vendor
-				$data = array('job'=>$job, 'type'=>'Resume Job');
+				$data = array('job'=>$job->id, 'type'=>'Resume Job');
 
 				//Create task to notify vendor
 				$this->jobs->vendorNotification($data);
 
-				$orderId = $job->id;
+				$orderId = $job->order_id;
 
 			}
 
@@ -433,12 +438,12 @@ class JobsController extends \BaseController {
 				}
 
 				//Create array to notify vendor
-				$data = array('job'=>$job, 'type'=>'Stop Job');
+				$data = array('job'=>$job->id, 'type'=>'Stop Job');
 
 				//Create task to notify vendor
 				$this->jobs->vendorNotification($data);
 
-				$orderId = $job->id;
+				$orderId = $job->order_id;
 
 			}
 
@@ -446,6 +451,18 @@ class JobsController extends \BaseController {
 
 		//Submit new address
 		elseif(Input::get('action')==3){
+
+			//Retrieve Order Information
+			$servee = Servee::whereId($jobs->servee_id)->first();
+
+
+			//Retrieve previously attempted addresses
+			$prevJobs = Jobs::whereserveeId($servee->id)->orderBy('created_at', 'asc')->get();
+
+			//Retrieve states names
+			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+
+			Return View::make('jobs.new')->with(['states' => $states])->with(['servee' => $servee])->with(['jobs' => $prevJobs]);
 
 		}
 

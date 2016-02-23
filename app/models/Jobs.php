@@ -348,10 +348,16 @@ public function vendorNotification($data){
 
 	//Find previous task
 	$sortOrder = Tasks::wherejobId($job->id)
-					    ->whereNotNull('competion')->orderBy('sort_order', 'asc')->pluck('sort_order');
+					    ->whereNotNull('completion')->orderBy('sort_order', 'asc')->pluck('sort_order');
+
+	if(empty($sortOrder)){
+
+		$sortOrder = Tasks::wherejobId($job->id)->orderBy('sort_order', 'asc')->pluck('sort_order');
+
+	}
 
 	//Add one to sort order
-	$sortOrder++;
+	$sortOrder--;
 
 	//Create hold task for vendor
 	$tasks = new Tasks;

@@ -26,7 +26,32 @@ class TasksController extends \BaseController {
 	 */
 	public function index()
 	{
-		//
+
+		//If vendor, find all tasks due
+		if(Auth::user()->user_role=='Vendor'){
+
+			$jobTasks = Tasks::whereStatus(1)
+					        ->whereGroup(Auth::user()->company_id)->orderBy('deadline', 'asc')->get();
+		}
+		elseif(Auth::user()->user_role == 'Admin'){
+
+			$jobTasks = Tasks::whereStatus(1)->orderBy('deadline', 'asc')->get();
+		}
+		else{
+
+			Return "Not Authorized To View!";
+		}
+
+		$job = array();
+
+		//Find Jobs associated with tasks
+		foreach($jobTasks as $jobTask){
+
+			$job[$jobTask->id] = Jobs::whereId($jobTask->job_id)->first();
+		}
+
+		Return View::make('tasks.index')->with(['jobTasks'=>$jobTasks])->with(['job'=>$job]);
+
 	}
 
 

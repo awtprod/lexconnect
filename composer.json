@@ -6,7 +6,8 @@
 	"require": {
 		"laravel/framework": "4.2.*",
 		"fabpot/goutte": "*",
-		"barryvdh/laravel-dompdf": "*"
+		"barryvdh/laravel-dompdf": "*",
+		"stripe/stripe-php": "~3.9"
 	},
 	"autoload": {
 		"classmap": [

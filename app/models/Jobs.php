@@ -125,9 +125,18 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	}
 	$req = "http://api.geosvc.com/rest/usa/{$input1}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
+
+	//If no servers, assign to Admin
 	if(empty($result)){
-		return 1;
+
+		$data = array();
+
+		$data["server"] = 1;
+		$data["rate"] = 75;
+
+		return $data;
 	}
+
 	$vendor = array();
 
 	foreach($result as $key => $select){
@@ -193,7 +202,13 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			$client = DB::table('company')->where('name', $serverData['client'])->first();
 
 			//Find maximum rate set by client
-			$maxRate = DB::table('clientrates')->where('client', $client->id)->where('state', $job->state)->pluck($serverData['process'] . 'Max');
+			$maxRate = DB::table('clientrates')->where('client', $client->id)->where('state', $serverData['state'])->pluck($serverData['process'] . 'Max');
+
+			//If client hasn't set max rate, set value at $100
+			if(empty($maxRate)){
+
+				$maxRate = 100;
+			}
 
 			//Remove unqualified servers
 			if (!empty($suspended)) {
@@ -215,6 +230,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			}
 		}
 	}
+
 	$server = array_keys($vendor["weight"], min($vendor["weight"]));
 
 		$data = array();

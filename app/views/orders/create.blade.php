@@ -17,11 +17,33 @@
                         });
             });
         });
+
+		$(document).ready(function() {
+			var max_fields      = 10; //maximum input boxes allowed
+			var wrapper         = $(".input_fields_wrap"); //Fields wrapper
+			var add_button      = $(".add_field_button"); //Add button ID
+
+			var x = 1; //initlal text box count
+			$(add_button).click(function(e){ //on add input button click
+				e.preventDefault();
+				if(x < max_fields){ //max input box allowed
+					x++; //text box increment
+					$(wrapper).append('<div>{{ Form::label('defendant', 'Defendant: ') }}<input type="text" name="service[defendants][]"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+				}
+			});
+
+			$(wrapper).on("click",".remove_field", function(e){ //user click on remove text
+				e.preventDefault(); $(this).parent('div').remove(); x--;
+			})
+		});
     </script>
 @stop
 @section('content')
 <h1>Create New Order</h1>
 
+@if(Session::has('message'))
+	<p class="alert {{ Session::get('alert-class', 'alert-info') }}">{{ Session::get('message') }}</p>
+@endif
 
 {{ Form::open(array('route' => 'orders.store','files'=>true)) }}
 	<div>
@@ -29,11 +51,6 @@
 	{{ Form::text('plaintiff') }}
 	{{ $errors->first('plaintiff') }}
 	</div>
-<div>
-	{{ Form::label('defendant', 'Defendant: ') }}
-	{{ Form::text('defendant') }}
-	{{ $errors->first('defendant') }}
-</div>
 		<div>
 	{{ Form::label('case', 'Court Case: ') }}
 	{{ Form::text('case') }}
@@ -76,7 +93,7 @@
 
     @foreach($documents as $document)
 
-    {{ Form::checkbox('documentServed['.$document[0].']', $document[1]) }}
+    {{ Form::checkbox('documentServed['.$document[0].']', 'yes') }}
     {{ Form::label('documentServed['.$document[1].']',  $document[1]) }}<br>
     @endforeach
     {{ $errors->first('documentServed') }}<p>
@@ -103,11 +120,11 @@
 	{{ Form::label('service[priority]', 'Priority: ') }}
 	{{ Form::select('service[priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 </div>
-<div>
-	{{ Form::label('[defendant]', 'Defendant: ') }}
-	{{ Form::text('service[defendant]') }}
-	{{ $errors->first('service[defendant]') }}
+<div class="input_fields_wrap">
+	<div>{{ Form::label('defendants', 'Defendant: ') }}<input type="text" name="service[defendants][]"></div>
+	{{ $errors->first('defendants') }}
 </div>
+<button class="add_field_button">Add More Defendants</button>
 <div>
 	{{ Form::label('street', 'Street: ') }}
 	{{ Form::text('service[street]') }}

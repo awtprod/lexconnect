@@ -9,16 +9,15 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['service_documents','street','city','state','zipcode','county','courtcase','fileDate','defendant','plaintiff','reference','court','state','case','company','documents'];
+	protected $fillable = ['service_documents','street','city','state','zipcode','county','courtcase','fileDate','defendants','plaintiff','reference','court','state','case','company','documents'];
 
 	public static $rules = [
-		'defendant' => 'required',
 		'plaintiff' => 'required',
 		'court' => 'required',
 	];
 
 	public static $defendant = [
-		'defendant' => 'required',
+		'defendants' => 'required',
 		'street' => 'required',
 		'city' => 'required',
 		'state' => 'required',

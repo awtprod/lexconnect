@@ -97,18 +97,22 @@ class OrdersController extends \BaseController {
 	public function store()
 	{
 
-        $input = Input::all();
+		$input = Input::all();
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
 		//Check to see if at least one service document type has been selected
 
 		if (empty($input["documentServed"])) {
+
+			Session::flash('message', 'Please select at least one service document type!');
+			Session::flash('alert-class', 'alert-danger');
+
 			return Redirect::back()->withInput()->withErrors($this->orders->errors);
 		}
 
 		//Check if judicial or non-judicial
-		if(empty($input["documentServed"]["Notice_of_Trustee_Sale"])) {
+		if(empty($input["documentServed"]["Notice of Trustee Sale"])) {
 
 			if (!$this->orders->fill($input)->isValid()) {
 				return Redirect::back()->withInput()->withErrors($this->orders->errors);
@@ -122,7 +126,7 @@ class OrdersController extends \BaseController {
 		$orders->courtcase = Input::get('case');
 		$orders->state = Input::get('caseState');
 
-		if(empty($input["documentServed"]["Notice_of_Trustee_Sale"])){
+		if(empty($input["documentServed"]["Notice of Trustee Sale"])){
 
 		$orders->judicial = "Judicial";
 		$judicial = "Judicial";
@@ -166,12 +170,15 @@ class OrdersController extends \BaseController {
 			//$filepath = public_path('service_documents/' . $filename);
 			Input::file('service_documents')->move($destinationPath, $filename);
 
+			//Get page count
+			$pagecount = $this->Documents->pageCount(array('path'=>$destinationPath, 'file'=>$filename));
 
 			$document = new Documents;
 			$document->document = 'Service Documents';
 			$document->order_id = $orders_id;
 			$document->filename = $filename;
 			$document->filepath = 'service_documents';
+			$document->pages = $pagecount;
 			$document->save();
 		}
 
@@ -187,7 +194,7 @@ class OrdersController extends \BaseController {
 		$job->save();
 
 		//Create task array
-		$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => Input::get('state'));
+		$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => 'Null');
 
 		//Load task into db
 		$process = $this->tasks->CreateTasks($sendTask);
@@ -243,6 +250,9 @@ class OrdersController extends \BaseController {
 				$job->vendor = $server["server"];
 				$job->process = $process;
 				$job->save();
+
+				//Create Invoice
+				$this->invoices->CreateInvoice(array('jobId'=>$job->id, 'rate'=>$server["rate"],'process'=>'filing'));
 			}
 
 			if(!empty($input["recording"])) {
@@ -288,14 +298,18 @@ class OrdersController extends \BaseController {
 				$job->vendor = $server["server"];
 				$job->process = $process;
 				$job->save();
+
+				//Create Invoice
+				$this->invoices->CreateInvoice(array('jobId'=>$job->id, 'rate'=>$server["rate"],'process'=>'recording'));
 			}
 		}
 
 		//Determine if defendant was added
 		$service = Input::get('service');
 
+
 		//If defendant was added, validate data
-		if(!empty($service["defendant"])){
+		if(!empty($service["defendants"])){
 
 			if (!$this->orders->fill($service)->isValidDefendant()) {
 				return Redirect::back()->withInput()->withErrors($this->orders->errors);
@@ -308,17 +322,20 @@ class OrdersController extends \BaseController {
 			$jobs = Jobs::whereorderId($orders_id)
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
 
-			$input["orders_id"] = $orders_id;
-
 			if(!empty($result)){
 
-				Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input]);
+				//Select Server
+				$serverData = array('zipcode' => $service['zipcode'], 'state' => $service['state'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => 'service', 'priority' => $service["priority"], 'client' => Input::get('company'));
+				$server = $this->jobs->SelectServer($serverData);
+
+				Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id);
 
 			}
 			else {
-				Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input]);
+				Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id);
 			}
 		}
+		$input["orders_id"] = $orders_id;
 
 		Cache::put('orders_id', $orders_id, 30);
 		Return Redirect::route('orders.show')->with('orders_id', $orders_id);

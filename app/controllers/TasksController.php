@@ -1,11 +1,12 @@
 <?php
 use Carbon\Carbon;
 class TasksController extends \BaseController {
-	public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (TasksController $tasksController, Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
 	{
 
 		$this->orders = $orders;
 		$this->tasks = $tasks;
+		$this->tasksController = $tasksController;
 		$this->reprojections = $reprojections;
 		$this->jobs = $jobs;
 		$this->invoices = $invoices;

@@ -52,6 +52,30 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
         return false;
     }
 
+	public function pageCount($input){
 
+		//$cmd = "/path/to/pdfinfo";           // Linux
+		$cmd = public_path().'\xpdfbin-win-3.04\bin64\pdfinfo.exe';  // Windows
+
+		$file = $input["path"].'/'.$input["file"];
+
+		// Parse entire output
+		// Surround with double quotes if file name has spaces
+		exec("$cmd \"$file\"", $output);
+
+		// Iterate through lines
+		$pagecount = 0;
+		foreach($output as $op)
+		{
+			// Extract the number
+			if(preg_match("/Pages:\s*(\d+)/i", $op, $matches) === 1)
+			{
+				$pagecount = intval($matches[1]);
+				break;
+			}
+		}
+
+		return $pagecount;
+	}
 
 }

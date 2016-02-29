@@ -95,7 +95,7 @@ class JobsController extends \BaseController {
 		if(!empty($servee_id)){
 				
 		//Retrieve previously attempted addresses
-		$serveejobs = DB::table('jobs')->where('servee_id', Input::get('servee_id'))->orderBy('created_at', 'asc')->get();
+		$serveejobs = Jobs::whereserveeId(Input::get('servee_id'))->orderBy('created_at', 'asc')->get();
 
 		View::share(['serveejobs' => $serveejobs]);
 		}
@@ -107,8 +107,7 @@ class JobsController extends \BaseController {
 	}
 
 		//Retrieve previously entered defendants
-		$jobs = DB::table('jobs')
-					->where('order_id', Input::get('orders_id'))
+		$jobs = Jobs::whereorderId(Input::get('orders_id'))
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
 					
 		//Verify Address

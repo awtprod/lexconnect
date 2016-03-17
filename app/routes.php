@@ -26,6 +26,7 @@
 //Route::get('users/{username}', 'UsersController@show');
 Route::get('api/getcourts', 'OrdersController@getCourts');
 Route::get('api/getcounties', 'CountiesController@getCounties');
+Route::get('api/getRate', 'JobsController@getRate');
 Route::get('orders/courts/{id}', 'OrdersController@getCourts');
 Route::group(array('before'=>'auth'), function() { 
 Route::get('jobs/add', [
@@ -272,10 +273,10 @@ Route::match(array('GET', 'POST'),'jobs/create', [
 	'as' => 'jobs.create',
 	'uses' => 'JobsController@create'
 	]);
-Route::post('jobs/verify', [
-	'as' => 'jobs.verify',
-	'uses' => 'JobsController@verify'
-	]);
+Route::match(array('GET', 'POST'),'jobs/verify', [
+		'as' => 'jobs.verify',
+		'uses' => 'JobsController@verify'
+]);
 Route::group(array('before'=>'auth'), function() { 
 Route::resource('orders', 'OrdersController');
 Route::resource('jobs', 'JobsController');

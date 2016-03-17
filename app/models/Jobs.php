@@ -126,8 +126,10 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	$req = "http://api.geosvc.com/rest/usa/{$input1}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
 
-	//If no servers, assign to Admin
+
+		//If no servers, assign to Admin
 	if(empty($result)){
+
 
 		$data = array();
 
@@ -169,6 +171,37 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		}
 		else {
+
+			//Find current page rate for vendor
+			$pages = VendorRates::whereVendor($select["UserData"])->whereState($serverData['state'])->whereCounty($serverData['county'])->first();
+
+
+			//Find documents being served
+			$serveDocTypes = DocumentsServed::whereorderId($serverData['orderId'])->get();
+
+			$docPgs = 0;
+
+			//Find pagecount of most recent docs uploaded
+			foreach($serveDocTypes as $serveDocType){
+
+				$docPgs .= Documents::whereorderId($serverData['orderId'])->whereDocument($serveDocType->document)->orderBy('created_at', 'desc')->pluck('pages');
+
+			}
+
+			//Find if pagecount is within free page limit
+			if($docPgs > $pages->free_pgs AND $pages->free_pgs != 0){
+
+				//if not determine total charge
+				$pageRate = ($docPgs - $pages->free_pgs) * ($pages->pg_rate);
+
+			}
+			//If within free range, set rate at 0
+			else{
+
+				$pageRate = 0;
+			}
+
+
 			//Set variables
 			$flatVar = $serverData['process'] . 'Flat';
 			$rate = $rates->$flatVar;
@@ -183,19 +216,24 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 			if (empty($rate) OR $rate == '0') {
 
-				$vendor["rate"][$select["UserData"]] = ($base) + (($mileage) * ($select["Distance"]["Value"]));
+				$vendor["rate"][$select["UserData"]] = ($base) + (($mileage) * ($select["Distance"]["Value"])) + $pageRate;
 
 				if($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
 
 					$surVar = $serverData['process'] . $serverData['priority'];
-					$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + (($base) + (($mileage) * ($select["Distance"]["Value"])));
+					$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + (($base) + (($mileage) * ($select["Distance"]["Value"]))) + $pageRate;
 				}
 
 			}
 			elseif($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
 
 				$surVar = $serverData['process'] . $serverData['priority'];
-				$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + $rates->$flatVar;
+				$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + $rates->$flatVar + $pageRate;
+			}
+			else{
+
+				$vendor["rate"][$select["UserData"]] = $rates->$flatVar + $pageRate;
+
 			}
 
 			//Find client
@@ -209,6 +247,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 				$maxRate = 100;
 			}
+
+
 
 			//Remove unqualified servers
 			if (!empty($suspended)) {
@@ -229,6 +269,17 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 				$vendor["weight"][$select["UserData"]] = (((0.45) * ((1 - ($score)) * ($select["Distance"]["Value"]))) + ((0.55) * ((1 - ($score)) * $vendor["rate"][$select["UserData"]])));
 			}
 		}
+	}
+
+	//If no qualified servers, assign to admin
+	if(empty($server)){
+
+		$data = array();
+
+		$data["server"] = 1;
+		$data["rate"] = 75;
+
+		return $data;
 	}
 
 	$server = array_keys($vendor["weight"], min($vendor["weight"]));
@@ -283,6 +334,22 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		return $newTask->id;
 
+	}
+
+	public function TotalRate($data)
+	{
+
+		//Find service rate
+		$rate = ClientRates::whereClient($data["client"])->pluck($data["process"] . 'FeeRate');
+
+
+		//Find app rate
+		$appFee = $data["rate"] * $rate;
+
+		//Determine total to charge client
+		$clientRate = ($data["rate"]) + ($data["rate"] * $rate);
+
+		return $clientRate;
 	}
 
 	public function JobComplete($id){

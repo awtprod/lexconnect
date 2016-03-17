@@ -19,6 +19,20 @@ class JobsController extends \BaseController {
 		$this->Servee = $Servee;
 	}
 
+	public function getRate()
+	{
+		$input = Input::all();
+
+		//Select Server
+
+		$server = $this->jobs->SelectServer(array('zipcode' => $input['zipcode'], 'state' => $input['state'], 'county' => $input['county'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => $input['client'], 'orderId' => $input['orderId']));
+
+		//Find total cost (including service charge)
+		$rate = $this->jobs->TotalRate(array('process' => $input["type"], 'rate' => $server['rate'], 'client' => $input['client'], 'server'=> $server['server']));
+
+		return Response::json($rate);
+	}
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -85,42 +99,75 @@ class JobsController extends \BaseController {
 	 */
 	public function verify()
 	{
-		//retrieve data from input form
-		$input = Input::all();
-		Cache::put('input', Input::all(),5);
-		$orders_id = Input::get('orders_id');
-		$servee_id = Input::get('servee_id');
-		
-		//get data is from new serve address from
-		if(!empty($servee_id)){
-				
-		//Retrieve previously attempted addresses
-		$serveejobs = Jobs::whereserveeId(Input::get('servee_id'))->orderBy('created_at', 'asc')->get();
 
-		View::share(['serveejobs' => $serveejobs]);
+		//retrieve data from order page
+		$input = Session::get('input');
+
+		if(!empty($input)) {
+
+			$result = Session::get('result');
+			$server = Session::get('server');
+			$orders_id = Session::get('orders_id');
+			$rate = Session::get('rate');
+			$jobs = Session::get('jobs');
+
 		}
-		
-		
-		if ( ! $this->jobs->fill($input)->isValid())
-	{
-		return Redirect::back()->withInput()->withErrors($this->jobs->errors);	
-	}
+		else {
+			//retrieve data from input form
+			$input = Input::all();
 
-		//Retrieve previously entered defendants
-		$jobs = Jobs::whereorderId(Input::get('orders_id'))
+			Cache::put('input', Input::all(), 5);
+			$orders_id = Input::get('orders_id');
+			$servee_id = Input::get('servee_id');
+
+			//Find order info
+			$order = Orders::whereId($orders_id)->first();
+
+			//get data is from new serve address from
+			if (!empty($servee_id)) {
+
+				//Retrieve previously attempted addresses
+				$serveejobs = Jobs::whereserveeId(Input::get('servee_id'))->orderBy('created_at', 'asc')->get();
+
+				View::share(['serveejobs' => $serveejobs]);
+			}
+
+
+			if (!$this->jobs->fill($input)->isValid()) {
+				return Redirect::back()->withInput()->withErrors($this->jobs->errors);
+			}
+			dd($input);
+
+			//Retrieve previously entered defendants
+			$jobs = Jobs::whereorderId(Input::get('orders_id'))
 					->whereNotNull('street')->orderBy('id', 'asc')->get();
-					
-		//Verify Address
 
-		$result = $this->jobs->addressVerification($input);
+			//Verify Address
+
+			$result = $this->jobs->addressVerification($input);
+
+			if (!empty($result)) {
+
+				//Select Server
+
+				$server = $this->jobs->SelectServer(array('zipcode' => $result[0]['components']['zipcode'], 'state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => $order->client, 'orderId' => $order->id));
+
+				//Find total cost (including service charge)
+				$rate = $this->jobs->TotalRate(array('process' => $input["type"], 'rate' => $server['rate'], 'client' => $order->client));
+
+			}
+		}
 
 		if(!empty($result)){
 
-		Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input]);
+		Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input])->with('rate', $rate)->with(['server' => $server])->with('orders_id', $orders_id);
 
 			}
 		else {
-			Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input]);
+
+			$counties = ['' => 'Select County']+Counties::whereState($input['state'])->orderBy('county', 'asc')->lists('county', 'county');
+
+			Return View::make('jobs.nonverify')->with(['jobs' => $jobs])->with(['input' => $input])->with('orders_id', $orders_id)->with(['counties' => $counties]);
 		}
 
 	}

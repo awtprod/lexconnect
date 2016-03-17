@@ -85,6 +85,7 @@ class OrdersController extends \BaseController {
 
          return Response::json($numbers);
 	 }
+
 	 public  function clear()
 	 {
 	 	Session::forget('input');
@@ -304,19 +305,17 @@ class OrdersController extends \BaseController {
 			}
 		}
 
-		//Determine if defendant was added
-		$service = Input::get('service');
 
 
 		//If defendant was added, validate data
-		if(!empty($service["defendants"])){
+		if(!empty($input["defendants"])){
 
-			if (!$this->orders->fill($service)->isValidDefendant()) {
+			if (!$this->orders->fill($input)->isValidDefendant()) {
 				return Redirect::back()->withInput()->withErrors($this->orders->errors);
 			}
 
 		//Verfiy Address
-			$result = $this->jobs->addressVerification($service);
+			$result = $this->jobs->addressVerification($input);
 
 			//Retrieve previously entered defendants
 			$jobs = Jobs::whereorderId($orders_id)
@@ -325,14 +324,17 @@ class OrdersController extends \BaseController {
 			if(!empty($result)){
 
 				//Select Server
-				$serverData = array('zipcode' => $service['zipcode'], 'state' => $service['state'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => 'service', 'priority' => $service["priority"], 'client' => Input::get('company'));
-				$server = $this->jobs->SelectServer($serverData);
 
-				Return View::make('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id);
+				$server = $this->jobs->SelectServer(array('zipcode' => $result[0]['components']['zipcode'], 'state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => Input::get('company'), 'orderId' => $orders_id));
+
+				//Find total cost (including service charge)
+				$rate = $this->jobs->TotalRate(array('state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'server'=> $server['server'],'process' => $input["type"], 'rate' => $server['rate'], 'client' => Input::get('company')));
+
+				Return Redirect::route('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id)->with('rate',$rate);
 
 			}
 			else {
-				Return View::make('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id);
+				Return Redirect::route('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input])->with('orders_id', $orders_id);
 			}
 		}
 		$input["orders_id"] = $orders_id;

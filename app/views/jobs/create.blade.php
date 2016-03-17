@@ -39,11 +39,14 @@ table#t01 th	{
 
 {{ Form::open(['route' => 'jobs.verify']) }}
 		<div>
-	{{ Form::label('defendant', 'Defendant: ') }}
-	{{ Form::text('defendant', $input["defendant"]) }}
-	{{ $errors->first('defendant') }}
-	</div>
-			<div>
+	@foreach($input['defendants'] as $defendant)
+	{{ Form::label('defendants', 'Defendant: ') }}
+	{{ Form::text('defendants', $defendant) }}
+	{{ $errors->first('defendants') }}
+@endforeach
+		</div>
+
+<div>
 	{{ Form::label('street', 'Street: ') }}
 	{{ Form::text('street', $input["street"]) }}
 	{{ $errors->first('street') }}
@@ -99,8 +102,8 @@ table#t01 th	{
 			{{ Form::label('type', 'Property Posting') }}
 		@endif
 
-	{{ Form::label('service[priority]', 'Priority: ') }}
-	{{ Form::select('service[priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day'),$input["service"]["priority"]) }}<p>
+	{{ Form::label('priority', 'Priority: ') }}
+	{{ Form::select('priority]', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day'),$input["priority"]) }}<p>
 </div>
 
 {{ Form::hidden('orders_id', $input["orders_id"]) }}

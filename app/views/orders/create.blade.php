@@ -3,12 +3,13 @@
 
 
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
 	<script src="//d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/2.8/jquery.liveaddress.min.js"></script>
     <script>
 
 		jQuery(document).ready(function($) {
-            $('#state').change(function(){
-                $.get("{{ url('api/getcourts')}}", { option: $('#state').val() },
+            $('#caseSt').change(function(){
+                $.get("{{ url('api/getcourts')}}", { option: $('#caseSt').val() },
                         function(data) {
                             var numbers = $('#court');
                             numbers.empty();
@@ -22,26 +23,9 @@
         });
 
 
-	</script>
 
-	<script>
-		jQuery(document).ready(function($) {
-			function getCounty(state){
-				$.get("{{ url('api/getcounties')}}", { option: state },
-						function(data) {
-							var numbers = $('#county');
-							numbers.empty();
-							$.each(data, function(key, value) {
-								numbers .append($("<option></option>")
-										.attr("value",key)
-										.text(value));
-							});
-						});
-			};
-		});
-	</script>
 
-	<script>
+
 		jQuery(document).ready(function($) {
 			$('#county').change(function(){
 				$.get("{{ url('api/getRate')}}", { zipcode: $('#zipcode').val(), orderId: $('#orders_id').val(), type: $('#type').val(), client: $('#client').val(), priority: $('#priority').val(), county: $('#county').val(), state: $('#state').val()},
@@ -56,12 +40,66 @@
 			});
 		});
 
-	</script>
 
 
 
-	<script>
 		$(document).ready(function() {
+
+		$(".address").css("display", "none");
+
+		$('.judicial').click(function(){
+
+			if ($('input[name=judicial]:checked').val()=="judicial"){
+
+				$("#judicial").slideDown("fast");
+
+			}	else {
+
+				$("#judicial").slideUp("fast");
+
+			}
+
+		});
+
+
+			//Validate Data
+			$("#create").validate({
+
+				rules:	{
+					plaintiff: "required",
+					defendant: "required",
+					Street: "required",
+					City: "required",
+					Zipcode: "required"
+				}
+
+			});
+
+			$('.add_defendant_form').click(function(e){
+
+				e.preventDefault();
+
+				$('.add_defendant_form').hide();
+
+				$('.address').show();
+
+			});
+
+			function getCounty(state){
+				$.get("{{ url('api/getcounties')}}", { option: state },
+						function(data) {
+							var numbers = $('#county');
+							numbers.empty();
+							numbers .append($("<option></option>")
+									.attr("value",'')
+									.text('Select County'));
+							$.each(data, function(key, value) {
+								numbers .append($("<option></option>")
+										.attr("value",key)
+										.text(value));
+							});
+						});
+			};
 
 			var i = 0;
 
@@ -69,15 +107,17 @@
 				key: '5198528973891423290',
 				waitForStreet: true,
 				verifySecondary: true,
-				address: [{
-					state: '#State'
-				}]
+				debug: true
 
 			});
 
-			$('form').change(function(){
+			$("#defendant-info").change(function(){
 
 				$("#occupied").empty();
+
+				$(".add").hide();
+
+				$("#non-verified").hide();
 
 			});
 
@@ -98,7 +138,19 @@
 						occupancy = "No";
 					}
 
-					$("#occupied").append('Occupied: '+occupancy);
+					$(".add").show();
+
+					$("#occupied").append('Occupied: '+occupancy+'<input type="hidden" id="county" value="'+data.response.chosen.metadata.county_name+'">');
+
+				}
+				else{
+
+					getCounty($("#State").val());
+
+					$("#non-verified").show();
+
+					$(".add").show();
+
 
 				}
 
@@ -114,7 +166,7 @@
 
 				$(add_button).click(function(e){ //on add input button click
 					e.preventDefault();
-					$(wrapper).append('<div class="names"><input type="text" class="defendant"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+					$(wrapper).append('<div class="names"><input type="text" class="add_defendant"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
 					x++;
 
 				});
@@ -126,26 +178,73 @@
 			});
 
 			//Add to array
-			$('.Add').click(function() {
+			$('.Add').click(function(e) {
 
-				$(this).attr('disabled','disabled');
+				e.preventDefault();
+
 
 				var namesData = "";
 
 				var j = 0;
 
-				$('.defendant').each(function(){
+				if($('.defendant').val()){
+
+					namesData +=$('.defendant').val()+'<input type="hidden" name="defendants["'+i+'"]["'+j+'"]" value="'+$('.defendant').val()+'"><br>';
+
+
+					j++;
+
+				}
+				else{
+
+					alert("Please enter a defendant!");
+
+					return;
+
+				}
+
+				if(!$("#Zipcode").val()){
+
+					alert("Please enter a Zip Code!");
+
+					return;
+
+				}
+
+				if(!$("#county").val()){
+
+					alert("Please select a county!");
+
+					return;
+
+				}
+
+
+				$('.add_defendant').each(function(){
 
 					if($(this).val()){
 
 						namesData +=$(this).val()+'<input type="hidden" name="defendants["'+i+'"]["'+j+'"]" value="'+$(this).val()+'"><br>';
 
 						j++;
+
 					}
 				});
+
+				$('.add_defendant_form').show();
+
+				$('.add').hide();
+
+				$("#non-verified").hide();
+
+				$("#occupied").hide();
+
+
 				$("#results").append('<div><br>'+namesData+
-						$('#Street').val() + " " + '<input type="hidden" name="street["'+i+'"]" value="'+$('#Street').val()+'"><br>'+
-						$('#City').val() + '<input type="hidden" name="city["'+i+'"]" value="'+$('#City').val()+'">,'+
+						$('#Street').val() + " " + '<input type="hidden" name="street["'+i+'"]" value="'+$('#Street').val()+'">&nbsp;'+
+						$('#Street2').val() + '<input type="hidden" name="street2["'+i+'"]" value="'+$('#Street2').val()+'"><br>'+
+						$('#City').val() + '<input type="hidden" name="city["'+i+'"]" value="'+$('#City').val()+'">,&nbsp;'+
+						$('#county').val() + " " + '<input type="hidden" name="county["'+i+'"]" value="'+$('#county').val()+'">,&nbsp;'+
 						$('#State').val() + " " + '<input type="hidden" name="state["'+i+'"]" value="'+$('#State').val()+'">&nbsp;'+
 						$('#Zipcode').val() + " " + '<input type="hidden" name="zipcode["'+i+'"]" value="'+$('#Zipcode').val()+'"><br>'+
 						$('#Notes').val() + " " + '<input type="hidden" name="notes["'+i+'"]" value="'+$('#Notes').val()+'"><br>'
@@ -153,11 +252,12 @@
 
 				$('.input_fields_wrap').empty();
 
-				$('.input_fields_wrap').append('<div class="names"><input type="text" class="name"/></div>'); //add input box
+				$('.names input[type="text"]').val('');
+
 
 				i++;
-				$(this).closest('form').find("input[type=text], textarea").val("");
 
+				$('#defendant-info input[type="text"]').val('');
 
 			});
 
@@ -170,10 +270,11 @@
 
 	</script>
 <style>
-	.smarty-popup{
+	.smarty-ui{
 		position: relative; !important;
-		top: 6px; !important;
+		top: 60px; !important;
 	}
+
 </style>
 
 @stop
@@ -184,47 +285,60 @@
 	<p class="alert {{ Session::get('alert-class', 'alert-info') }}">{{ Session::get('message') }}</p>
 @endif
 
-{{ Form::open(array('route' => 'orders.store','files'=>true)) }}
-	<div>
-	{{ Form::label('plaintiff', 'Plaintiff: ') }}
-	{{ Form::text('plaintiff') }}
-	{{ $errors->first('plaintiff') }}
-	</div>
-		<div>
-	{{ Form::label('case', 'Court Case: ') }}
-	{{ Form::text('case') }}
-	{{ $errors->first('case') }}
-	</div>
-			<div>
-	{{ Form::label('reference', 'Reference: ') }}
-	{{ Form::text('reference') }}
-	{{ $errors->first('reference') }}
-	</div>
+{{ Form::open(array('route' => 'orders.store','files'=>true, 'id'=> 'create')) }}
 
-	<div>
-	{{ Form::label('caseState', 'State: ') }}
-	{{ Form::select('caseState', $states, null, ['id' => 'state']) }}
-	{{ $errors->first('blah') }}
-	</div>
+	<input type="radio" name="judicial" class="judicial" value="judicial" checked>Judicial
+	<input type="radio" name="judicial" class="judicial" value="non_judicial">Non Judicial<p>
+
+
+	{{ Form::label('reference', 'Reference: ') }}
+	{{ Form::text('reference') }}<br>
+
+	<div id="judicial">
+	{{ Form::label('plaintiff', 'Plaintiff: ') }}
+	{{ Form::text('plaintiff') }}<br>
+
+	{{ Form::label('case', 'Court Case: ') }}
+	{{ Form::text('case') }}<br>
+
+
 <div class="row">
     <div class="large-9 columns">
         <label for="court">Court:</label>
-        <select id="court" name="court">
+		{{ Form::select('caseSt', $states, null, ['id' => 'caseSt']) }}
+		<select id="court" name="court">
         </select>
-		{{ $errors->first('court') }}
 	</div>
 </div>
-    	<div>
-	{{ Form::label('services', 'Services: ') }}
-	{{ Form::label('filing', 'Filing: ') }}
-	{{ Form::select('filing', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
-	{{ Form::label('recording', 'Recording: ') }}
-	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}
-	{{ $errors->first('services') }}<p>
-	</div>
-<div>
+		</div><p>
 
-	{{ $errors->first('service_documents') }}<p>
+    	<div id="services_options">
+	{{ Form::label('services', 'Services: ') }}<br>
+	<input type="checkbox" name="services" class="services" value="filing">Filing &nbsp;
+	<input type="checkbox" name="services" class="services" value="recording">Recording &nbsp;
+	<input type="checkbox" name="services" class="services" value="court-run">Court Run
+
+</div>
+
+	<div id="filing">
+	{{ Form::label('filing', 'Filing: ') }}
+	{{ Form::select('filing', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
+		</div>
+
+	<div id="recording">
+	{{ Form::label('recording', 'Recording: ') }}
+	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
+	</div>
+
+	<div id="court-run">
+		<input type="text" class="run_docs" name="run_docs"></div>
+
+	<div class="add_court_run"></div>
+
+	<button class="add_court_run_button">Add More Documents</button><br>
+
+	<div>
+
 		{{ Form::label('Upload Service Documents: ') }}<input type="file" name="service_documents" id="">
 		<br/>
 
@@ -235,12 +349,10 @@
     {{ Form::checkbox('documentServed['.$document[0].']', 'yes') }}
     {{ Form::label('documentServed['.$document[1].']',  $document[1]) }}<br>
     @endforeach
-    {{ $errors->first('documentServed') }}<p>
 </div>
 @if (Auth::user()->user_role=='Admin')
     	{{ Form::label('company', 'Client: ') }}
 	{{ Form::select('company', $company) }}
-	{{ $errors->first('company') }}<p>
 @else
 	{{ Form::hidden('company', $company) }}
 @endif
@@ -248,43 +360,55 @@
     @foreach($documents as $document)
    {{  '<input type="hidden" name="documents[]" value="'. $document[0]. '">' }}
     @endforeach
+<p>
 
 
+<button class="add_defendant_form"> Add Defendant</button>
 
-
-
-<div>
-{{ Form::label('type', 'Service Type: ') }}
-{{ Form::radio('type', 'service', true) }}
-{{ Form::label('type', 'Process Service', true) }}
-{{ Form::radio('type', 'posting') }}
-{{ Form::label('type', 'Property Posting') }}
-{{ Form::label('priority', 'Priority: ') }}
-{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
-	</div>
-
-
-<h1>Add New Defendant</h1>
 <div class="address">
 
+<h1>Add New Defendant</h1>
 
-<div class="input_fields_wrap">
-	<div class="names"><input type="text" class="defendant"></div></div>
+	<div class="names"><input type="text" class="defendant" name="defendant"></div>
+
+<div class="input_fields_wrap"></div>
 
 <button class="add_defendant_button">Add More Defendants</button><br>
 
-	Street:<input type="text" id="Street"><br>
+	<div id="service-type">
+		{{ Form::label('type', 'Service Type: ') }}
+		{{ Form::radio('type', 'service', true) }}
+		{{ Form::label('type', 'Process Service', true) }}
+		{{ Form::radio('type', 'posting') }}
+		{{ Form::label('type', 'Property Posting') }}
+		{{ Form::label('priority', 'Priority: ') }}
+		{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
+	</div>
+
+	<div id="defendant-info">
+
+	Street:<input type="text" id="Street" name="Street"><br>
 	Apt/Stuite/Unit:<input type="text" id="Street2"><br>
-	City:<input type="text" id="City"><br>
+	City:<input type="text" id="City" name="City"><br>
 	{{ Form::label('State', 'State: ') }}
-	{{ Form::select('State', $states, null, ['id' => 'state']) }}<br>
-	Zipcode:<input type="text" id="Zipcode"><br>
+	{{ Form::select('State', $states, null, ['id' => 'State']) }}<br>
+	Zipcode:<input type="text" id="Zipcode" name="Zipcode"><br>
 	Notes:<input type="text" id="Notes"><br>
+</div>
 
 	<div id="occupied"></div>
 
+	<div id="non-verified" style="display:none">
+		<div class="row">
+			<div class="large-9 columns">
+				<label for="county">County:</label>
+				<select id="county" name="county">
+				</select>
+			</div>
+		</div></div>
+
 </div>
-<button class="Add">Add</button></p>
+<button class="Add" style="display:none">Add</button></p>
 		<div id="results"></div></p>
 
 		<div><button id="Submit" class="Submit">Submit</button>{{ Form::reset('Reset') }}</div>

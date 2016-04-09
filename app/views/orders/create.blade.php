@@ -175,6 +175,22 @@
 					e.preventDefault(); $(this).parent('.names').remove();
 					x--;
 				})
+
+				var add_run_wrapper         = $(".add_court_run"); //Fields wrapper
+				var add_run_button      = $(".add_court_run_button"); //Add button ID
+				var y = 1;
+
+				$(add_run_button).click(function(e){ //on add input button click
+					e.preventDefault();
+					$(add_run_wrapper).append('<div class="supp_court_run"><input type="text" class="run_docs" name="run_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
+					y++;
+
+				});
+
+				$(add_run_wrapperwrapper).on("click",".remove_field", function(e){ //user click on remove text
+					e.preventDefault(); $(this).parent('.supp_court_run').remove();
+					y--;
+				})
 			});
 
 			//Add to array
@@ -330,7 +346,7 @@
 	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
 	</div>
 
-	<div id="court-run">
+	<div id="court_run">
 		<input type="text" class="run_docs" name="run_docs"></div>
 
 	<div class="add_court_run"></div>

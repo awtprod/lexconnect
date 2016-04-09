@@ -2,17 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4d6b2dc6-81fc-42e5-b04c-c82a62436929" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/storage/sessions/3dee62b9370af892441950c8106440f310cd7d58" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/storage/sessions/49be1864c5e69401682daf350e89734b18b51d27" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/storage/sessions/9fb03b2771defbe9d33b2ff7dfd763aecc0c4acb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/storage/sessions/a365da69c16536ccc4e2ad5f33e8e0a22a36fee7" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer.lock" afterPath="$PROJECT_DIR$/composer.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/orders/create.blade.php" afterPath="$PROJECT_DIR$/app/views/orders/create.blade.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config/database.php" afterPath="$PROJECT_DIR$/app/config/database.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/hello.blade.php" afterPath="$PROJECT_DIR$/app/views/hello.blade.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/storage/logs/laravel.log" afterPath="$PROJECT_DIR$/app/storage/logs/laravel.log" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/lexconnect.iml" afterPath="$PROJECT_DIR$/.idea/lexconnect.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="lexconnect.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -67,8 +57,8 @@
       <file leaf-file-name="create.blade.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/views/orders/create.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.065836295">
-              <caret line="290" column="68" selection-start-line="290" selection-start-column="68" selection-end-line="290" selection-end-column="68" />
+            <state vertical-scroll-proportion="0.5996441">
+              <caret line="190" column="71" selection-start-line="190" selection-start-column="71" selection-end-line="190" selection-end-column="71" />
               <folding />
             </state>
           </provider>
@@ -1064,6 +1054,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-8.75">
           <caret line="38" column="44" selection-start-line="38" selection-start-column="44" selection-end-line="38" selection-end-column="44" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1085,8 +1076,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/views/orders/create.blade.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.065836295">
-          <caret line="290" column="68" selection-start-line="290" selection-start-column="68" selection-end-line="290" selection-end-column="68" />
+        <state vertical-scroll-proportion="0.5996441">
+          <caret line="190" column="71" selection-start-line="190" selection-start-column="71" selection-end-line="190" selection-end-column="71" />
           <folding />
         </state>
       </provider>

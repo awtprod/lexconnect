@@ -45,6 +45,42 @@
 
 		$(document).ready(function() {
 
+		$('.service_documents').change(function(e){
+
+			e.preventDefault();
+
+
+			if($('.doc_type_select option:selected').val()=="other"){
+
+
+				$(this).find('.doc_other').show();
+
+			}
+			else{
+
+				$(this).find('.doc_other').hide();
+			}
+
+			return false;
+
+		});
+
+			$('.document_wrapper').change(function(e){
+
+				e.preventDefault();
+
+				$(".supp_doc_type_select").each(function()
+				{
+					if($(this).val()=="other"){
+
+						$(this).next().show();
+				}
+				else{
+						$(this).next().hide();
+				}
+				});
+			});
+
 		$(".address").css("display", "none");
 
 		$('.judicial').click(function(){
@@ -106,8 +142,7 @@
 			var ss = jQuery.LiveAddress({
 				key: '5198528973891423290',
 				waitForStreet: true,
-				verifySecondary: true,
-				debug: true
+				verifySecondary: true
 
 			});
 
@@ -187,11 +222,86 @@
 
 				});
 
-				$(add_run_wrapperwrapper).on("click",".remove_field", function(e){ //user click on remove text
+				$(add_run_wrapper).on("click",".remove_field", function(e){ //user click on remove text
 					e.preventDefault(); $(this).parent('.supp_court_run').remove();
 					y--;
 				})
+
+				var doc_serve_wrapper         = $("#doc_served_wrapper"); //Fields wrapper
+				var add_doc_serve_button      = $("#add_doc_served_button"); //Add button ID
+
+				$(add_doc_serve_button).click(function(e){ //on add input button click
+					e.preventDefault();
+
+					if(!$("#doc_served_select_options").val()) {
+
+						alert("Please enter document type!");
+
+						return;
+					}
+
+					if($("#doc_served_select_options option:selected").val() == "other"){
+
+						if(!$("#doc_other_text").val()) {
+
+							alert("Please enter document type!");
+
+							return;
+						}
+					}
+
+					if($("#doc_served_select_options option:selected").val() == "other"){
+
+						$(doc_serve_wrapper).append('<div class="doc_served_list"><input type="hidden" class="docs_served" name="docs_served[]" value="' + $("#doc_other_text").val() + '">' + $("#doc_other_text").val() + '<a href="#" class="remove_field">Remove</a></div>'); //add input box
+
+					}
+					else {
+
+						$(doc_serve_wrapper).append('<div class="doc_served_list"><input type="hidden" class="docs_served" name="docs_served[]" value="' + $("#doc_served_select_options option:selected").text() + '">' + $("#doc_served_select_options option:selected").text() + '<a href="#" class="remove_field">Remove</a></div>'); //add input box
+					}
+
+					$("#doc_served_select_options").val('');
+
+					$("#doc_other").hide();
+
+					$("#doc_other_text").val('');
+
+
+				});
+
+				$(doc_serve_wrapper).on("click",".remove_field", function(e){ //user click on remove text
+					e.preventDefault(); $(this).parent('.doc_served_list').remove();
+				})
 			});
+
+			var document_wrapper         = $(".document_wrapper"); //Fields wrapper
+			var add_document_button      = $(".add_document_button"); //Add button ID
+
+			$(add_document_button).click(function(e){ //on add input button click
+				e.preventDefault();
+				$(document_wrapper).append('<div class="additional_document">&nbsp;<input type="file" name="documents[]" class="documents">&nbsp;'+
+
+						'<div class="doc_type"> <select class="supp_doc_type_select">'+
+						'<option value="">Select Document Type</option>'+
+
+				@foreach($documents as $document)
+
+                    '<option value=".{{ $document[0] }}.">'+
+						'{{ $document[1] }}'+
+                    '</option>'+
+						@endforeach
+
+                        '<option value="other">Other (Fill in below)</option>'+
+						'</select>'+
+						'<div class="supp_doc_other" style="display: none"><input type="text" name="doc_other_text[]" class="doc_other_text"></div>'+
+						'</div>'+
+						'<a href="#" class="remove_field">Remove</a></div>'); //add input box
+
+			});
+
+			$(document_wrapper).on("click",".remove_field", function(e){ //user click on remove text
+				e.preventDefault(); $(this).parent('.additional_document').remove();
+			})
 
 			//Add to array
 			$('.Add').click(function(e) {
@@ -353,19 +463,35 @@
 
 	<button class="add_court_run_button">Add More Documents</button><br>
 
-	<div>
+	<div class="service_documents">
 
-		{{ Form::label('Upload Service Documents: ') }}<input type="file" name="service_documents" id="">
-		<br/>
 
-    {{ Form::label('Documents Served', 'Documents Served: ') }}<br>
+		{{ Form::label('Upload Service Documents: ') }}<br>
+		<input type="file" name="documents[]" class="documents">&nbsp;
 
-    @foreach($documents as $document)
+		<article> <select class="doc_type_select">
+			<option value="">Select Document Type</option>
 
-    {{ Form::checkbox('documentServed['.$document[0].']', 'yes') }}
-    {{ Form::label('documentServed['.$document[1].']',  $document[1]) }}<br>
-    @endforeach
-</div>
+			@foreach($documents as $document)
+
+				<option value=".{{ $document[0] }}.">
+					{{ $document[1] }}
+				</option>
+			@endforeach
+
+			<option value="other">Other (Fill in below)</option>
+		</select>
+		<div class="doc_other" style="display: none"><input type="text" name="doc_other_text[]" class="doc_other_text"><br></div>
+		</article>
+		<br>
+
+		<div class="document_wrapper"></div>
+
+		<button class="add_document_button">Add More Documents</button>
+
+		</div>
+
+
 @if (Auth::user()->user_role=='Admin')
     	{{ Form::label('company', 'Client: ') }}
 	{{ Form::select('company', $company) }}
@@ -374,7 +500,7 @@
 @endif
 
     @foreach($documents as $document)
-   {{  '<input type="hidden" name="documents[]" value="'. $document[0]. '">' }}
+   {{  '<input type="hidden" name="document_types[]" value="'. $document[0]. '">' }}
     @endforeach
 <p>
 

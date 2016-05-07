@@ -5,6 +5,7 @@
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
 	<script src="//d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/2.8/jquery.liveaddress.min.js"></script>
+	<script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
     <script>
 
 		jQuery(document).ready(function($) {
@@ -23,7 +24,21 @@
         });
 
 
-
+		function getCounty(state){
+			$.get("{{ url('api/getcounties')}}", { option: state },
+					function(data) {
+						var numbers = $('#county');
+						numbers.empty();
+						numbers .append($("<option></option>")
+								.attr("value",'')
+								.text('Select County'));
+						$.each(data, function(key, value) {
+							numbers .append($("<option></option>")
+									.attr("value",key)
+									.text(value));
+						});
+					});
+		};
 
 
 		jQuery(document).ready(function($) {
@@ -38,6 +53,7 @@
 
 						});
 			});
+
 		});
 
 
@@ -45,108 +61,140 @@
 
 		$(document).ready(function() {
 
-		$('.service_documents').change(function(e){
 
-			e.preventDefault();
+			var ss = jQuery.LiveAddress({
+				key: '5198528973891423290',
+				verifySecondary: true,
+				submitSelector: "#Add",
+				debug: true
 
+			});
 
-			if($('.doc_type_select option:selected').val()=="other"){
+			$('.address').css("display", "none");
+			$('.process_service').css("display", "none");
 
-
-				$(this).find('.doc_other').show();
-
-			}
-			else{
-
-				$(this).find('.doc_other').hide();
-			}
-
-			return false;
-
-		});
-
-			$('.document_wrapper').change(function(e){
+			$(".add_defendant_form").click(function (e) {
 
 				e.preventDefault();
 
-				$(".supp_doc_type_select").each(function()
-				{
-					if($(this).val()=="other"){
+				$('.add_defendant_form').toggle();
+
+				$('.address').toggle();
+
+			});
+
+
+			$('.document_wrapper').change(function (e) {
+
+				e.preventDefault();
+
+				$(".supp_doc_type_select").each(function () {
+					if ($(this).val() == "other") {
 
 						$(this).next().show();
-				}
-				else{
+					}
+					else {
 						$(this).next().hide();
-				}
+					}
 				});
 			});
 
-		$(".address").css("display", "none");
+			$('.service_documents').change(function(e){
 
-		$('.judicial').click(function(){
+				e.preventDefault();
 
-			if ($('input[name=judicial]:checked').val()=="judicial"){
+				if($('.doc_type_select option:selected').val()=='other'){
 
-				$("#judicial").slideDown("fast");
 
-			}	else {
+					$('.doc_other').show();
 
-				$("#judicial").slideUp("fast");
+				}
+				else{
 
-			}
+					$('doc_other').hide();
+				}
+			});
 
-		});
+			$('.judicial').click(function () {
+
+				if ($('input[name=judicial]:checked').val() == "judicial") {
+
+					$("#judicial").slideDown("fast");
+
+				} else {
+
+					$("#judicial").slideUp("fast");
+
+				}
+			});
+
+			//show/hide different service options
+			$('.services').click(function(){
+
+
+
+				if($('input[name=filing]:checked').val() == "filing"){
+
+
+					$("#filing").slideDown("fast");
+
+				}
+				else{
+					$("#filing").slideUp("fast");
+				}
+
+				if($('input[name=service]:checked').val() == "service"){
+
+					$('.process_service').slideDown("fast");
+				}
+				else{
+
+					$('.process_service').slideUp("fast");
+				}
+
+				if($('input[name=court_run]:checked').val() == "court_run"){
+
+					$("#court_run").slideDown("fast");
+				}
+				else{
+
+					$("#court_run").slideUp("fast");
+				}
+			});
+
 
 
 			//Validate Data
 			$("#create").validate({
 
-				rules:	{
+				rules: {
 					plaintiff: "required",
-					defendant: "required",
-					Street: "required",
-					City: "required",
-					Zipcode: "required"
+					'doc_other_text[]': "required",
+					'documents[]': {
+						required: false,
+						accept: "application/pdf"
+					},
+
+				messages: {
+					'documents[]':{
+						accept: "Please upload document in PDF form."
+					}
+				}
 				}
 
 			});
 
-			$('.add_defendant_form').click(function(e){
+			jQuery.extend(jQuery.validator.messages, {
 
-				e.preventDefault();
-
-				$('.add_defendant_form').hide();
-
-				$('.address').show();
+				'documents[]':{
+					accept: "Please upload document in PDF form."
+				}
 
 			});
 
-			function getCounty(state){
-				$.get("{{ url('api/getcounties')}}", { option: state },
-						function(data) {
-							var numbers = $('#county');
-							numbers.empty();
-							numbers .append($("<option></option>")
-									.attr("value",'')
-									.text('Select County'));
-							$.each(data, function(key, value) {
-								numbers .append($("<option></option>")
-										.attr("value",key)
-										.text(value));
-							});
-						});
-			};
 
-			var i = 0;
 
-			var ss = jQuery.LiveAddress({
-				key: '5198528973891423290',
-				waitForStreet: true,
-				verifySecondary: true
-
-			});
-
-			$("#defendant-info").change(function(){
+			$("#defendant-info").change(function () {
 
 				$("#occupied").empty();
 
@@ -156,7 +204,7 @@
 
 			});
 
-			ss.on("AddressAccepted", function(event, data, previousHandler) {
+			ss.on("AddressAccepted", function (event, data, previousHandler) {
 
 				if (data.response.chosen) {
 
@@ -164,21 +212,21 @@
 
 					var occupancy = "";
 
-					if(vacant == "N"){
+					if (vacant == "N") {
 
 						occupancy = "Yes";
 					}
-					else{
+					else {
 
 						occupancy = "No";
 					}
 
 					$(".add").show();
 
-					$("#occupied").append('Occupied: '+occupancy+'<input type="hidden" id="county" value="'+data.response.chosen.metadata.county_name+'">');
+					$("#occupied").append('Occupied: ' + occupancy + '<input type="hidden" id="county" value="' + data.response.chosen.metadata.county_name + '">');
 
 				}
-				else{
+				else {
 
 					getCounty($("#State").val());
 
@@ -191,9 +239,14 @@
 
 				previousHandler(event, data);
 
-				});
+			});
 
+		});
 			$(document).ready(function() {
+
+				var i = 1;
+
+				//Additonal servees wrapper
 
 				var wrapper         = $(".input_fields_wrap"); //Fields wrapper
 				var add_button      = $(".add_defendant_button"); //Add button ID
@@ -201,7 +254,7 @@
 
 				$(add_button).click(function(e){ //on add input button click
 					e.preventDefault();
-					$(wrapper).append('<div class="names"><input type="text" class="add_defendant"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+					$(wrapper).append('<div class="names"><input type="text" class="defendant"/><input type="checkbox" name="personal" class="personal" value="personal">Personal Service Required<a href="#" class="remove_field">Remove</a></div>'); //add input box
 					x++;
 
 				});
@@ -211,13 +264,14 @@
 					x--;
 				})
 
+				//Court Run Wrapper
 				var add_run_wrapper         = $(".add_court_run"); //Fields wrapper
 				var add_run_button      = $(".add_court_run_button"); //Add button ID
 				var y = 1;
 
 				$(add_run_button).click(function(e){ //on add input button click
 					e.preventDefault();
-					$(add_run_wrapper).append('<div class="supp_court_run"><input type="text" class="run_docs" name="run_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
+					$(add_run_wrapper).append('<div class="supp_court_run"><input type="text" class="run_docs" name="run_docs[]"><a href="#" class="remove_field">Remove</a></div>'); //add input box
 					y++;
 
 				});
@@ -227,52 +281,7 @@
 					y--;
 				})
 
-				var doc_serve_wrapper         = $("#doc_served_wrapper"); //Fields wrapper
-				var add_doc_serve_button      = $("#add_doc_served_button"); //Add button ID
-
-				$(add_doc_serve_button).click(function(e){ //on add input button click
-					e.preventDefault();
-
-					if(!$("#doc_served_select_options").val()) {
-
-						alert("Please enter document type!");
-
-						return;
-					}
-
-					if($("#doc_served_select_options option:selected").val() == "other"){
-
-						if(!$("#doc_other_text").val()) {
-
-							alert("Please enter document type!");
-
-							return;
-						}
-					}
-
-					if($("#doc_served_select_options option:selected").val() == "other"){
-
-						$(doc_serve_wrapper).append('<div class="doc_served_list"><input type="hidden" class="docs_served" name="docs_served[]" value="' + $("#doc_other_text").val() + '">' + $("#doc_other_text").val() + '<a href="#" class="remove_field">Remove</a></div>'); //add input box
-
-					}
-					else {
-
-						$(doc_serve_wrapper).append('<div class="doc_served_list"><input type="hidden" class="docs_served" name="docs_served[]" value="' + $("#doc_served_select_options option:selected").text() + '">' + $("#doc_served_select_options option:selected").text() + '<a href="#" class="remove_field">Remove</a></div>'); //add input box
-					}
-
-					$("#doc_served_select_options").val('');
-
-					$("#doc_other").hide();
-
-					$("#doc_other_text").val('');
-
-
-				});
-
-				$(doc_serve_wrapper).on("click",".remove_field", function(e){ //user click on remove text
-					e.preventDefault(); $(this).parent('.doc_served_list').remove();
-				})
-			});
+				//Service Documents Wrapper
 
 			var document_wrapper         = $(".document_wrapper"); //Fields wrapper
 			var add_document_button      = $(".add_document_button"); //Add button ID
@@ -281,7 +290,7 @@
 				e.preventDefault();
 				$(document_wrapper).append('<div class="additional_document">&nbsp;<input type="file" name="documents[]" class="documents">&nbsp;'+
 
-						'<div class="doc_type"> <select class="supp_doc_type_select">'+
+						'<div class="doc_type"> <select class="supp_doc_type_select" name="doc_type[]">'+
 						'<option value="">Select Document Type</option>'+
 
 				@foreach($documents as $document)
@@ -303,23 +312,32 @@
 				e.preventDefault(); $(this).parent('.additional_document').remove();
 			})
 
-			//Add to array
-			$('.Add').click(function(e) {
+
+			//Defendants wrapper
+			$("#Add").click(function(e) {
 
 				e.preventDefault();
 
 
 				var namesData = "";
 
+				var personal = "";
+
+
 				var j = 0;
 
-				if($('.defendant').val()){
+				if($('.defendant').val()) {
 
-					namesData +=$('.defendant').val()+'<input type="hidden" name="defendants["'+i+'"]["'+j+'"]" value="'+$('.defendant').val()+'"><br>';
+					$('.defendant').each(function () {
 
+						if($(this).val()) {
 
-					j++;
+							namesData += 'Defendant:&nbsp;' + $(this).val() + '<input type="hidden" name="defendant['+i+'][name][' + j + ']" value="' + $(this).val() + '"><br>';
 
+							j++;
+						}
+
+					});
 				}
 				else{
 
@@ -328,6 +346,31 @@
 					return;
 
 				}
+
+
+				j=0;
+
+				$('.personal').each(function(){
+
+
+				if ($('input.personal').is(':checked')) {
+
+					personal += '<input type="hidden" name="defendant['+i+'][personal]['+j+']" value="yes">';
+
+				} else{
+
+					personal += '<input type="hidden" name="defendant['+i+'][personal][' + j + ']" value="no">';
+
+				}
+
+					j++;
+
+				});
+
+
+
+
+
 
 				if(!$("#Zipcode").val()){
 
@@ -345,17 +388,24 @@
 
 				}
 
-
+/*
 				$('.add_defendant').each(function(){
 
 					if($(this).val()){
 
 						namesData +=$(this).val()+'<input type="hidden" name="defendants["'+i+'"]["'+j+'"]" value="'+$(this).val()+'"><br>';
 
+						if ($('input.personal').is(':checked')) {
+
+							namesData += 'Personal Service Required <input type="hidden" name="personal["'+i+'"]["'+j+'"]" value="yes"><br>'
+						}
+
 						j++;
 
 					}
 				});
+
+*/
 
 				$('.add_defendant_form').show();
 
@@ -366,24 +416,35 @@
 				$("#occupied").hide();
 
 
-				$("#results").append('<div><br>'+namesData+
-						$('#Street').val() + " " + '<input type="hidden" name="street["'+i+'"]" value="'+$('#Street').val()+'">&nbsp;'+
-						$('#Street2').val() + '<input type="hidden" name="street2["'+i+'"]" value="'+$('#Street2').val()+'"><br>'+
-						$('#City').val() + '<input type="hidden" name="city["'+i+'"]" value="'+$('#City').val()+'">,&nbsp;'+
-						$('#county').val() + " " + '<input type="hidden" name="county["'+i+'"]" value="'+$('#county').val()+'">,&nbsp;'+
-						$('#State').val() + " " + '<input type="hidden" name="state["'+i+'"]" value="'+$('#State').val()+'">&nbsp;'+
-						$('#Zipcode').val() + " " + '<input type="hidden" name="zipcode["'+i+'"]" value="'+$('#Zipcode').val()+'"><br>'+
-						$('#Notes').val() + " " + '<input type="hidden" name="notes["'+i+'"]" value="'+$('#Notes').val()+'"><br>'
+				$("#results").append('<div><br><h3>Defendant #'+i+'</h3>Service Type:&nbsp;'+$("input[name=type]:checked").val() + " " + '<input type="hidden" name="defendant['+i+'][type]" value="'+$("input[name=type]:checked").val()+'">&nbsp;'+
+						'Priority:&nbsp;'+$('#priority').val() + " " + '<input type="hidden" name="defendant['+i+'][priority]" value="'+$('#priority').val()+'">&nbsp;<br>'+
+						namesData+personal+
+						$('#Street').val() + " " + '<input type="hidden" name="defendant['+i+'][street]" value="'+$('#Street').val()+'">&nbsp;'+
+						$('#Street2').val() + '<input type="hidden" name="defendant['+i+'][street2]" value="'+$('#Street2').val()+'"><br>'+
+						$('#City').val() + '<input type="hidden" name="defendant['+i+'][city]" value="'+$('#City').val()+'">,&nbsp;'+
+						$('#county').val() + " " + '<input type="hidden" name="defendant['+i+'][county]" value="'+$('#county').val()+'">,&nbsp;'+
+						$('#State').val() + " " + '<input type="hidden" name="defendant['+i+'][state]" value="'+$('#State').val()+'">&nbsp;'+
+						$('#Zipcode').val() + " " + '<input type="hidden" name="defendant['+i+'][zipcode]" value="'+$('#Zipcode').val()+'"><br>'+
+						$('#Notes').val() + " " + '<input type="hidden" name="defendant['+i+'][notes]" value="'+$('#Notes').val()+'"><br>'
 						+'<button class="delete">Delete</button><br></div>');
+
+				$("#num_defendants").val(i);
 
 				$('.input_fields_wrap').empty();
 
 				$('.names input[type="text"]').val('');
 
+				namesData = "";
 
 				i++;
 
 				$('#defendant-info input[type="text"]').val('');
+
+				$("#State").val('');
+
+				$("#type").val('Process Service');
+
+				$("#priority").val('Routine');
 
 			});
 
@@ -396,16 +457,21 @@
 
 	</script>
 <style>
-	.smarty-ui{
-		position: relative; !important;
-		top: 60px; !important;
-	}
+
 
 </style>
 
 @stop
 @section('content')
 <h1>Create New Order</h1>
+
+@if (Auth::user()->user_role=='Admin')
+	{{ Form::label('company', 'Client: ') }}
+	{{ Form::select('company', $company) }}
+@else
+	{{ Form::hidden('company', $company) }}
+@endif
+
 
 @if(Session::has('message'))
 	<p class="alert {{ Session::get('alert-class', 'alert-info') }}">{{ Session::get('message') }}</p>
@@ -438,35 +504,42 @@
 </div>
 		</div><p>
 
-    	<div id="services_options">
-	{{ Form::label('services', 'Services: ') }}<br>
-	<input type="checkbox" name="services" class="services" value="filing">Filing &nbsp;
-	<input type="checkbox" name="services" class="services" value="recording">Recording &nbsp;
-	<input type="checkbox" name="services" class="services" value="court-run">Court Run
+    	<div id="service_options">
+	<h2>Services:</h2>
+	<input type="checkbox" name="service" class="services" value="service">Process Service &nbsp;
+	<input type="checkbox" name="filing" class="services" value="filing">Filing/Recording &nbsp;
+	<input type="checkbox" name="court_run" class="services" value="court_run">Court Run
 
 </div>
 
-	<div id="filing">
-	{{ Form::label('filing', 'Filing: ') }}
-	{{ Form::select('filing', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
-		</div>
+	<div id="filing" style="display:none;">
 
-	<div id="recording">
+	<h2>Filing/Recording:</h2></p>
+
+	{{ Form::label('filing', 'Filing: ') }}
+	{{ Form::select('filing', array(''=>'Select Priority Level','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
+
 	{{ Form::label('recording', 'Recording: ') }}
-	{{ Form::select('recording', array(''=>'','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
+	{{ Form::select('recording', array(''=>'Select Priority Level','Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<br>
 	</div>
 
-	<div id="court_run">
-		<input type="text" class="run_docs" name="run_docs"></div>
+
+	<div id="court_run" style="display:none;">
+		<h2>Document Retrieval</h2></p>
+
+		<input type="text" class="run_docs" name="run_docs">
 
 	<div class="add_court_run"></div>
 
 	<button class="add_court_run_button">Add More Documents</button><br>
+	</div>
+
+	<div class="process_service">
 
 	<div class="service_documents">
 
 
-		{{ Form::label('Upload Service Documents: ') }}<br>
+<h2>Service Documents:</h2>
 		<input type="file" name="documents[]" class="documents">&nbsp;
 
 		<article> <select class="doc_type_select">
@@ -491,41 +564,34 @@
 
 		</div>
 
-
-@if (Auth::user()->user_role=='Admin')
-    	{{ Form::label('company', 'Client: ') }}
-	{{ Form::select('company', $company) }}
-@else
-	{{ Form::hidden('company', $company) }}
-@endif
-
     @foreach($documents as $document)
    {{  '<input type="hidden" name="document_types[]" value="'. $document[0]. '">' }}
     @endforeach
 <p>
 
+		<h2>Defendants:</h2>
 
-<button class="add_defendant_form"> Add Defendant</button>
+<button class="add_defendant_form"> Add Defendants</button>
 
 <div class="address">
 
-<h1>Add New Defendant</h1>
-
-	<div class="names"><input type="text" class="defendant" name="defendant"></div>
-
-<div class="input_fields_wrap"></div>
-
-<button class="add_defendant_button">Add More Defendants</button><br>
 
 	<div id="service-type">
 		{{ Form::label('type', 'Service Type: ') }}
-		{{ Form::radio('type', 'service', true) }}
-		{{ Form::label('type', 'Process Service', true) }}
-		{{ Form::radio('type', 'posting') }}
+		{{ Form::label('type', 'Process Service') }}
+		<input type="radio" name="type" value="Process Service" checked>
 		{{ Form::label('type', 'Property Posting') }}
+		<input type="radio" name="type" value="Property Posting">
 		{{ Form::label('priority', 'Priority: ') }}
 		{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 	</div>
+
+	<div class="names"><input type="text" class="defendant" name="defendant"><input type="checkbox" name="personal" class="personal" value="personal">Personal Service Required</div>
+
+<div class="input_fields_wrap"></div>
+
+<button class="add_defendant_button">Add More Servees</button><br>
+
 
 	<div id="defendant-info">
 
@@ -548,10 +614,16 @@
 				</select>
 			</div>
 		</div></div>
-
+<button id="Add">Add</button><button class="add_defendant_form" style="display: none"> Cancel</button></p>
+	</p>
 </div>
-<button class="Add" style="display:none">Add</button></p>
+
 		<div id="results"></div></p>
+
+
+	</div></p>
+
+<input type="hidden" name="num_defendants" id="num_defendants">
 
 		<div><button id="Submit" class="Submit">Submit</button>{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}

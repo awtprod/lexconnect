@@ -100,6 +100,8 @@ class OrdersController extends \BaseController {
 
 		$input = Input::all();
 
+		dd($input["defendant"]);
+
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
 		//Check to see if at least one service document type has been selected

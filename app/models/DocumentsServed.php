@@ -35,16 +35,23 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
 
     public function insertDocs($docArray){
 
-    foreach($docArray["input"]["documents"] as $document){
+    foreach($docArray["input"]["doc_type"] as $document){
 
-        if(!empty($docArray["input"]["$document"])){
 
-            $documentsServed = new DocumentsServed;
-            $documentsServed->document = $docArray["input"]["$document"];
-            $documentsServed->orderId = $docArray["orderId"];
+		//Check to see if doc type has already been added to Order
+		$prevAddedDoc = DocumentsServed::whereDocument($document)
+										->whereOrderId($docArray["orderId"])->first();
+
+		//If doc type has not been added, add new doc type
+        if(empty($prevAddedDoc)){
+
+			$documentsServed = new DocumentsServed;
+            $documentsServed->document = $document;
+            $documentsServed->order_id = $docArray["orderId"];
             $documentsServed->save();
         }
     }
+		return true;
     }
 
 	public function isValid($input)

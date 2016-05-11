@@ -9,7 +9,7 @@ class VendorRates extends Eloquent implements UserInterface, RemindableInterface
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['vendor','state','county','filingFlat','filingBase','filingMileage','serviceFlat','serviceBase','serviceMileage','recordingFlat','recordingBase','recordingMileage','free_pgs','pg_rate'];
+	protected $fillable = ['vendor','state','county','personal','runFlat','runBase','runMileage','runRush','runSameDay','serviceFlat','serviceBase','serviceMileage','serviceRush','serviceSameDay','postFlat','postBase','postMileage','postRush','postSameDay','free_pgs','pg_rate'];
 	
 	public static $rules = [
 		'date' => 'required|date',

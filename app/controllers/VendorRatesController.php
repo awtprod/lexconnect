@@ -48,32 +48,50 @@ class VendorRatesController extends \BaseController {
 
         //Get revised variables
         $rateId = Input::get('rateId');
-        $revFilingFlat = Input::get('revFilingFlat');
-        $revFilingBase = Input::get('revFilingBase');
-        $revFilingMileage = Input::get('revFilingMileage');
+        $revRunFlat = Input::get('revRunFlat');
+        $revRunBase = Input::get('revRunBase');
+        $revRunMileage = Input::get('revRunMileage');
+        $revRunRush = Input::get('revRunRush');
+        $revRunSameDay = Input::get('revRunSameDay');
         $revServiceFlat = Input::get('revServiceFlat');
         $revServiceBase = Input::get('revServiceBase');
         $revServiceMileage = Input::get('revServiceMileage');
-        $revRecordingFlat = Input::get('revRecordingFlat');
-        $revRecordingBase = Input::get('revRecordingBase');
-        $revRecordingMileage = Input::get('revRecordingMileage');
+        $revServiceRush = Input::get('revServiceRush');
+        $revServiceSameDay = Input::get('revServiceSameDay');
+        $revPostFlat = Input::get('revPostFlat');
+        $revPostBase = Input::get('revPostBase');
+        $revPostMileage = Input::get('revPostMileage');
+        $revPostRush = Input::get('revPostRush');
+        $revPostSameDay = Input::get('revSameDayMileage');
+        $revFreePgs = Input::get('revFreePgs');
+        $revPageRate = Input::get('revPageRate');
+        $revPersonal = Input::get('revPersonal');
 
-        //Find all existing steps
+
+        //Find all existing rates
         $rates = VendorRates::whereVendor(Auth::user()->company_id)->orderBy('state', 'asc')->get();
 
-        //Update Steps
+        //Update Rates
 
         foreach($rates as $rate) {
             $revRate = VendorRates::whereId($rate->id)->first();
-            $revRate->filingFlat = $revFilingFlat[$rate->id];
-            $revRate->filingBase = $revFilingBase[$rate->id];
-            $revRate->filingMileage = $revFilingMileage[$rate->id];
+            $revRate->runFlat = $revRunFlat[$rate->id];
+            $revRate->runBase = $revRunBase[$rate->id];
+            $revRate->runMileage = $revRunMileage[$rate->id];
+            $revRate->runRush = $revRunRush[$rate->id];
+            $revRate->runSameDay = $revRunSameDay[$rate->id];
             $revRate->serviceFlat = $revServiceFlat[$rate->id];
             $revRate->serviceBase = $revServiceBase[$rate->id];
             $revRate->serviceMileage = $revServiceMileage[$rate->id];
-            $revRate->recordingFlat = $revRecordingFlat[$rate->id];
-            $revRate->recordingBase = $revRecordingBase[$rate->id];
-            $revRate->recordingMileage = $revRecordingMileage[$rate->id];
+            $revRate->serviceRush = $revServiceRush[$rate->id];
+            $revRate->postFlat = $revPostFlat[$rate->id];
+            $revRate->postBase = $revPostBase[$rate->id];
+            $revRate->postMileage = $revPostMileage[$rate->id];
+            $revRate->postRush = $revPostRush[$rate->id];
+            $revRate->postSameDay = $revPostSameDay[$rate->id];
+            $revRate->personal = $revPersonal[$rate->id];
+            $revRate->free_pgs = $revFreePgs[$rate->id];
+            $revRate->pg_rate = $revPageRate[$rate->id];
             $revRate->save();
         }
 
@@ -88,15 +106,22 @@ class VendorRatesController extends \BaseController {
             //Update old rate
             if(!empty($revCounty)){
 
-                $revCounty->filingFlat = Input::get('filingFlat');
-                $revCounty->filingBase = Input::get('filingBase');
-                $revCounty->filingMileage = Input::get('filingMileage');
+                $revCounty->runFlat = Input::get('runFlat');
+                $revCounty->runBase = Input::get('runBase');
+                $revCounty->runMileage = Input::get('runMileage');
+                $revCounty->runRush = Input::get('runRush');
+                $revCounty->runSameDay = Input::get('runSameDay');
                 $revCounty->serviceFlat = Input::get('serviceFlat');
                 $revCounty->serviceBase = Input::get('serviceBase');
                 $revCounty->serviceMileage = Input::get('serviceMileage');
-                $revCounty->recordingFlat = Input::get('recordingFlat');
-                $revCounty->recordingBase = Input::get('recordingBase');
-                $revCounty->recordingMileage = Input::get('recordingMileage');
+                $revCounty->postFlat = Input::get('postFlat');
+                $revCounty->postBase = Input::get('postBase');
+                $revCounty->postMileage = Input::get('postMileage');
+                $revCounty->postRush = Input::get('postRush');
+                $revCounty->postSameDay = Input::get('postSameDay');
+                $revCounty->personal = Input::get('personal');
+                $revCounty->free_pgs = Input::get('free_pgs');
+                $revCounty->pg_rate = Input::get('pg_rate');
                 $revCounty->save();
 
             }
@@ -106,15 +131,24 @@ class VendorRatesController extends \BaseController {
                 $rate->vendor = Auth::user()->company_id;
                 $rate->state = Input::get('state');
                 $rate->county = Input::get('county');
-                $rate->filingFlat = Input::get('filingFlat');
-                $rate->filingBase = Input::get('filingBase');
-                $rate->filingMileage = Input::get('filingMileage');
+                $rate->runFlat = Input::get('runFlat');
+                $rate->runBase = Input::get('runBase');
+                $rate->runMileage = Input::get('runMileage');
+                $rate->runRush = Input::get('runRush');
+                $rate->runSameDay = Input::get('runSameDay');
                 $rate->serviceFlat = Input::get('serviceFlat');
                 $rate->serviceBase = Input::get('serviceBase');
                 $rate->serviceMileage = Input::get('serviceMileage');
-                $rate->recordingFlat = Input::get('recordingFlat');
-                $rate->recordingBase = Input::get('recordingBase');
-                $rate->recordingMileage = Input::get('recordingMileage');
+                $rate->serviceRush = Input::get('serviceRush');
+                $rate->serviceSameDay = Input::get('serviceSameDay');
+                $rate->postFlat = Input::get('postFlat');
+                $rate->postBase = Input::get('postBase');
+                $rate->postMileage = Input::get('postMileage');
+                $rate->postRush = Input::get('postRush');
+                $rate->postSameDay = Input::get('postSameDay');
+                $rate->personal = Input::get('personal');
+                $rate->free_pgs = Input::get('free_pgs');
+                $rate->pg_rate = Input::get('pg_rate');
                 $rate->save();
             }
         }

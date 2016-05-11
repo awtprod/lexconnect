@@ -100,46 +100,20 @@ class OrdersController extends \BaseController {
 
 		$input = Input::all();
 
-		dd($input["defendant"]);
+		$docCount = 0;
+
+
+		dd($input);
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
-		//Check to see if at least one service document type has been selected
-
-		if (empty($input["documentServed"])) {
-
-			Session::flash('message', 'Please select at least one service document type!');
-			Session::flash('alert-class', 'alert-danger');
-
-			return Redirect::back()->withInput()->withErrors($this->orders->errors);
-		}
-
-		//Check if judicial or non-judicial
-		if(empty($input["documentServed"]["Notice of Trustee Sale"])) {
-
-			if (!$this->orders->fill($input)->isValid()) {
-				return Redirect::back()->withInput()->withErrors($this->orders->errors);
-			}
-		}
 
 		$orders = new Orders;
 		$orders->plaintiff = Input::get('plaintiff');
-		$orders->defendant = Input::get('defendant');
 		$orders->reference = Input::get('reference');
 		$orders->courtcase = Input::get('case');
-		$orders->state = Input::get('caseState');
-
-		if(empty($input["documentServed"]["Notice of Trustee Sale"])){
-
-		$orders->judicial = "Judicial";
-		$judicial = "Judicial";
-
-		}
-		else{
-
-		$orders->judicial = "Non-Judicial";
-		$judicial = "Non-Judicial";
-		}
+		$orders->state = Input::get('caseSt');
+		$orders->judicial = $input["judicial"];
 
 		if(!empty($court)) {
 			$orders->county = $court->county;
@@ -152,60 +126,84 @@ class OrdersController extends \BaseController {
 		$orders_id =  $orders->id;
 
 
-		//Save service types
+		//If docs are uploaded, save them
+		if(!empty($input["documents"])){
 
-        $docArray = array('input' => $input, 'orderId' => $orders_id);
-        $this->DocumentsServed->insertDocs($docArray);
+			foreach ($input["documents"] as $document) {
 
+				if(!empty($document["file"])) {
 
+					$type = $document["type"];
 
-		//If docs are uploaded, validate them
-		if(!empty($input["service_documents"])){
+					if(!empty($document["other"])){
 
-			if (!$this->orders->fill($input)->validFile()) {
-				return Redirect::back()->withInput()->withErrors($this->orders->errors);
+						$other = $document["other"];
+
+					}
+
+					//If valid file, move to service documents dir
+					$destinationPath = storage_path() . '/service_documents';
+					$file = str_random(6);
+
+					if($type == "other"){
+						$filename = $orders_id . $file . '_' . $other . '.pdf';
+					}
+					else{
+						$filename = $orders_id . $file . '_' . $type . '.pdf';
+					}
+					//$filepath = public_path('service_documents/' . $filename);
+					$document["file"]->move($destinationPath, $filename);
+
+					//Get page count
+					$pagecount = $this->Documents->pageCount(array('path' => $destinationPath, 'file' => $filename));
+
+					$document = new Documents;
+
+					if($type == "other"){
+						$document->document = $other;
+					}
+					else{
+						$document->document = $type;
+					}
+					$document->order_id = $orders_id;
+					$document->filename = $filename;
+					$document->filepath = 'service_documents';
+					$document->pages = $pagecount;
+					$document->save();
+
+					$docCount++;
+				}
 			}
 
-			//If valid file, move to service documents dir
-			$destinationPath = storage_path().'/service_documents';
-			$file = str_random(6);
-			$filename =  $orders_id.$file . '_'. 'serviceDocs.pdf';
-			//$filepath = public_path('service_documents/' . $filename);
-			Input::file('service_documents')->move($destinationPath, $filename);
+			//Save service types
 
-			//Get page count
-			$pagecount = $this->Documents->pageCount(array('path'=>$destinationPath, 'file'=>$filename));
-
-			$document = new Documents;
-			$document->document = 'Service Documents';
-			$document->order_id = $orders_id;
-			$document->filename = $filename;
-			$document->filepath = 'service_documents';
-			$document->pages = $pagecount;
-			$document->save();
+			$docArray = array('input' => $input, 'orderId' => $orders_id);
+			$this->DocumentsServed->insertDocs($docArray);
 		}
 
-		//Set job to verify that docs are uploaded
 
-		$job = new Jobs;
-		$job->vendor = 1;
-		$job->client = Input::get('company');
-		$job->order_id = $orders_id;
-		$job->service = 'Verify Documents';
-		$job->priority = 'Routine';
-		$job->status = 1;
-		$job->save();
+		if($docCount=='0') {
+			//Set job to verify that docs are uploaded
 
-		//Create task array
-		$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority'=>'Routine', 'client' => Input::get('company'), 'state' => 'Null');
+			$job = new Jobs;
+			$job->vendor = 1;
+			$job->client = Input::get('company');
+			$job->order_id = $orders_id;
+			$job->service = 'Verify Documents';
+			$job->priority = 'Routine';
+			$job->status = 1;
+			$job->save();
 
-		//Load task into db
-		$process = $this->tasks->CreateTasks($sendTask);
+			//Create task array
+			$sendTask = array('judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => Input::get('company'), 'state' => 'Null');
 
-		//Update job with process
-		$job->process = $process;
-		$job->save();
+			//Load task into db
+			$process = $this->tasks->CreateTasks($sendTask);
 
+			//Update job with process
+			$job->process = $process;
+			$job->save();
+		}
 
 		if (!empty($input["filing"]) OR !empty($input["recording"])) {
 

@@ -170,31 +170,30 @@
 				rules: {
 					plaintiff: "required",
 					'doc_other_text[]': "required",
-					'documents[]': {
-						required: false,
-						accept: "application/pdf"
-					},
+				},
+			});
 
-				messages: {
-					'documents[]':{
-						accept: "Please upload document in PDF form."
+				$(".doc_type_select").rules('add', {
+					required: {
+						depends: function (element) {
+							return $('.documents').is(':filled');
+						}
+						},
+					messages: {
+						required: "Please select a doc type!"
 					}
-				}
-				}
+					});
 
-			});
-
-			jQuery.extend(jQuery.validator.messages, {
-
-				'documents[]':{
-					accept: "Please upload document in PDF form."
-				}
-
-			});
+				$(".documents").rules('add', {
+					accept: "application/pdf",
+					messages: {
+						required: "Document must be a pdf!"
+					}
+				});
 
 
 
-			$("#defendant-info").change(function () {
+				$("#defendant-info").change(function () {
 
 				$("#occupied").empty();
 
@@ -285,27 +284,51 @@
 
 			var document_wrapper         = $(".document_wrapper"); //Fields wrapper
 			var add_document_button      = $(".add_document_button"); //Add button ID
+			var k = 1;
+
 
 			$(add_document_button).click(function(e){ //on add input button click
 				e.preventDefault();
-				$(document_wrapper).append('<div class="additional_document">&nbsp;<input type="file" name="documents[]" class="documents">&nbsp;'+
 
-						'<div class="doc_type"> <select class="supp_doc_type_select" name="doc_type[]">'+
-						'<option value="">Select Document Type</option>'+
+				var divContents = '<div class="additional_document">&nbsp;<input type="file" name="documents['+k+'][file]" class="supp_documents"><div class="doc_type"><select class="supp_doc_type_select" name="documents['+k+'][type]"><option value="">Select Document Type</option>@foreach($documents as $document)<option value="{{ $document[1] }}">{{ $document[1] }}</option>@endforeach<option value="other">Other (Fill in below)</option></select><div class="supp_doc_other" style="display: none"><input type="text" name="documents['+k+'][other]" class="doc_other_text"></div></div><a href="#" class="remove_field">Remove</a></div>';
 
-				@foreach($documents as $document)
+				$(document_wrapper).append(divContents); //add input box
 
-                    '<option value=".{{ $document[0] }}.">'+
-						'{{ $document[1] }}'+
-                    '</option>'+
-						@endforeach
+				k++;
 
-                        '<option value="other">Other (Fill in below)</option>'+
-						'</select>'+
-						'<div class="supp_doc_other" style="display: none"><input type="text" name="doc_other_text[]" class="doc_other_text"></div>'+
-						'</div>'+
-						'<a href="#" class="remove_field">Remove</a></div>'); //add input box
+				//Validate file type
+				$(".supp_documents").each(function () {
+				$(this).rules('add', {
+					accept: "application/pdf",
+					messages: {
+						accept: "Document must be a pdf!"
+					}
+				});
+				});
 
+				//Validate that doc type is selected
+				$(".supp_doc_type_select").each(function () {
+				$(this).rules('add', {
+					required: {
+						depends: function (element) {
+							return $('.supp_documents').is(':filled');
+						}
+					},
+					messages: {
+						required: "Please select a doc type!"
+					}
+				});
+				});
+
+				//Validate other doc type
+				$(".doc_other_text").each(function () {
+					$(this).rules('add', {
+						required: true,
+						messages: {
+							required: "Please enter a doc type!"
+						}
+					});
+				});
 			});
 
 			$(document_wrapper).on("click",".remove_field", function(e){ //user click on remove text
@@ -458,7 +481,10 @@
 	</script>
 <style>
 
-
+.additional_document{
+	overflow: hidden;
+	white-space: nowrap;
+}
 </style>
 
 @stop
@@ -540,23 +566,22 @@
 
 
 <h2>Service Documents:</h2>
-		<input type="file" name="documents[]" class="documents">&nbsp;
+		<input type="file" name="documents[0][file]" class="documents">&nbsp;
 
-		<article> <select class="doc_type_select">
+		 <select name="documents[0][type]" class="doc_type_select">
 			<option value="">Select Document Type</option>
 
 			@foreach($documents as $document)
 
-				<option value=".{{ $document[0] }}.">
-					{{ $document[1] }}
+				<option value="{{ $document[0] }}">
+					{{ $document[0] }}
 				</option>
 			@endforeach
 
 			<option value="other">Other (Fill in below)</option>
 		</select>
-		<div class="doc_other" style="display: none"><input type="text" name="doc_other_text[]" class="doc_other_text"><br></div>
-		</article>
-		<br>
+		<div class="doc_other" style="display: none"><input type="text" name="documents[0][text]" class="doc_other_text"><br></div>
+			<br>
 
 		<div class="document_wrapper"></div>
 

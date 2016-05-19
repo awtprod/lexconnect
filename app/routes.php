@@ -45,11 +45,11 @@ Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
 	]);
-    Route::get('vendorRates/', [
+    Route::get('vendorrates/', [
         'as' => 'vendorrates.index',
         'uses' => 'VendorRatesController@index'
     ]);
-	Route::get('vendorRates/destroy/{id}', [
+	Route::get('vendorrates/destroy/{id}', [
 			'as' => 'vendorrates.destroy',
 			'uses' => 'VendorRatesController@destroy'
 	]);
@@ -107,7 +107,7 @@ Route::get('home/', [
 	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
-	Route::post('vendorRates/store', [
+	Route::post('vendorrates/store', [
 			'as' => 'vendorrates.store',
 			'uses' => 'VendorRatesController@store'
 	]);

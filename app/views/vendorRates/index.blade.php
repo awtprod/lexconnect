@@ -3,19 +3,54 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
-            $('#state').change(function(){
-                $.get("{{ url('api/getcounties')}}", { option: $('#state').val() },
-                        function(data) {
-                            var numbers = $('#county');
-                            numbers.empty();
-                            $.each(data, function(key, value) {
-                                numbers .append($("<option></option>")
-                                        .attr("value",key)
+
+            //Load county names into form
+            function counties() {
+                $.get("{{ url('api/getcounties')}}", {option: $('#state').val()},
+                        function (data) {
+                            var county = $('#county');
+                            county.empty();
+                            county.append($("<option></option>")
+                                    .attr("value", "")
+                                    .text("Select County"));
+                            $.each(data, function (key, value) {
+                                county.append($("<option></option>")
+                                        .attr("value", key)
                                         .text(value));
                             });
                         });
+            }
+
+            //Execute counties function on load
+            counties();
+
+            //Execute counties function when state is changed
+            $('#state').change(counties);
+
+            //Hid/Show rates
+            $('.table').change(function () {
+
+                $('.rate').each(function () {
+
+                    if($(this).filter(':checked').val() == 'flat') {
+
+                        $(this).siblings('.flat').show();
+
+                        $(this).siblings('.mileage').hide();
+
+                    }
+                    else if($(this).filter(':checked').val() == 'variable'){
+
+                        $(this).siblings('.flat').hide();
+
+                        $(this).siblings('.mileage').show();
+
+                    }
+                });
+
             });
         });
+
     </script>
     <meta charset="utf-8">
     <style>
@@ -54,9 +89,10 @@
     <tr>
         <th>State</th>
         <th>County</th>
-        <th>Filing</th>
+        <th>Court Run</th>
         <th>Process Service</th>
-        <th>Recording</th>
+        <th>Posting</th>
+        <th>Page Rate</th>
         <th>Delete County</th>
     </tr>
 
@@ -64,7 +100,7 @@
     {{ Form::open(['route' => 'vendorrates.store']) }}
 
         @foreach($rates as $rate)
-    <tr>
+    <tr class="table">
         <div><td>
                 {{ $rate->state }}
         </div>
@@ -74,38 +110,125 @@
 
         </div>
         </td>
-        <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                {{ Form::text('revFilingFlat['.$rate->id.']',$rate->filingFlat) }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('revFilingBase['.$rate->id.']',$rate->filingBase) }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('revFilingMileage['.$rate->id.']',$rate->filingMileage) }}</br>
+        <div class="run"><td>
+                @if($rate->runFlat != 0 OR ($rate->runFlat == 0 AND $rate->runMileage == 0))
+
+                    <input type="radio" name="run[{{ $rate->id }}]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="run[{{ $rate->id }}]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+                @else
+
+                        <input type="radio" name="run[{{ $rate->id }}]" class="rate" value="flat">Flat
+                        <input type="radio" name="run[{{ $rate->id }}]" class="rate" value="variable" checked>Variable<p>
+
+                <div class="flat" style="display:none">
+                @endif
+
+                {{ Form::label('Flat Rate:') }}
+                {{ Form::text('revRunFlat['.$rate->id.']',$rate->runFlat) }}<br>
+                </div>
+
+                @if($rate->runBase == 0)
+                <div class="mileage" style="display:none">
+                @else
+                <div class="mileage">
+                @endif
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('revRunBase['.$rate->id.']',$rate->runBase) }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('revRunMileage['.$rate->id.']',$rate->runMileage) }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('revRunRush['.$rate->id.']',$rate->runRush) }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('revRunSameDay['.$rate->id.']',$rate->runSameDay) }}<br>
         </div>
         </td>
         <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                    {{ Form::text('revServiceFlat['.$rate->id.']',$rate->serviceFlat) }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('revServiceBase['.$rate->id.']',$rate->serviceBase) }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('revServiceMileage['.$rate->id.']',$rate->serviceMileage) }}</br>
+
+                @if($rate->serviceFlat != 0 OR ($rate->serviceFlat == 0 AND $rate->serviceMileage == 0))
+
+                    <input type="radio" name="service[{{ $rate->id }}]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="service[{{ $rate->id }}]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+                @else
+
+                        <input type="radio" name="service[{{ $rate->id }}]" class="rate" value="flat">Flat
+                        <input type="radio" name="service[{{ $rate->id }}]" class="rate" value="variable" checked>Variable<p>
+
+                <div class="flat" style="display:none">
+                @endif
+
+                    {{ Form::label('Flat Rate:') }}
+                    {{ Form::text('revServiceFlat['.$rate->id.']',$rate->serviceFlat) }}<br>
+                </div>
+
+                @if($rate->serviceBase == 0)
+                <div class="mileage" style="display:none">
+                @else
+                <div class="mileage">
+                @endif
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('revServiceBase['.$rate->id.']',$rate->serviceBase) }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('revServiceMileage['.$rate->id.']',$rate->serviceMileage) }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('revServiceRush['.$rate->id.']',$rate->serviceRush) }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('revServiceSameDay['.$rate->id.']',$rate->serviceSameDay) }}<br>
+                {{ Form::label('Personal Service Surcharge:') }}
+                {{ Form::text('revPersonal['.$rate->id.']',$rate->personal) }}<br>
         </div>
         </td>
         <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                    {{ Form::text('revRecordingFlat['.$rate->id.']',$rate->recordingFlat) }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('revRecordingBase['.$rate->id.']',$rate->recordingBase) }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('revRecordingMileage['.$rate->id.']',$rate->recordingMileage) }}</br>
+
+                @if($rate->postFlat != 0 OR ($rate->postFlat == 0 AND $rate->postMileage == 0))
+
+                    <input type="radio" name="post[{{ $rate->id }}]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="post[{{ $rate->id }}]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+                @else
+
+                        <input type="radio" name="post[{{ $rate->id }}]" class="rate" value="flat">Flat
+                        <input type="radio" name="post[{{ $rate->id }}]" class="rate" value="variable" checked>Variable<p>
+
+                <div class="flat" style="display:none">
+                @endif
+                {{ Form::label('Flat Rate:') }}
+                    {{ Form::text('revPostFlat['.$rate->id.']',$rate->postFlat) }}<br>
+                </div>
+                @if($rate->serviceBase == 0)
+                <div class="mileage" style="display:none">
+
+                @else
+                <div class="mileage">
+                @endif
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('revPostBase['.$rate->id.']',$rate->postBase) }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('revPostMileage['.$rate->id.']',$rate->postMileage) }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('revPostRush['.$rate->id.']',$rate->postRush) }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('revPostSameDay['.$rate->id.']',$rate->postSameDay) }}<br>
         </div>
         </td>
-        <div><td>{{ link_to("/vendorRates/destroy/{$rate->id}", 'Delete County') }}</td></div>
+        <div><td>
+                {{ Form::label('# of Pages Included:') }}
+                {{ Form::text('revFreePgs['.$rate->id.']',$rate->free_pgs) }}<br>
+                {{ Form::label('Rate Per Page(After included pages):') }}
+                {{ Form::text('revPageRate['.$rate->id.']',$rate->pg_rate) }}<br>
+            </td></div>
+        <div><td>{{ link_to("/vendorrates/destroy/{$rate->id}", 'Delete County') }}</td></div>
     </tr>
         {{Form::hidden('rateId['.$rate->id.']', $rate->id)}}
     @endforeach
-    <tr>
+    <tr class="table">
     <td>
     <div>
         {{ Form::label('') }}
@@ -123,33 +246,87 @@
         </div>
         </div>
      </td>
-        <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                    {{ Form::text('filingFlat') }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('filingBase') }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('filingMileage') }}</br>
+ <div class="run"><td>
+
+                    <input type="radio" name="run[0]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="run[0]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+
+                {{ Form::label('Flat Rate:') }}
+                {{ Form::text('runFlat') }}<br>
+                </div>
+
+                <div class="mileage" style="display:none">
+
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('runBase') }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('runMileage') }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('runRush') }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('runSameDay') }}<br>
         </div>
         </td>
         <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                    {{ Form::text('serviceFlat') }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('serviceBase') }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('serviceMileage') }}</br>
+
+                    <input type="radio" name="service[0]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="service[0]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+
+                    {{ Form::label('Flat Rate:') }}
+                    {{ Form::text('serviceFlat') }}<br>
+                </div>
+
+                <div class="mileage" style="display:none">
+
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('serviceBase') }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('serviceMileage') }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('serviceRush') }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('serviceSameDay') }}<br>
+                {{ Form::label('Personal Service Surcharge:') }}
+                {{ Form::text('personal') }}<br>
         </div>
         </td>
         <div><td>
-                <br>{{ Form::label('Flat Rate:') }}
-                    {{ Form::text('recordingFlat') }}</br>
-                <br>{{ Form::label('OR Base Rate:') }}
-                    {{ Form::text('recordingBase') }}</br>
-                <br>{{ Form::label('Plus Mileage Rate:') }}
-                    {{ Form::text('recordingMileage') }}</br>
+
+
+                    <input type="radio" name="post[0]" class="rate" value="flat" checked>Flat
+                    <input type="radio" name="post[0]" class="rate" value="variable">Variable<p>
+
+                <div class="flat">
+
+                {{ Form::label('Flat Rate:') }}
+                    {{ Form::text('postFlat') }}<br>
+                </div>
+
+                <div class="mileage" style="display:none">
+
+                {{ Form::label('Base Rate:') }}
+                    {{ Form::text('postBase') }}<br>
+                {{ Form::label('Plus Mileage Rate:') }}
+                    {{ Form::text('postMileage') }}<br>
+                </div>
+                {{ Form::label('Rush Surcharge:') }}
+                {{ Form::text('postRush') }}<br>
+                {{ Form::label('Same Day Surcharge:') }}
+                {{ Form::text('postSameDay') }}<br>
         </div>
         </td>
+        <div><td>
+                {{ Form::label('# of Pages Included:') }}
+                {{ Form::text('free_pgs') }}<br>
+                {{ Form::label('Rate Per Page(After included pages):') }}
+                {{ Form::text('pg_rate') }}<br>
+            </td></div>
 </tr>
 </table>
 	<div>{{ Form::submit('Add County') }}{{ Form::reset('Reset') }}</div>

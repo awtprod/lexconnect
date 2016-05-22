@@ -53,6 +53,14 @@ Route::get('home/', [
 			'as' => 'vendorrates.destroy',
 			'uses' => 'VendorRatesController@destroy'
 	]);
+	Route::get('locations/', [
+		'as' => 'locations.index',
+		'uses' => 'LocationsController@index'
+	]);
+	Route::get('locations/destroy/{id}', [
+		'as' => 'locations.destroy',
+		'uses' => 'LocationsController@destroy'
+	]);
     Route::get('orders/edit/{id}', [
         'as' => 'orders.edit',
         'uses' => 'OrdersController@edit'
@@ -110,6 +118,10 @@ Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [
 			'as' => 'vendorrates.store',
 			'uses' => 'VendorRatesController@store'
+	]);
+	Route::post('locations/store', [
+		'as' => 'locations.store',
+		'uses' => 'LocationsController@store'
 	]);
     Route::post('steps/store', [
         'as' => 'steps.store',

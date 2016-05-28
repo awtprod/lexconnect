@@ -9,7 +9,7 @@ class ClientRates extends Eloquent implements UserInterface, RemindableInterface
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['client','state','discount','filingMax','filingSurcharge','filingFlat','serviceMax','serviceSurcharge','serviceFlat','recordingMax','recordingSurcharge','recordingFlat'];
+	protected $fillable = ['client','state','discount','runMax','runSurcharge','runFlat','serviceMax','serviceSurcharge','serviceFlat','postMax','postSurcharge','postFlat'];
 	
 	public static $rules = [
 		'date' => 'required|date',

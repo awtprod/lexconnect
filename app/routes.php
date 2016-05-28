@@ -109,7 +109,7 @@ Route::get('home/', [
 			'as' => 'counties.index',
 			'uses' => 'CountiesController@index'
 	]);
-	Route::match(array('GET', 'POST'),'clientRates/', [
+	Route::match(array('GET', 'POST'),'clientrates/', [
 			'as' => 'clientRates.index',
 			'uses' => 'ClientRatesController@index'
 	]);
@@ -147,7 +147,7 @@ Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 			'as' => 'template.add',
 			'uses' => 'TemplateController@add'
 	]);
-    Route::post('clientRates/update', [
+    Route::post('clientrates/update', [
         'as' => 'clientRates.update',
         'uses' => 'ClientRatesController@update'
     ]);

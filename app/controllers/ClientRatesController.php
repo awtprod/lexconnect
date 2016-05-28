@@ -64,15 +64,15 @@ class ClientRatesController extends \BaseController {
 		//Retrieve Data
 		$state = Input::get('state');
 		$discount = Input::get('discount');
-		$filingMax = Input::get('filingMax');
-		$filingSurcharge = Input::get('filingSurcharge');
-		$filingFlat = Input::get('filingFlat');
-		$serveMax = Input::get('serveMax');
-		$serveSurcharge = Input::get('serveSurcharge');
-		$serveFlat = Input::get('serveFlat');
-		$recordingMax = Input::get('recordingMax');
-		$recordingSurcharge = Input::get('recordingSurcharge');
-		$recordingFlat = Input::get('recordingFlat');
+		$runMax = Input::get('runMax');
+		$runSurcharge = Input::get('runSurcharge');
+		$runFlat = Input::get('runFlat');
+		$serviceMax = Input::get('serviceMax');
+		$serviceSurcharge = Input::get('serviceSurcharge');
+		$serviceFlat = Input::get('serviceFlat');
+		$postMax = Input::get('postMax');
+		$postSurcharge = Input::get('postSurcharge');
+		$postFlat = Input::get('postFlat');
 
 		if(empty($state)){
 			//Find rates for client
@@ -84,15 +84,15 @@ class ClientRatesController extends \BaseController {
 				$clientRates = ClientRates::whereId($rate->id)->first();
 
 				$clientRates->discount = $discount[$rate->id];
-				$clientRates->filingMax = $filingMax[$rate->id];
-				$clientRates->filingSurcharge = $filingSurcharge[$rate->id];
-				$clientRates->filingFlat = $filingFlat[$rate->id];
-				$clientRates->serveMax = $serveMax[$rate->id];
-				$clientRates->serveSurcharge = $serveSurcharge[$rate->id];
-				$clientRates->serveFlat = $serveFlat[$rate->id];
-				$clientRates->recordingMax = $recordingMax[$rate->id];
-				$clientRates->recordingSurcharge = $recordingSurcharge[$rate->id];
-				$clientRates->recordingFlat = $recordingFlat[$rate->id];
+				$clientRates->runMax = $runMax[$rate->id];
+				$clientRates->runSurcharge = $runSurcharge[$rate->id];
+				$clientRates->runFlat = $runFlat[$rate->id];
+				$clientRates->serviceMax = $serviceMax[$rate->id];
+				$clientRates->serviceSurcharge = $serviceSurcharge[$rate->id];
+				$clientRates->serviceFlat = $serviceFlat[$rate->id];
+				$clientRates->postMax = $postMax[$rate->id];
+				$clientRates->postSurcharge = $postSurcharge[$rate->id];
+				$clientRates->postFlat = $postFlat[$rate->id];
 				$clientRates->save();
 			}
 		}
@@ -108,15 +108,15 @@ class ClientRatesController extends \BaseController {
 				$clientRates->state = $state->abbrev;
 				$clientRates->client = Input::get('clientId');
 				$clientRates->discount = $discount[$state->abbrev];
-				$clientRates->filingMax = $filingMax[$state->abbrev];
-				$clientRates->filingSurcharge = $filingSurcharge[$state->abbrev];
-				$clientRates->filingFlat = $filingFlat[$state->abbrev];
-				$clientRates->serveMax = $serveMax[$state->abbrev];
-				$clientRates->serveSurcharge = $serveSurcharge[$state->abbrev];
-				$clientRates->serveFlat = $serveFlat[$state->abbrev];
-				$clientRates->recordingMax = $recordingMax[$state->abbrev];
-				$clientRates->recordingSurcharge = $recordingSurcharge[$state->abbrev];
-				$clientRates->recordingFlat = $recordingFlat[$state->abbrev];
+				$clientRates->runMax = $runMax[$state->abbrev];
+				$clientRates->runSurcharge = $runSurcharge[$state->abbrev];
+				$clientRates->runFlat = $runFlat[$state->abbrev];
+				$clientRates->serviceMax = $serviceMax[$state->abbrev];
+				$clientRates->serviceSurcharge = $serviceSurcharge[$state->abbrev];
+				$clientRates->serviceFlat = $serviceFlat[$state->abbrev];
+				$clientRates->postMax = $postMax[$state->abbrev];
+				$clientRates->postSurcharge = $postSurcharge[$state->abbrev];
+				$clientRates->postFlat = $postFlat[$state->abbrev];
 				$clientRates->save();
 			}
 		}

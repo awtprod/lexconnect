@@ -21,15 +21,15 @@
   <tr>
     <th>State</th>
     <th>ACH Discount</th>
-    <th>Filing Max Rate</th>
-    <th>Filing Surcharge</th>
-    <th>Filing Flat Rate</th>
+    <th>Court Run Max Rate</th>
+    <th>Court Run Surcharge (%)</th>
+    <th>Court Run Flat Rate</th>
     <th>Serve Max Rate</th>
-    <th>Serve Surcharge</th>
+    <th>Serve Surcharge (%)</th>
     <th>Serve Flat Rate</th>
-    <th>Recording Max Rate</th>
-    <th>Recording Surcharge</th>
-    <th>Recording Flat Rate</th>
+    <th>Posting Max Rate</th>
+    <th>Posting Surcharge (%)</th>
+    <th>Posting Flat Rate</th>
   </tr>
 @if(count($rates)>0)
 
@@ -44,47 +44,47 @@
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('filingMax['.$rate->id.']',$rate->filingMax) }}
+                    {{ Form::text('runMax['.$rate->id.']',$rate->runMax) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('filingSurcharge['.$rate->id.']',$rate->filingSurcharge) }}
+                    {{ Form::text('runSurcharge['.$rate->id.']',$rate->runSurcharge) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('filingFlat['.$rate->id.']',$rate->filingFlat) }}
+                    {{ Form::text('runFlat['.$rate->id.']',$rate->runFlat) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('serveMax['.$rate->id.']',$rate->serveMax) }}
+                    {{ Form::text('serviceMax['.$rate->id.']',$rate->serviceMax) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('serveSurcharge['.$rate->id.']',$rate->serveSurcharge) }}
+                    {{ Form::text('serviceSurcharge['.$rate->id.']',$rate->serviceSurcharge) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('serveFlat['.$rate->id.']',$rate->serveFlat) }}
+                    {{ Form::text('serviceFlat['.$rate->id.']',$rate->serviceFlat) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('recordingMax['.$rate->id.']',$rate->recordingMax) }}
+                    {{ Form::text('postMax['.$rate->id.']',$rate->postMax) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('recordingSurcharge['.$rate->id.']',$rate->recordingSurcharge) }}
+                    {{ Form::text('postSurcharge['.$rate->id.']',$rate->postSurcharge) }}
                 </div>
                 </td>
                 <div><td>
                     {{ Form::label('') }}
-                    {{ Form::text('recordingFlat['.$rate->id.']',$rate->recordingFlat) }}
+                    {{ Form::text('postFlat['.$rate->id.']',$rate->postFlat) }}
                 </div>
                 </td>
                 @endforeach
@@ -103,47 +103,47 @@
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('filingMax['.$state->abbrev.']') }}
+            {{ Form::text('runMax['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('filingSurcharge['.$state->abbrev.']') }}
+            {{ Form::text('runSurcharge['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('filingFlat['.$state->abbrev.']') }}
+            {{ Form::text('runFlat['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('serveMax['.$state->abbrev.']') }}
+            {{ Form::text('serviceMax['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('serveSurcharge['.$state->abbrev.']') }}
+            {{ Form::text('serviceSurcharge['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('serveFlat['.$state->abbrev.']') }}
+            {{ Form::text('serviceFlat['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('recordingMax['.$state->abbrev.']') }}
+            {{ Form::text('postMax['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('recordingSurcharge['.$state->abbrev.']') }}
+            {{ Form::text('postSurcharge['.$state->abbrev.']') }}
     </div>
     </td>
     <div><td>
             {{ Form::label('') }}
-            {{ Form::text('recordingFlat['.$state->abbrev.']') }}
+            {{ Form::text('postFlat['.$state->abbrev.']') }}
     </div>
     </td>
 @endforeach

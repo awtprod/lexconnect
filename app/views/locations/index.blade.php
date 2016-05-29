@@ -49,7 +49,6 @@
     <tr>
         <th>Name</th>
         <th>Street</th>
-        <th>Suite/Unit #</th>
         <th>City</th>
         <th>State</th>
         <th>Zip Code</th>
@@ -72,12 +71,6 @@
                 {{ Form::label('Street:') }}
                 {{ Form::text('location['.$location->id.'][street]',$location->street) }}
                 {{ $errors->first('street') }}
-                <br>        </div>
-        </td>
-        <div><td>
-                {{ Form::label('Suite/Unit #:') }}
-                {{ Form::text('location['.$location->id.'][street2]',$location->street2) }}
-                {{ $errors->first('street2') }}
                 <br>        </div>
         </td>
         <div><td>

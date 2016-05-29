@@ -55,29 +55,72 @@ class Locations extends Eloquent implements UserInterface, RemindableInterface {
 	public function postLocation($data)
 	{
 
-
 // set up the curl resource
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "http://api.geosvc.com/rest/udp?apikey=60e6b26c492541e0946cc43f57f33489");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data[0]["address_string"]);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 			'Content-Type: application/json',
-			'Content-Length: ' . strlen($data)
+			'Content-Length: ' . strlen($data[0]["address_string"])
 		));
 
 // execute the request
 
 		$output = curl_exec($ch);
 
-// close curl resource to free up system resources
-		curl_close($ch);
+//covert output
+		$geoId= (array) simplexml_load_string($output);
 
-		return $output;
+//If error is returned, api call failed, return back
+		if(curl_error($ch)){
 
+			$error = curl_error($ch);
+dd($error);
+			// close curl resource to free up system resources
+			curl_close($ch);
+
+			return $error;
+
+		}
+		elseif(empty($geoId["Id"])) {
+
+			$error = "Failed To Update";
+
+			return $error;
+
+		}
+		else{
+			//If no Id in address array, create new location
+			if(empty($data[0]["address"]["Id"])) {
+
+				//Save location to db
+				$location = new Locations;
+				$location->geo_id = $geoId["Id"];
+
+			}
+			//Otherwise, update location
+			else{
+
+				$location = Locations::whereGeoId($data[0]["address"]["Id"])->first();
+
+			}
+			$location->company_id = Auth::user()->company_id;
+			$location->name = $data[0]["address"]["Name"];
+			$location->street = $data[0]["address"]["Address"];
+			$location->city = $data[0]["address"]["City"];
+			$location->state = $data[0]["address"]["Region"];
+			$location->zipcode = $data[0]["address"]["PostalCode"];
+			$location->save();
+
+			// close curl resource to free up system resources
+			curl_close($ch);
+
+			return false;
+		}
 	}
 
 	public function deleteLocation($data)

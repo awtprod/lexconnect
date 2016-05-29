@@ -78,7 +78,7 @@ class LocationsController extends \BaseController {
                     "Id" => $location->geo_id,
                     "Type" => "UserDefined",
                     "Name" => $input["location"][$location->id]["name"],
-                    "Address" => $input["location"][$location->id]["street"].",".$input["location"][$location->id]["street2"],
+                    "Address" => $input["location"][$location->id]["street"],
                     "City" => $input["location"][$location->id]["city"],
                     "Region" => $input["location"][$location->id]["state"],
                     "PostalCode" => $input["location"][$location->id]["zipcode"],
@@ -87,24 +87,21 @@ class LocationsController extends \BaseController {
                     "UserData" => Auth::user()->company_id
                 );
 
-                // json encode data
-
-                $address_string = json_encode($address);
-
                 //Post data to GeoSvc
-                $this->locations->postLocation($address_string);
+                $error = $this->locations->postLocation(array(['address_string' => json_encode($address), 'address' => $address]));
 
-                //update db
-                $update = Locations::whereId($location->id)->first();
-                $update->name = $input["location"][$location->id]["name"];
-                $update->street = $input["location"][$location->id]["street"];
-                $update->street2 = $input["location"][$location->id]["street2"];
-                $update->city = $input["location"][$location->id]["city"];
-                $update->state = $input["location"][$location->id]["state"];
-                $update->zipcode = $input["location"][$location->id]["zipcode"];
-                $update->save();
+                if(!empty($error)){
 
-                Session::flash('message', 'Location Updated!');
+                    Session::flash('message', 'Error: '.$error);
+
+                    return Redirect::back()->withInput();
+
+                }
+                else {
+
+
+                    Session::flash('message', 'Location Updated!');
+                }
             }
         }
 
@@ -114,7 +111,7 @@ class LocationsController extends \BaseController {
             $address = array (
                     "Type" => "UserDefined",
                    "Name" => $input["location"][0]["name"],
-                   "Address" => $input["location"][0]["street"].",".$input["location"][0]["street2"],
+                   "Address" => $input["location"][0]["street"],
                    "City" => $input["location"][0]["city"],
                    "Region" => $input["location"][0]["state"],
                    "PostalCode" => $input["location"][0]["zipcode"],
@@ -123,40 +120,21 @@ class LocationsController extends \BaseController {
                    "UserData" => Auth::user()->company_id
             );
 
-            // json encode data
-
-            $address_string = json_encode($address);
 
             //Post data to GeoSvc
-            $result = $this->locations->postLocation($address_string);
+            if(!empty($error = $this->locations->postLocation(array(['address_string' => json_encode($address), 'address' => $address])))){
 
-            $geoId= (array) simplexml_load_string($result);
 
-            //If geoId is empty, location was not created
-            if(empty($geoId["Id"])){
-
-                Session::flash('message', 'Error: Location Was Not Created! Please Try Again.');
+                Session::flash('message', 'Error: '.$error);
 
                 return Redirect::back()->withInput();
 
             }
             else {
-                //Save location to db
-                $location = new Locations;
-                $location->geo_id = $geoId["Id"];
-                $location->company_id = Auth::user()->company_id;
-                $location->name = $input["location"][0]["name"];
-                $location->street = $input["location"][0]["street"];
-                $location->street2 = $input["location"][0]["street2"];
-                $location->city = $input["location"][0]["city"];
-                $location->state = $input["location"][0]["state"];
-                $location->zipcode = $input["location"][0]["zipcode"];
-                $location->save();
 
                 Session::flash('message', 'Location Created!');
             }
         }
-
 
 
         Return Redirect::Route('locations.index');

@@ -33,10 +33,17 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
 	 */
 	protected $hidden = array('password', 'remember_token');
 
-    public function insertDocs($docArray){
+    public function saveDocType($docArray){
 
-    foreach($docArray["input"]["doc_type"] as $document){
+		//Set doc type
+		if($docArray["document"]["type"] == "other"){
 
+			$document = $docArray["document"]["other"];
+		}
+		else{
+
+			$document = $docArray["document"]["type"];
+		}
 
 		//Check to see if doc type has already been added to Order
 		$prevAddedDoc = DocumentsServed::whereDocument($document)
@@ -50,7 +57,7 @@ class DocumentsServed extends Eloquent implements UserInterface, RemindableInter
             $documentsServed->order_id = $docArray["orderId"];
             $documentsServed->save();
         }
-    }
+
 		return true;
     }
 

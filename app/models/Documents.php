@@ -78,4 +78,37 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
 		return $pagecount;
 	}
 
+	public function saveDoc($input){
+
+		//Set file variable
+		$destinationPath = storage_path() . '/' . $input["folder"];
+		$file = str_random(6);
+
+		if($input["document"]["type"] == "other"){
+			$filename = $input["orders_id"] . $file . '_' . $input["document"]["other"] . '.pdf';
+		}
+		else{
+			$filename = $input["orders_id"] . $file . '_' . $input["document"]["type"] . '.pdf';
+		}
+		//$filepath = public_path('service_documents/' . $filename);
+		$input["document"]["file"]->move($destinationPath, $filename);
+
+		//Get page count
+		$pagecount = $this->pageCount(['path' => $destinationPath, 'file' => $filename]);
+
+		$document = new Documents;
+
+		if($input["document"]["type"] == "other"){
+			$document->document = $input["document"]["other"];
+		}
+		else{
+			$document->document = $input["document"]["type"];
+		}
+		$document->order_id = $input["orders_id"];
+		$document->filename = $filename;
+		$document->filepath = $input["folder"];
+		$document->pages = $pagecount;
+		$document->save();
+	}
+
 }

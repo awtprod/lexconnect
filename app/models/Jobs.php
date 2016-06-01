@@ -63,6 +63,22 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		return false;
 	}
 
+	public function createJob ($data){
+
+		$job = new Jobs;
+		$job->defendant = $data["defendant"];
+		$job->vendor = $data["server"];
+		$job->client = $data["client"];
+		$job->order_id = $data["orders_id"];
+		$job->service = $data["service"];
+		$job->priority = $data["priority"];
+		$job->status = $data["status"];
+		$job->state = $data["state"];
+		$job->zipcode = $data["zip"];
+		$job->save();
+
+	}
+
 	public function depProcess ($process){
 
 		$depProcesses = Dependent::wheredepProcess($process["process"])->get();

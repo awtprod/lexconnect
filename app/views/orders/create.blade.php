@@ -9,7 +9,7 @@
     <script>
 
 		jQuery(document).ready(function($) {
-            $('#caseSt').change(function(){
+            function courts(){
                 $.get("{{ url('api/getcourts')}}", { option: $('#caseSt').val() },
                         function(data) {
                             var numbers = $('#court');
@@ -20,7 +20,14 @@
                                         .text(value));
                             });
                         });
-            });
+            };
+
+			//Execute counties function on load
+			courts();
+
+			//Execute counties function when state is changed
+			$('#caseSt').change(courts);
+
         });
 
 
@@ -56,9 +63,6 @@
 
 		});
 
-
-
-
 		$(document).ready(function() {
 
 
@@ -66,7 +70,8 @@
 				key: '5198528973891423290',
 				verifySecondary: true,
 				submitSelector: "#Add",
-				debug: true
+				autoVerify: false,
+				submitVerify: true
 
 			});
 
@@ -170,6 +175,7 @@
 				rules: {
 					plaintiff: "required",
 					'doc_other_text[]': "required",
+					court: "required"
 				},
 			});
 
@@ -253,8 +259,8 @@
 
 				$(add_button).click(function(e){ //on add input button click
 					e.preventDefault();
-					$(wrapper).append('<div class="names"><input type="text" class="defendant"/><input type="checkbox" name="personal" class="personal" value="personal">Personal Service Required<a href="#" class="remove_field">Remove</a></div>'); //add input box
 					x++;
+					$(wrapper).append('<div class="names"><input type="text" id="defendant['+x+']"/><input type="checkbox" name="personal" id="personal['+x+']">Personal Service Required<a href="#" class="remove_field">Remove</a></div>'); //add input box
 
 				});
 
@@ -346,21 +352,24 @@
 
 				var personal = "";
 
+				if($("#defendant\\[1\\]").val()) {
 
-				var j = 0;
+						for (var j=1; j<= x; j++) {
 
-				if($('.defendant').val()) {
+							namesData += '<b>Defendant:&nbsp;' + $('#defendant\\['+j+'\\]').val() + '<input type="hidden" name="defendant['+i+'][servee][' + j + '][name]" value="' + $('#defendant\\['+j+'\\]').val() + '">&nbsp;';
 
-					$('.defendant').each(function () {
+							if ($('input:checkbox#personal\\['+j+'\\]').is(':checked')){
 
-						if($(this).val()) {
+							namesData += 'Personal Service Only:&nbsp; Yes' + '<input type="hidden" name="defendant['+i+'][servee][' + j + '][personal]" value="yes"></b><br>';
 
-							namesData += 'Defendant:&nbsp;' + $(this).val() + '<input type="hidden" name="defendant['+i+'][name][' + j + ']" value="' + $(this).val() + '"><br>';
+							}
+							else{
 
-							j++;
+							namesData += 'Personal Service Only:&nbsp; No</b><br>';
+
+							}
+
 						}
-
-					});
 				}
 				else{
 
@@ -369,30 +378,6 @@
 					return;
 
 				}
-
-
-				j=0;
-
-				$('.personal').each(function(){
-
-
-				if ($('input.personal').is(':checked')) {
-
-					personal += '<input type="hidden" name="defendant['+i+'][personal]['+j+']" value="yes">';
-
-				} else{
-
-					personal += '<input type="hidden" name="defendant['+i+'][personal][' + j + ']" value="no">';
-
-				}
-
-					j++;
-
-				});
-
-
-
-
 
 
 				if(!$("#Zipcode").val()){
@@ -410,25 +395,7 @@
 					return;
 
 				}
-
-/*
-				$('.add_defendant').each(function(){
-
-					if($(this).val()){
-
-						namesData +=$(this).val()+'<input type="hidden" name="defendants["'+i+'"]["'+j+'"]" value="'+$(this).val()+'"><br>';
-
-						if ($('input.personal').is(':checked')) {
-
-							namesData += 'Personal Service Required <input type="hidden" name="personal["'+i+'"]["'+j+'"]" value="yes"><br>'
-						}
-
-						j++;
-
-					}
-				});
-
-*/
+				
 
 				$('.add_defendant_form').show();
 
@@ -451,6 +418,8 @@
 						$('#Notes').val() + " " + '<input type="hidden" name="defendant['+i+'][notes]" value="'+$('#Notes').val()+'"><br>'
 						+'<button class="delete">Delete</button><br></div>');
 
+				//reset variables
+
 				$("#num_defendants").val(i);
 
 				$('.input_fields_wrap').empty();
@@ -461,7 +430,13 @@
 
 				i++;
 
+				x = 1;
+
 				$('#defendant-info input[type="text"]').val('');
+
+				$('#county').val('');
+
+				$('.names input:checkbox').removeAttr('checked');
 
 				$("#State").val('');
 
@@ -611,7 +586,7 @@
 		{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 	</div>
 
-	<div class="names"><input type="text" class="defendant" name="defendant"><input type="checkbox" name="personal" class="personal" value="personal">Personal Service Required</div>
+	<div class="names"><input type="text" id="defendant[1]"><input type="checkbox" name="personal" id="personal[1]">Personal Service Required</div>
 
 <div class="input_fields_wrap"></div>
 

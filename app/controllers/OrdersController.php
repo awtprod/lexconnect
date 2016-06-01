@@ -102,240 +102,154 @@ class OrdersController extends \BaseController {
 
 		$docCount = 0;
 
-
-		dd($input);
+		//delete after test
+		$orders_id = '9999';
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
+		/*
+                $orders = new Orders;
+                $orders->plaintiff = Input::get('plaintiff');
+                $orders->reference = Input::get('reference');
+                $orders->courtcase = Input::get('case');
+                $orders->state = Input::get('caseSt');
+                $orders->judicial = $input["judicial"];
 
-		$orders = new Orders;
-		$orders->plaintiff = Input::get('plaintiff');
-		$orders->reference = Input::get('reference');
-		$orders->courtcase = Input::get('case');
-		$orders->state = Input::get('caseSt');
-		$orders->judicial = $input["judicial"];
+                if(!empty($court)) {
+                    $orders->county = $court->county;
+                    $orders->court = $court->court;
+                }
 
-		if(!empty($court)) {
-			$orders->county = $court->county;
-			$orders->court = $court->court;
-		}
-
-		$orders->user = Auth::user()->id;
-		$orders->company = Input::get('company');
-		$orders->save();
-		$orders_id =  $orders->id;
-
-
-		//If docs are uploaded, save them
-		if(!empty($input["documents"])){
-
-			foreach ($input["documents"] as $document) {
-
-				if(!empty($document["file"])) {
-
-					$type = $document["type"];
-
-					if(!empty($document["other"])){
-
-						$other = $document["other"];
-
-					}
-
-					//If valid file, move to service documents dir
-					$destinationPath = storage_path() . '/service_documents';
-					$file = str_random(6);
-
-					if($type == "other"){
-						$filename = $orders_id . $file . '_' . $other . '.pdf';
-					}
-					else{
-						$filename = $orders_id . $file . '_' . $type . '.pdf';
-					}
-					//$filepath = public_path('service_documents/' . $filename);
-					$document["file"]->move($destinationPath, $filename);
-
-					//Get page count
-					$pagecount = $this->Documents->pageCount(array('path' => $destinationPath, 'file' => $filename));
-
-					$document = new Documents;
-
-					if($type == "other"){
-						$document->document = $other;
-					}
-					else{
-						$document->document = $type;
-					}
-					$document->order_id = $orders_id;
-					$document->filename = $filename;
-					$document->filepath = 'service_documents';
-					$document->pages = $pagecount;
-					$document->save();
-
-					$docCount++;
-				}
-			}
-
-			//Save service types
-
-			$docArray = array('input' => $input, 'orderId' => $orders_id);
-			$this->DocumentsServed->insertDocs($docArray);
-		}
+                $orders->user = Auth::user()->id;
+                $orders->company = Input::get('company');
+                $orders->save();
+                $orders_id =  $orders->id;
 
 
-		if($docCount=='0') {
-			//Set job to verify that docs are uploaded
+                //If docs are uploaded, save them
+                if(!empty($input["documents"])){
 
-			$job = new Jobs;
-			$job->vendor = 1;
-			$job->client = Input::get('company');
-			$job->order_id = $orders_id;
-			$job->service = 'Verify Documents';
-			$job->priority = 'Routine';
-			$job->status = 1;
-			$job->save();
+                    foreach ($input["documents"] as $document) {
 
-			//Create task array
-			$sendTask = array('judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => Input::get('company'), 'state' => 'Null');
+                        if(!empty($document["file"])) {
 
-			//Load task into db
-			$process = $this->tasks->CreateTasks($sendTask);
+                            //If valid file, save document
+                            $this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents']);
 
-			//Update job with process
-			$job->process = $process;
-			$job->save();
-		}
+                            $docCount++;
+                        }
 
-		if (!empty($input["filing"]) OR !empty($input["recording"])) {
+                        //Save service types
+                        $this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
+                    }
+
+                }
+                dd($input);
 
 
-			if(!empty($input["filing"])) {
+                if($docCount=='0') {
+
+                    //Set job to verify that docs are uploaded
+                    $job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'Verify Documents', 'priority' => 'Routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'zip' => '']);
+
+                    //Load task into db
+                    $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => $input["company"], 'state' => 'Null']);
+
+                    //Update job with process
+                    $job->process = $process;
+                    $job->save();
+                }
+
+                //create tasks/jobs for filing/recording, if requested
+
+                if(!empty($input["filing"]) OR !empty($input["recording"])){
+
+                for ($i = 1; $i < 3; $i++) {
 
 
-				//Create job for filing
+                    if (!empty($input["filing"])) {
 
-				$job = new Jobs;
-				$job->defendant = $court->court;
-				$job->client = Input::get('company');
-				$job->order_id = $orders_id;
-				$job->service = 'Filing';
-				$job->priority = $input["filing"];
-				$job->state = $court->state;
-				$job->zipcode = $court->zip;
-				$job->save();
+                        $service = 'filing';
 
-				//Select Server
-				$serverData = array('zipcode' => $court->zip, 'state' => Input::get('caseState'), 'county' => $court->county, 'jobId' => $job->id, 'process' => 'filing', 'priority' => $input["filing"], 'client' => Input::get('company'));
-				$server = $this->jobs->SelectServer($serverData);
+                    }
+                    elseif (!empty($input["filing"])) {
 
-				//Create task array
-				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Filing', 'priority' => $input["filing"], 'client' => Input::get('company'), 'state' => Input::get('state'));
+                        $service = "recording";
 
-				//Load task into db
-				$process = $this->tasks->CreateTasks($sendTask);
+                    }
 
-				//Check for dependent jobs
-				$depData = array('process' => $process, 'orderId'=>$orders_id);
+                        //Create job for filing
+                        $job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => $court->state, 'zip' => $court->zip]);
 
-				if(! $this->jobs->depProcess($depData)){
+                        //Select Server
 
-					$job->status = 1;
+                        $server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => $service, 'priority' => $input[$service], 'client' => $input["company"]]);
 
-				}
-				else{
+                        //Load task into db
+                        $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $service, 'priority' => $input[$service], 'client' => $input["company"], 'state' => $court->state]);
 
-					$job->status = 0;
+                        //Check for dependent jobs
 
-				}
+                        if (!$this->jobs->depProcess(['process' => $process, 'orderId' => $orders_id])) {
 
-				//Update job with process
-				$job->vendor = $server["server"];
-				$job->process = $process;
-				$job->save();
+                            $job->status = 1;
 
-				//Create Invoice
-				$this->invoices->CreateInvoice(array('jobId'=>$job->id, 'rate'=>$server["rate"],'process'=>'filing'));
-			}
+                        } else {
 
-			if(!empty($input["recording"])) {
+                            $job->status = 0;
 
+                        }
 
-				//Create job for recording
+                        //Update job with process
+                        $job->vendor = $server["server"];
+                        $job->process = $process;
+                        $job->save();
 
-				$job = new Jobs;
-				$job->defendant = $court->court;
-				$job->client = Input::get('company');
-				$job->order_id = $orders_id;
-				$job->service = 'Recording';
-				$job->priority = $input["recording"];
-				$job->state = $court->state;
-				$job->zipcode = $court->zip;
-				$job->save();
+                        //Create Invoice
+                        $this->invoices->CreateInvoice(['jobId' => $job->id, 'rate' => $server["rate"], 'process' => $service]);
 
-				//Select Server
-				$serverData = array('zipcode' => $court->zip, 'state' => Input::get('caseState'), 'county' => $court->county, 'jobId' => $job->id, 'process' => 'recording','priority' => $input["recording"], 'client' => Input::get('company'));
-				$server = $this->jobs->SelectServer($serverData);
+                        $input["filing"] = '';
+                    }
 
-				//Create task array
-				$sendTask = array('judicial'=>$judicial,'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'Recording', 'priority' => $input["recording"], 'client' => Input::get('company'), 'state' => Input::get('state'));
-
-				//Load task into db
-				$process = $this->tasks->CreateTasks($sendTask);
-
-				//Check for dependent jobs
-				$depData = array('process' => $process, 'orderId'=>$orders_id);
-
-				if(! $this->jobs->depProcess($depData)){
-
-					$job->status = 1;
-
-				}
-				else{
-
-					$job->status = 0;
-
-				}
-
-				//Update job with process
-				$job->vendor = $server["server"];
-				$job->process = $process;
-				$job->save();
-
-				//Create Invoice
-				$this->invoices->CreateInvoice(array('jobId'=>$job->id, 'rate'=>$server["rate"],'process'=>'recording'));
-			}
-		}
-
-
-
+                }
+        */
 		//If defendant was added, validate data
-		if(!empty($input["defendants"])){
+		if (!empty($input["defendant"])) {
+dd($input["defendant"]);
+		//loop through all addresses
+			foreach ($input["defendant"] as $servees) {
+dd(count($servees["servee"]));
+		//Determine # of servees at address
+				$numServees = count($servees["servee"]);
 
-			if (!$this->orders->fill($input)->isValidDefendant()) {
-				return Redirect::back()->withInput()->withErrors($this->orders->errors);
+		//Determine # of personal serves at address
+				if(!empty($servees["servee"]["personal"])) {
+
+					$numPersonal = count($servees["servee"]["personal"]);
+
+				}
+
+		//loop through all servees for address		
+				foreach ($servees["servee"] as $servee) {
+dd($servee);
+				if(!empty($servee["personal"])){
+					echo $servee["personal"]."<br>";
+				}
+		//create servee
+				//$this->servee->creatServee(['defendant' => $servee, 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
+				}
 			}
-
-		//Verfiy Address
-			$result = $this->jobs->addressVerification($input);
-
-			//Retrieve previously entered defendants
-			$jobs = Jobs::whereorderId($orders_id)
-					->whereNotNull('street')->orderBy('id', 'asc')->get();
-
-			if(!empty($result)){
-
+		}
+	}
+/*
 				//Select Server
 
-				$server = $this->jobs->SelectServer(array('zipcode' => $result[0]['components']['zipcode'], 'state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => Input::get('company'), 'orderId' => $orders_id));
+				$server = $this->jobs->SelectServer(['zipcode' => $result[0]['components']['zipcode'], 'state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => Input::get('company'), 'orderId' => $orders_id]);
 
 				//Find total cost (including service charge)
-				$rate = $this->jobs->TotalRate(array('state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'server'=> $server['server'],'process' => $input["type"], 'rate' => $server['rate'], 'client' => Input::get('company')));
+				$rate = $this->jobs->TotalRate(['state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'server'=> $server['server'],'process' => $input["type"], 'rate' => $server['rate'], 'client' => Input::get('company')]);
 
-				Return Redirect::route('jobs.verify', ['result' => $result])->with(['jobs' => $jobs])->with(['input' => $input])->with(['server'=>$server])->with('orders_id', $orders_id)->with('rate',$rate);
 
-			}
-			else {
-				Return Redirect::route('jobs.verify')->with(['jobs' => $jobs])->with(['input' => $input])->with('orders_id', $orders_id);
-			}
 		}
 		$input["orders_id"] = $orders_id;
 

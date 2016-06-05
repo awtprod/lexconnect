@@ -45,11 +45,11 @@ Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
 	]);
-    Route::get('vendorrates/', [
+    Route::get('rates/vendor/', [
         'as' => 'vendorrates.index',
         'uses' => 'VendorRatesController@index'
     ]);
-	Route::get('vendorrates/destroy/{id}', [
+	Route::get('rates/vendor/destroy/{id}', [
 			'as' => 'vendorrates.destroy',
 			'uses' => 'VendorRatesController@destroy'
 	]);
@@ -109,7 +109,7 @@ Route::get('home/', [
 			'as' => 'counties.index',
 			'uses' => 'CountiesController@index'
 	]);
-	Route::match(array('GET', 'POST'),'clientrates/', [
+	Route::match(array('GET', 'POST'),'rates/client/', [
 			'as' => 'clientRates.index',
 			'uses' => 'ClientRatesController@index'
 	]);

@@ -68,6 +68,7 @@ class VendorRatesController extends \BaseController {
         $revFreePgs = Input::get('revFreePgs');
         $revPageRate = Input::get('revPageRate');
         $revPersonal = Input::get('revPersonal');
+        $revAddServee = Input::get('revAddServee');
 
 
         //Find all existing rates
@@ -117,6 +118,7 @@ class VendorRatesController extends \BaseController {
             $revRate->personal = $revPersonal[$rate->id];
             $revRate->free_pgs = $revFreePgs[$rate->id];
             $revRate->pg_rate = $revPageRate[$rate->id];
+            $revRate->add_servee = $revAddServee[$rate->id];
             $revRate->save();
         }
 
@@ -177,6 +179,7 @@ class VendorRatesController extends \BaseController {
                 $revCounty->personal = Input::get('personal');
                 $revCounty->free_pgs = Input::get('free_pgs');
                 $revCounty->pg_rate = Input::get('pg_rate');
+                $revCounty->add_servee = Input::get('add_servee');
                 $revCounty->save();
 
 

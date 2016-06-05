@@ -215,20 +215,43 @@ class OrdersController extends \BaseController {
         */
 		//If defendant was added, validate data
 		if (!empty($input["defendant"])) {
-dd($input["defendant"]);
+
+		//Find uploaded docs for order
+		$allDocs = Documents::whereOrderId($orders_id)->get();
+
+		//Find total # of pages uploaded docs
+		if(!empty($allDocs)) {
+
+			$numPages = 0;
+
+			foreach ($allDocs as $allDoc) {
+
+				$numPages += $allDoc->pages;
+			}
+		}
+
 		//loop through all addresses
 			foreach ($input["defendant"] as $servees) {
-dd(count($servees["servee"]));
+
 		//Determine # of servees at address
 				$numServees = count($servees["servee"]);
 
 		//Determine # of personal serves at address
-				if(!empty($servees["servee"]["personal"])) {
+				$numPersonal = 0;
 
-					$numPersonal = count($servees["servee"]["personal"]);
+				for ($i=1; $i<=$numServees; $i++) {
 
+					if (!empty($servees["servee"][$i]["personal"])) {
+
+						$numPersonal++;
+
+					}
 				}
 
+				//Select Server
+
+				$server = $this->jobs->SelectServer(['zipcode' => $input["servees"]["zipcode"], 'state' => $input["servees"]["state"], 'county' => $input["servees"]["county"], 'jobId' => 'Null', 'process' => $input["servees"]["type"], 'priority' => $input["servees"]["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'numServees' => $numServees, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
+				dd($numPersonal);
 		//loop through all servees for address		
 				foreach ($servees["servee"] as $servee) {
 dd($servee);
@@ -242,9 +265,6 @@ dd($servee);
 		}
 	}
 /*
-				//Select Server
-
-				$server = $this->jobs->SelectServer(['zipcode' => $result[0]['components']['zipcode'], 'state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => Input::get('company'), 'orderId' => $orders_id]);
 
 				//Find total cost (including service charge)
 				$rate = $this->jobs->TotalRate(['state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'server'=> $server['server'],'process' => $input["type"], 'rate' => $server['rate'], 'client' => Input::get('company')]);

@@ -155,9 +155,10 @@ class LocationsController extends \BaseController {
         //Check if user is vendor associated with locate
         if(Auth::user()->role == 'Supervisor' AND Auth::user()->company_id == $location->company_id) {
 
-            //try to delete location from geosvc
+        //try to delete location from geosvc
             if($this->locations->deleteLocation($location->geo_id)) {
 
+         //Delete from db
                 Locations::destroy($id);
 
                 Session::flash('message', 'Location Deleted!');

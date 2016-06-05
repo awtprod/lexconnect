@@ -133,13 +133,9 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function SelectServer($serverData)
 	{
-	if(!empty($serverData['zipcode'])){
-		$input1 = urlencode($serverData['zipcode']);
-	}
-	else{
-	$input1 = urlencode($this->attributes["zipcode"]);
-	}
-	$req = "http://api.geosvc.com/rest/usa/{$input1}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
+
+	//Find nearby vendors
+	$req = "http://api.geosvc.com/rest/usa/{$serverData['zipcode']}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
 
 
@@ -191,24 +187,16 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			//Find current page rate for vendor
 			$pages = VendorRates::whereVendor($select["UserData"])->whereState($serverData['state'])->whereCounty($serverData['county'])->first();
 
+			//Set page variables
+			$vendor["freePgs"][$select["UserData"]] = $pages->free_pgs;
 
-			//Find documents being served
-			$serveDocTypes = DocumentsServed::whereorderId($serverData['orderId'])->get();
-
-			$docPgs = 0;
-
-			//Find pagecount of most recent docs uploaded
-			foreach($serveDocTypes as $serveDocType){
-
-				$docPgs .= Documents::whereorderId($serverData['orderId'])->whereDocument($serveDocType->document)->orderBy('created_at', 'desc')->pluck('pages');
-
-			}
+			$vendor["pageRate"][$select["UserData"]] = $pages->pg_rate;
 
 			//Find if pagecount is within free page limit
-			if($docPgs > $pages->free_pgs AND $pages->free_pgs != 0){
+			if($serverData["numPgs"] > $pages->free_pgs AND $pages->free_pgs != 0){
 
 				//if not determine total charge
-				$pageRate = ($docPgs - $pages->free_pgs) * ($pages->pg_rate);
+				$pageRate = ($serverData["numPgs"] - $pages->free_pgs) * ($pages->pg_rate);
 
 			}
 			//If within free range, set rate at 0
@@ -217,40 +205,65 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 				$pageRate = 0;
 			}
 
-
-			//Set variables
+			//Calculate cost based on flat rate
 			$flatVar = $serverData['process'] . 'Flat';
-			$rate = $rates->$flatVar;
+			$vendor["vendorCost"][$select["UserData"]] = $rates->$flatVar;
+			$vendor["rate"][$select["UserData"]] = $vendor["vendorCost"][$select["UserData"]] + $pageRate;
 
-			$baseVar = $serverData['process'] . 'Base';
-			$base = $rates->$baseVar;
 
-			$mileVar = $serverData['process'] . 'Mileage';
-			$mileage = $rates->$mileVar;
+			//If vendor doesn't have a flat rate, determine cost
+			if (empty($vendor["vendorCost"][$select["UserData"]]) OR $vendor["vendorCost"][$select["UserData"]] == '0') {
 
-			//Determine cost for job
+			//Determine base rate
+				$baseVar = $serverData['process'] . 'Base';
+				$base = $rates->$baseVar;
 
-			if (empty($rate) OR $rate == '0') {
+			//Determine mileage rate
+				$mileVar = $serverData['process'] . 'Mileage';
+				$mileage = $rates->$mileVar;
 
-				$vendor["rate"][$select["UserData"]] = ($base) + (($mileage) * ($select["Distance"]["Value"])) + $pageRate;
+			//Determine total cost for vendor
+				$vendor["vendorCost"][$select["UserData"]] = ($base) + (($mileage) * ($select["Distance"]["Value"]));
 
-				if($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
+			//Add cost of copies to rate
+				$vendor["rate"][$select["UserData"]] = $vendor["vendorCost"][$select["UserData"]] + $pageRate;
+			}
 
-					$surVar = $serverData['process'] . $serverData['priority'];
-					$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + (($base) + (($mileage) * ($select["Distance"]["Value"]))) + $pageRate;
+			//If job is a rush, add surcharge
+			if($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
+
+				$surcharge = $serverData['process'] . $serverData['priority'];
+				$vendor["rate"][$select["UserData"]] += $rates->$surcharge;
+				$vendor["vendorCost"][$select["UserData"]] += $rates->$surcharge;
+			}
+
+			//if multiple servees at same address, add to rate
+			if($serverData["numServees"] > 1){
+
+			//Find additional servee rate
+			$vendor["addServeeRate"][$select["UserData"]] = $rates->add_servee;
+
+			//If rate is set to 0, add full rate
+				if($vendor["addServeeRate"][$select["UserData"]] == 0){
+
+				$vendor["addServeeRate"][$select["UserData"]] = $vendor["vendorCost"][$select["UserData"]];
+
 				}
 
-			}
-			elseif($serverData['priority'] == "Rush" OR $serverData['priority'] == "SameDay"){
-
-				$surVar = $serverData['process'] . $serverData['priority'];
-				$vendor["rate"][$select["UserData"]] = ($rates->$surVar) + $rates->$flatVar + $pageRate;
-			}
-			else{
-
-				$vendor["rate"][$select["UserData"]] = $rates->$flatVar + $pageRate;
+			//Determine cost for additional servees
+			$vendor["rate"][$select["UserData"]] += ($vendor["addServeeRate"][$select["UserData"]] * ($serverData["numServees"] - 1)) + (($serverData["numServees"] - 1) * $pageRate);
 
 			}
+
+			//Add cost of service requiring personal service
+			$vendor["personalRate"][$select["UserData"]] = $rates->personal;
+
+			if(!empty($serverData["numPersonal"])){
+
+				$vendor["rate"][$select["UserData"]] += $vendor["personalRate"][$select["UserData"]] * $serverData["numPersonal"];
+
+			}
+
 
 			//Find client
 			$client = DB::table('company')->where('name', $serverData['client'])->first();
@@ -282,7 +295,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			} else {
 				$score = DB::table('company')->where('id', $select["UserData"])->pluck('score');
 
-				$vendor["weight"][$select["UserData"]] = (((0.45) * ((1 - ($score)) * ($select["Distance"]["Value"]))) + ((0.55) * ((1 - ($score)) * $vendor["rate"][$select["UserData"]])));
+				$vendor["weight"][$select["UserData"]] = (((0.45) * ($select["Distance"]["Value"])) + ((0.55) * ($vendor["rate"][$select["UserData"]])));
 			}
 		}
 	}
@@ -305,7 +318,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	foreach($server as $servers){
 
 		$data["server"] = $servers;
-		$data["rate"] = $vendor["rate"][$servers];
+		$data["rate"] = $vendor["vendorCost"][$servers];
+		$data["addServeeRate"] = $vendor["addServeeRate"][$servers];
+		$data["personalRate"] = $vendor["personalRate"][$servers];
+		$data["freePgs"] = $vendor["freePgs"][$servers];
+		$data["pageRate"] = $vendor["pageRate"][$servers];
 
 		return $data;
 	}

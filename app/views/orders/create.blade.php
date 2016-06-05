@@ -395,7 +395,7 @@
 					return;
 
 				}
-				
+
 
 				$('.add_defendant_form').show();
 
@@ -405,8 +405,7 @@
 
 				$("#occupied").hide();
 
-
-				$("#results").append('<div><br><h3>Defendant #'+i+'</h3>Service Type:&nbsp;'+$("input[name=type]:checked").val() + " " + '<input type="hidden" name="defendant['+i+'][type]" value="'+$("input[name=type]:checked").val()+'">&nbsp;'+
+				$("#results").append('<div><br><h3>Defendant #'+i+'</h3>Service Type:&nbsp;'+$("input[name=type]:checked").val() + " " + '<input type="hidden" name="defendant['+i+'][type]" value="'+$("input[name=type]:checked").attr('id')+'">&nbsp;'+
 						'Priority:&nbsp;'+$('#priority').val() + " " + '<input type="hidden" name="defendant['+i+'][priority]" value="'+$('#priority').val()+'">&nbsp;<br>'+
 						namesData+personal+
 						$('#Street').val() + " " + '<input type="hidden" name="defendant['+i+'][street]" value="'+$('#Street').val()+'">&nbsp;'+
@@ -579,9 +578,9 @@
 	<div id="service-type">
 		{{ Form::label('type', 'Service Type: ') }}
 		{{ Form::label('type', 'Process Service') }}
-		<input type="radio" name="type" value="Process Service" checked>
+		<input type="radio" name="type" id="service" value="Process Service" checked>
 		{{ Form::label('type', 'Property Posting') }}
-		<input type="radio" name="type" value="Property Posting">
+		<input type="radio" name="type" id="post" value="Property Posting">
 		{{ Form::label('priority', 'Priority: ') }}
 		{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 	</div>

@@ -181,6 +181,8 @@
                 {{ Form::text('revServiceSameDay['.$rate->id.']',$rate->serviceSameDay) }}<br>
                 {{ Form::label('Personal Service Surcharge:') }}
                 {{ Form::text('revPersonal['.$rate->id.']',$rate->personal) }}<br>
+                {{ Form::label('Additional Servee (Same Address - Enter \'0\' to charge full rate):') }}
+                {{ Form::text('revAddServee['.$rate->id.']',$rate->add_servee) }}<br>
         </div>
         </td>
         <div><td>
@@ -294,6 +296,8 @@
                 {{ Form::text('serviceSameDay') }}<br>
                 {{ Form::label('Personal Service Surcharge:') }}
                 {{ Form::text('personal') }}<br>
+                {{ Form::label('Additional Servee (Same Address - Enter \'0\' to charge full rate):') }}
+                {{ Form::text('add_servee') }}<br>
         </div>
         </td>
         <div><td>

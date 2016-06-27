@@ -10,7 +10,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['service','priority','defendant','street','street2','city','state','county','zipcode','order_id','notes'];
+	protected $fillable = ['service','priority','defendant','personal','street','street2','city','state','county','zipcode','order_id','notes'];
 	
 	public static $rules = [
 		'defendant' => 'required',
@@ -66,6 +66,13 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	public function createJob ($data){
 
 		$job = new Jobs;
+
+		if(!empty($data["serveeId"])){
+		$job->servee_id = $data["serveeId"];
+		}
+		if(!empty($data["servee"]["personal"])){
+		$job->personal = "yes";
+		}
 		$job->defendant = $data["defendant"];
 		$job->vendor = $data["server"];
 		$job->client = $data["client"];
@@ -307,7 +314,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		$data["server"] = 1;
 		$data["rate"] = 75;
-
+		$data["addServeeRate"] = 75;
+		$data["personalRate"] = 0;
+		$data["freePgs"] = 50;
+		$data["pageRate"] = 0.25;
+		
 		return $data;
 	}
 

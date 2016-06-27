@@ -216,30 +216,31 @@ class OrdersController extends \BaseController {
 		//If defendant was added, validate data
 		if (!empty($input["defendant"])) {
 
-		//Find uploaded docs for order
-		$allDocs = Documents::whereOrderId($orders_id)->get();
+                    //Find uploaded docs for order
+                    $allDocs = Documents::whereOrderId($orders_id)->get();
 
-		//Find total # of pages uploaded docs
-		if(!empty($allDocs)) {
+                    //Find total # of pages uploaded docs
+                    if(!empty($allDocs)) {
 
-			$numPages = 0;
+                        $numPages = 0;
 
-			foreach ($allDocs as $allDoc) {
+                        foreach ($allDocs as $allDoc) {
 
-				$numPages += $allDoc->pages;
-			}
-		}
+                            $numPages += $allDoc->pages;
+                        }
+                    }
 
-		//loop through all addresses
+			//loop through all addresses
 			foreach ($input["defendant"] as $servees) {
 
-		//Determine # of servees at address
+
+				//Determine # of servees at address
 				$numServees = count($servees["servee"]);
 
-		//Determine # of personal serves at address
+				//Determine # of personal serves at address
 				$numPersonal = 0;
 
-				for ($i=1; $i<=$numServees; $i++) {
+				for ($i = 1; $i <= $numServees; $i++) {
 
 					if (!empty($servees["servee"][$i]["personal"])) {
 
@@ -250,16 +251,43 @@ class OrdersController extends \BaseController {
 
 				//Select Server
 
-				$server = $this->jobs->SelectServer(['zipcode' => $input["servees"]["zipcode"], 'state' => $input["servees"]["state"], 'county' => $input["servees"]["county"], 'jobId' => 'Null', 'process' => $input["servees"]["type"], 'priority' => $input["servees"]["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'numServees' => $numServees, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
-				dd($numPersonal);
-		//loop through all servees for address		
+				$server = $this->jobs->SelectServer(['zipcode' => $servees["zipcode"], 'state' => $servees["state"], 'county' => $servees["county"], 'jobId' => 'Null', 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'numServees' => $numServees, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
+
+				$firstServee = true;
+
+				//loop through all servees for address
 				foreach ($servees["servee"] as $servee) {
-dd($servee);
-				if(!empty($servee["personal"])){
-					echo $servee["personal"]."<br>";
+
+
+				//create servee
+				$serveeId = $this->servee->creatServee(['defendant' => $servee["name"], 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
+
+				//Create job for servee
+				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'zip' => $servees["zipcode"]);
+
+				//Load task into db
+                $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+
+                //Update job with process
+                $job->process = $process;
+                $job->save();
+
+				//if first servee, set regular rate
+				if($firstServee == true){
+
+					$rate = $server["data"]["rate"];
+
 				}
-		//create servee
-				//$this->servee->creatServee(['defendant' => $servee, 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
+				//otherwise set rate for additional servee
+				else{
+
+					$rate = $server["data"]["addServeeRate"];
+				}
+
+				//Create Invoice
+				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => $server["data"]["personalRate"], 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
+
+				$firstServee = false;
 				}
 			}
 		}

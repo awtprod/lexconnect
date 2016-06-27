@@ -10,7 +10,7 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['order_id', 'servee_id','job_id','client_amt','vendor_amt','app_fee','free_pgs','pg_rate','vendor','client','invoice'];
+	protected $fillable = ['order_id', 'servee_id','job_id','client_amt','vendor_amt','service_fee','app_fee','free_pgs','pg_rate','vendor','client','invoice'];
 	
 	public static $rules = [
 		'date' => 'required|date',
@@ -54,17 +54,29 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 	//Find Job
 	$job = Jobs::whereId($data['jobId'])->first();
 
-	//Find current page rate for vendor
-	$pages = VendorRates::whereVendor($job->vendor)->whereState($job->state)->whereCounty($job->county)->first();
-
 	//Find service rate
-	$rate = ClientRates::whereClient($job->client)->pluck($data['process'].'FeeRate');
+	$surcharge = ClientRates::whereClient($job->client)->pluck($data['process'].'Surcharge');
+
+	//Determine # of pages to bill for
+	$paidPgs = $data["numPgs"] - $data["freePgs"];
+
+	$rate = $data["rate"];
+
+	//Determine if personal service is required
+	if(!empty($data["servee"]["personal"]))	{
+
+		$rate += $data["personalRate"];
+
+	}
+
+	//Add pages to fee
+	$vendorRate = $rate + ($data["pageRate"] * $paidPgs);
 
 	//Find app rate
-	$appFee = 	$data['rate'] * $rate;
+	$appFee = 	$vendorRate * $surcharge;
 
 	//Determine total to charge client
-	$clientRate = ($data['rate']) + ($data['rate'] * $rate);
+	$clientRate = $vendorRate + $appFee;
 		
 		//Save data to table
 		$invoice = new Invoices;
@@ -72,10 +84,11 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 		$invoice->job_id = $job->id;
 		$invoice->servee_id = $job->servee_id;
 		$invoice->client_amt = $clientRate;
-		$invoice->vendor_amt = $data['rate'];
+		$invoice->vendor_amt = $vendorRate;
+		$invoice->service_fee = $rate;
 		$invoice->app_fee = $appFee;
-		$invoice->free_pgs = $pages->free_pgs;
-		$invoice->pg_rate = $pages->pg_rate;
+		$invoice->free_pgs = $data["freePgs"];
+		$invoice->pg_rate = $data["pageRate"];
 		$invoice->vendor = $job->vendor;
 		$invoice->client = $job->client;
 		$invoice->save();

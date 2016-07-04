@@ -21,8 +21,8 @@ Reference: {{ $orders->reference }}<p>
 <h2>{{ Form::open(['route' => 'jobs.create']) }}{{ Form::hidden('ordersId', $orders->id) }}{{ Form::submit('Add Defendants') }}{{ Form::close() }}</h2>
  <div>
 
-     {{ link_to("/documents/upload/?orderId={$orders->id}&_token={$token}", 'Upload Documents') }}<br>
-     {{ link_to("/documents/view/?orderId={$orders->id}&_token={$token}", 'View Documents') }}<br>
+     {{ link_to("/documents/upload/{$orders->id}", 'Upload Documents') }}<br>
+     {{ link_to("/documents/view/{$orders->id}", 'View Documents') }}<br>
 
   </div>
 

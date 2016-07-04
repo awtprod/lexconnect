@@ -53,7 +53,7 @@ class OrdersController extends \BaseController {
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
 
 		if(Auth::user()->user_role=='Admin'){
-			$company = DB::table('company')->orderBy('name', 'asc')->lists('name', 'name');
+			$company = DB::table('company')->where('v_c', 'Client')->orderBy('name', 'asc')->lists('name', 'name');
 		}
 		else{
 			$company = Auth::user()->company;
@@ -103,11 +103,11 @@ class OrdersController extends \BaseController {
 		$docCount = 0;
 
 		//delete after test
-		$orders_id = '9999';
+		//$orders_id = '9999';
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
-		/*
+
                 $orders = new Orders;
                 $orders->plaintiff = Input::get('plaintiff');
                 $orders->reference = Input::get('reference');
@@ -144,7 +144,21 @@ class OrdersController extends \BaseController {
                     }
 
                 }
-                dd($input);
+
+				//Find uploaded docs for order
+				$allDocs = Documents::whereOrderId($orders_id)->get();
+
+				//Find total # of pages uploaded docs
+				$numPages = 0;
+
+				if(!empty($allDocs)) {
+
+
+					foreach ($allDocs as $allDoc) {
+
+						$numPages += $allDoc->pages;
+					}
+				}
 
 
                 if($docCount=='0') {
@@ -172,21 +186,26 @@ class OrdersController extends \BaseController {
                         $service = 'filing';
 
                     }
-                    elseif (!empty($input["filing"])) {
+                    elseif (!empty($input["recording"])) {
 
                         $service = "recording";
 
                     }
+					elseif (!empty($input["run_docs"])) {
+
+						$service = "court run";
+
+					}
 
                         //Create job for filing
-                        $job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => $court->state, 'zip' => $court->zip]);
+						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
 
                         //Select Server
 
-                        $server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => $service, 'priority' => $input[$service], 'client' => $input["company"]]);
+                        $server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"]]);
 
                         //Load task into db
-                        $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server, 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $service, 'priority' => $input[$service], 'client' => $input["company"], 'state' => $court->state]);
+						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
                         //Check for dependent jobs
 
@@ -205,30 +224,17 @@ class OrdersController extends \BaseController {
                         $job->process = $process;
                         $job->save();
 
-                        //Create Invoice
-                        $this->invoices->CreateInvoice(['jobId' => $job->id, 'rate' => $server["rate"], 'process' => $service]);
+						//Create Invoice
+						$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $service, 'personal' => '', 'personalRate' => $server["data"]["personalRate"], 'rate' => $server["data"]["rate"], 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
 
                         $input["filing"] = '';
                     }
 
                 }
-        */
+
 		//If defendant was added, validate data
 		if (!empty($input["defendant"])) {
 
-                    //Find uploaded docs for order
-                    $allDocs = Documents::whereOrderId($orders_id)->get();
-
-                    //Find total # of pages uploaded docs
-                    if(!empty($allDocs)) {
-
-                        $numPages = 0;
-
-                        foreach ($allDocs as $allDoc) {
-
-                            $numPages += $allDoc->pages;
-                        }
-                    }
 
 			//loop through all addresses
 			foreach ($input["defendant"] as $servees) {
@@ -260,10 +266,10 @@ class OrdersController extends \BaseController {
 
 
 				//create servee
-				$serveeId = $this->servee->creatServee(['defendant' => $servee["name"], 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
+				$serveeId = $this->Servee->createServee(['defendant' => $servee["name"], 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
 
 				//Create job for servee
-				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'zip' => $servees["zipcode"]);
+				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'zip' => $servees["zipcode"]]);
 
 				//Load task into db
                 $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
@@ -275,34 +281,26 @@ class OrdersController extends \BaseController {
 				//if first servee, set regular rate
 				if($firstServee == true){
 
-					$rate = $server["data"]["rate"];
+					$rate = $server["rate"];
 
 				}
 				//otherwise set rate for additional servee
 				else{
 
-					$rate = $server["data"]["addServeeRate"];
+					$rate = $server["addServeeRate"];
 				}
 
 				//Create Invoice
-				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => $server["data"]["personalRate"], 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
+				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => $server["personalRate"], 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => $server["freePgs"], 'pageRate' => $server["pageRate"]]);
 
 				$firstServee = false;
 				}
 			}
 		}
-	}
-/*
 
-				//Find total cost (including service charge)
-				$rate = $this->jobs->TotalRate(['state' => $result[0]['components']['state_abbreviation'], 'county' => $result[0]['metadata']['county_name'], 'server'=> $server['server'],'process' => $input["type"], 'rate' => $server['rate'], 'client' => Input::get('company')]);
-
-
-		}
 		$input["orders_id"] = $orders_id;
 
-		Cache::put('orders_id', $orders_id, 30);
-		Return Redirect::route('orders.show')->with('orders_id', $orders_id);
+		Return Redirect::route('orders.show', ['id' => $orders_id]);
 	}
 
 	/**
@@ -313,11 +311,6 @@ class OrdersController extends \BaseController {
 	 */
 	public function show($id)
 	{
-		//If Order is not passed by URL, retrieve from session
-		if(!is_numeric($id)){
-		$id = Cache::get('orders_id');
-		}
-
 
 		//Retrieve Order
 		$order = Orders::whereId($id)->first();
@@ -334,6 +327,7 @@ class OrdersController extends \BaseController {
 		$viewservees = Servee::whereorderId($id)
 					   ->where('client', Auth::user()->company)->orderBy('id', 'asc')->get();
 		}
+
 
 		//Find if verify docs process exists
 		$verify = Jobs::whereService('Verify Documents')

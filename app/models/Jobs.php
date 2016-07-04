@@ -65,6 +65,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function createJob ($data){
 
+		$client = Company::whereCompany($data["client"])->pluck('company_id');
+
 		$job = new Jobs;
 
 		if(!empty($data["serveeId"])){
@@ -75,7 +77,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		}
 		$job->defendant = $data["defendant"];
 		$job->vendor = $data["server"];
-		$job->client = $data["client"];
+		$job->client = $client;
 		$job->order_id = $data["orders_id"];
 		$job->service = $data["service"];
 		$job->priority = $data["priority"];
@@ -83,6 +85,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$job->state = $data["state"];
 		$job->zipcode = $data["zip"];
 		$job->save();
+
+		return $job;
 
 	}
 
@@ -142,7 +146,9 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	{
 
 	//Find nearby vendors
-	$req = "http://api.geosvc.com/rest/usa/{$serverData['zipcode']}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
+	$zipcode = substr($serverData['zipcode'],0,5);
+
+	$req = "http://api.geosvc.com/rest/usa/{$zipcode}/nearby?pt=vendors&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
 
 
@@ -308,7 +314,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	}
 
 	//If no qualified servers, assign to admin
-	if(empty($server)){
+	if(empty($result)){
 
 		$data = array();
 
@@ -318,7 +324,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$data["personalRate"] = 0;
 		$data["freePgs"] = 50;
 		$data["pageRate"] = 0.25;
-		
+
 		return $data;
 	}
 

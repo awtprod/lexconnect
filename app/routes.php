@@ -113,6 +113,14 @@ Route::get('home/', [
 			'as' => 'clientRates.index',
 			'uses' => 'ClientRatesController@index'
 	]);
+	Route::get('documents/view/{id}', [
+		'as' => 'documents.view',
+		'uses' => 'DocumentsController@view'
+	]);
+	Route::get('documents/upload/{id}', [
+		'as' => 'documents.upload',
+		'uses' => 'DocumentsController@upload'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [
@@ -150,14 +158,6 @@ Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
     Route::post('clientrates/update', [
         'as' => 'clientRates.update',
         'uses' => 'ClientRatesController@update'
-    ]);
-    Route::get('documents/upload', [
-        'as' => 'documents.upload',
-        'uses' => 'DocumentsController@upload'
-    ]);
-    Route::get('documents/view', [
-        'as' => 'documents.view',
-        'uses' => 'DocumentsController@view'
     ]);
 	Route::post('documents/filedDocuments', [
 			'as' => 'documents.filedDocuments',

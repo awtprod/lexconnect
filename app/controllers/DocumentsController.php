@@ -75,9 +75,7 @@ class DocumentsController extends \BaseController {
         }
     }
 
-    public function upload(){
-
-        $orderId = Input::get('orderId');
+    public function upload($orderId){
 
         if(!empty($orderId)) {
 
@@ -101,10 +99,7 @@ class DocumentsController extends \BaseController {
 
     }
 
-    public function view(){
-
-        //Get order Id, if available
-        $orderId = Input::get('orderId');
+    public function view($orderId){
 
         //Get order information
         $order = Orders::whereId($orderId)->first();
@@ -115,19 +110,34 @@ class DocumentsController extends \BaseController {
         //Get job information
         $job = Jobs::whereId($jobId)->first();
 
-
         //Find documents for order
-        if(!empty($orderId)){
 
-        //Find if client or Admin
-        if(Auth::user()->company==$order->company OR Auth::user()->user_role=='Admin'){
+        //Find if client or Admin or vendor
+        if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin' OR Auth::user()->company_id==$job->vendor){
 
-            $documents = Documents::whereOrderid($orderId)->orderBy('created_at', 'desc')->get();
+            //if vendor, find documents by job
+            if(!empty($job)){
 
-           Return View::make('documents.OrderView')->with(['documents' => $documents]);
+                $documents = Documents::wherejobId($jobId)->orWhere(function($query) use ($orderId)
+                                                            {
+                                                                $query->whereNull('job_id')
+                                                                      ->where('order_id', '=', $orderId);
+                                                            })
+                                                            ->orderBy('created_at', 'desc')->get();
+            }
+            else {
+
+                $documents = Documents::whereOrderId($orderId)->orderBy('created_at', 'desc')->get();
+            }
+
+            Return View::make('documents.OrderView')->with(['documents' => $documents, 'order' => $order]);
+        }
+        else{
+            Return "Not Authorized To View!";
+
         }
 
-        }
+        /*
 
         //Find documents for Job
         if(!empty($jobId)){
@@ -231,7 +241,7 @@ class DocumentsController extends \BaseController {
 
 
             }
-
+*/
         }
 
 

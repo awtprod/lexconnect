@@ -1,6 +1,11 @@
 @extends('layouts.default')
 
 @section('content')
+
+@if(Session::has('message'))
+    <p class="alert alert-info">{{ Session::get('message') }}</p>
+@endif
+
 <h1>Login</h1>
 {{ $errors->first(); }}
 {{ Form::open(['route' => 'sessions.store']) }}

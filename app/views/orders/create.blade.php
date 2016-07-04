@@ -71,7 +71,8 @@
 				verifySecondary: true,
 				submitSelector: "#Add",
 				autoVerify: false,
-				submitVerify: true
+				submitVerify: true,
+				waitForStreet: true
 
 			});
 
@@ -455,9 +456,8 @@
 	</script>
 <style>
 
-.additional_document{
-	overflow: hidden;
-	white-space: nowrap;
+.smarty-autocomplete{
+	display: none;
 }
 </style>
 
@@ -465,19 +465,19 @@
 @section('content')
 <h1>Create New Order</h1>
 
-@if (Auth::user()->user_role=='Admin')
-	{{ Form::label('company', 'Client: ') }}
-	{{ Form::select('company', $company) }}
-@else
-	{{ Form::hidden('company', $company) }}
-@endif
-
 
 @if(Session::has('message'))
 	<p class="alert {{ Session::get('alert-class', 'alert-info') }}">{{ Session::get('message') }}</p>
 @endif
 
 {{ Form::open(array('route' => 'orders.store','files'=>true, 'id'=> 'create')) }}
+
+	@if (Auth::user()->user_role=='Admin')
+		{{ Form::label('company', 'Client: ') }}
+		{{ Form::select('company', $company) }}
+	@else
+		{{ Form::hidden('company', $company) }}
+	@endif
 
 	<input type="radio" name="judicial" class="judicial" value="judicial" checked>Judicial
 	<input type="radio" name="judicial" class="judicial" value="non_judicial">Non Judicial<p>

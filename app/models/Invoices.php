@@ -10,7 +10,7 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['order_id', 'servee_id','job_id','client_amt','vendor_amt','service_fee','app_fee','free_pgs','pg_rate','vendor','client','invoice'];
+	protected $fillable = ['order_id', 'servee_id','job_id','client_amt','vendor_amt','service_fee','app_fee_rate','free_pgs','pg_rate','vendor','client','invoice'];
 	
 	public static $rules = [
 		'date' => 'required|date',
@@ -86,7 +86,7 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 		$invoice->client_amt = $clientRate;
 		$invoice->vendor_amt = $vendorRate;
 		$invoice->service_fee = $rate;
-		$invoice->app_fee = $appFee;
+		$invoice->app_fee_rate = $appFee;
 		$invoice->free_pgs = $data["freePgs"];
 		$invoice->pg_rate = $data["pageRate"];
 		$invoice->vendor = $job->vendor;

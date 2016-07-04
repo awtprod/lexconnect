@@ -1,8 +1,9 @@
 @extends('layouts.default')
 
 @section('content')
-<h1>Order Documents</h1>
+<h1>Documents for Order #{{$order->id}}</h1>
 
+@if(count($documents)>0)
 <table>
     <tr>
         <th>Document</th>
@@ -15,4 +16,7 @@
     </tr>
 @endforeach
     </table>
+@else
+<h2>No Documents to Display!</h2>
+@endif
 @stop

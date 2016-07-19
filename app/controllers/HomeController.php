@@ -1,15 +1,7 @@
 <?php
 
 class HomeController extends BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Jobs $jobs, Invoices $invoices)
-	{
-	
-		$this->orders = $orders;
-		$this->tasks = $tasks;
-		$this->jobs = $jobs;
-		$this->invoices = $invoices;
 
-	}
 	/*
 	|--------------------------------------------------------------------------
 	| Default Home Controller

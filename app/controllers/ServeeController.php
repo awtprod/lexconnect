@@ -1,15 +1,7 @@
 <?php
 
 class ServeeController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices)
-	{
-	
-		$this->orders = $orders;
-		$this->tasks = $tasks;
-		$this->reprojections = $reprojections;	
-		$this->jobs = $jobs;
-		$this->invoices = $invoices;
-	}
+
 	/**
 	 * Display a listing of the resource.
 	 *

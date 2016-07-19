@@ -1,16 +1,7 @@
 <?php
 
 class SearchController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, Search $search)
-	{
-	
-		$this->orders = $orders;
-		$this->tasks = $tasks;
-		$this->reprojections = $reprojections;	
-		$this->jobs = $jobs;
-		$this->invoices = $invoices;
-		$this->search = $search;
-	}
+
 	/**
 	 * Display a listing of the resource.
 	 *

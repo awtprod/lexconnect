@@ -1,15 +1,7 @@
 <?php
 use Carbon\Carbon;
 class ReprojectionsController extends \BaseController {
-	public function __construct (Orders $orders, Tasks $tasks, Jobs $jobs, Reprojections $reprojections)
-	{
-	
-		$this->orders = $orders;
-		$this->tasks = $tasks;
-		$this->jobs = $jobs;
-		$this->reprojections = $reprojections;
 
-	}
 	/**
 	 * Display a listing of the resource.
 	 *

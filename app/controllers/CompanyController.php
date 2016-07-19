@@ -3,11 +3,6 @@
 class CompanyController extends \BaseController {
 	protected $company;
 	
-	public function __construct (Company $company)
-	{
-	
-		$this->company = $company;
-	}
 	/**
 	 * Display a listing of the resource.
 	 *

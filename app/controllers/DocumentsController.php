@@ -2,24 +2,6 @@
 
 class DocumentsController extends \BaseController {
 
-    public function __construct (Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
-    {
-
-        $this->orders = $orders;
-        $this->tasks = $tasks;
-        $this->reprojections = $reprojections;
-        $this->jobs = $jobs;
-        $this->invoices = $invoices;
-        $this->DocumentsServed = $DocumentsServed;
-        $this->Processes = $processes;
-        $this->Steps = $steps;
-        $this->Template = $template;
-        $this->Counties = $counties;
-        $this->User = $user;
-        $this->Documents = $Documents;
-        $this->Servee = $Servee;
-    }
-
 
     /**
      * Display the specified resource.
@@ -113,7 +95,7 @@ class DocumentsController extends \BaseController {
         //Find documents for order
 
         //Find if client or Admin or vendor
-        if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin' OR Auth::user()->company_id==$job->vendor){
+        if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin' OR (Auth::user()->company_id==$job->vendor AND $orderId == $job->order_id)){
 
             //if vendor, find documents by job
             if(!empty($job)){

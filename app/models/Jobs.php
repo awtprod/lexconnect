@@ -65,7 +65,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function createJob ($data){
 
-		$client = Company::whereCompany($data["client"])->pluck('company_id');
+		$client = Company::whereName($data["client"])->pluck('id');
 
 		$job = new Jobs;
 

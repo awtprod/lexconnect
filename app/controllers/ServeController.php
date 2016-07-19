@@ -1,15 +1,7 @@
 <?php
 
 class ServeController extends \BaseController {
-	public function __construct (Tasks $tasks, Orders $orders, Jobs $jobs, Serve $serve, Rules $rules)
-	{
-	
-		$this->tasks = $tasks;
-		$this->orders = $orders;
-		$this->jobs = $jobs;
-		$this->serve = $serve;
-		$this->rules = $rules;
-	}
+
 	/**
 	 * Display a listing of the resource.
 	 *

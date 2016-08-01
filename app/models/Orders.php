@@ -96,6 +96,7 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		$task = Tasks::wherejobId($id)
 						->whereNULL('completion')->orderBy('sort_order', 'asc')->first();
 
+
 		//Find servee info
 		$servee = Servee::whereId($job->servee_id)->first();
 
@@ -109,6 +110,10 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 			return $task->process;
 		}
 		elseif($job->status == 2){
+
+			return "Pending Completion of Job";
+		}
+		elseif($job->status == 3){
 
 			return "Job Canceled";
 		}
@@ -146,13 +151,13 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 			}
 
 			//If job is active
-			if ($job->status == 1) {
+			if ($job->status == 1 OR $job->status == 2) {
 
 				return $selections = array('0' => 'Hold', '2' => 'Cancel');
 			}
 
 			//If job is canceled or defendant is marked as served/non-served
-			if($job->status == 2 OR $servee->status == 1 OR $servee->status == 2){
+			if($job->status == 3 OR $servee->status == 1 OR $servee->status == 2){
 
 				return $selections = array('3' => 'Submit New Address');
 

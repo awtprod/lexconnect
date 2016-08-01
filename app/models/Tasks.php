@@ -233,7 +233,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 						$depJobs[$process->dep_process] = Jobs::whereProcess($process->dep_process)
 								->whereOrderId($job->order_id)
-								->whereStatus(0)->get();
+								->whereStatus(2)->get();
 					}
 
 					//Check to see if any additional dependent jobs, if any

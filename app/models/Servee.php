@@ -54,7 +54,7 @@ class Servee extends Eloquent implements UserInterface, RemindableInterface {
 		$servee->user = Auth::user()->id;
 		$servee->client = $data["company"];
 		$servee->order_id = $data["orders_id"];
-		$servee->status = $data["status"];
+		$servee->status = 0;
 		$servee->save();
 
 		return $servee->id;

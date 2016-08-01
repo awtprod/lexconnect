@@ -90,36 +90,6 @@
 			});
 
 
-			$('.document_wrapper').change(function (e) {
-
-				e.preventDefault();
-
-				$(".supp_doc_type_select").each(function () {
-					if ($(this).val() == "other") {
-
-						$(this).next().show();
-					}
-					else {
-						$(this).next().hide();
-					}
-				});
-			});
-
-			$('.service_documents').change(function(e){
-
-				e.preventDefault();
-
-				if($('.doc_type_select option:selected').val()=='other'){
-
-
-					$('.doc_other').show();
-
-				}
-				else{
-
-					$('doc_other').hide();
-				}
-			});
 
 			$('.judicial').click(function () {
 
@@ -288,59 +258,6 @@
 				})
 
 				//Service Documents Wrapper
-
-			var document_wrapper         = $(".document_wrapper"); //Fields wrapper
-			var add_document_button      = $(".add_document_button"); //Add button ID
-			var k = 1;
-
-
-			$(add_document_button).click(function(e){ //on add input button click
-				e.preventDefault();
-
-				var divContents = '<div class="additional_document">&nbsp;<input type="file" name="documents['+k+'][file]" class="supp_documents"><div class="doc_type"><select class="supp_doc_type_select" name="documents['+k+'][type]"><option value="">Select Document Type</option>@foreach($documents as $document)<option value="{{ $document[1] }}">{{ $document[1] }}</option>@endforeach<option value="other">Other (Fill in below)</option></select><div class="supp_doc_other" style="display: none"><input type="text" name="documents['+k+'][other]" class="doc_other_text"></div></div><a href="#" class="remove_field">Remove</a></div>';
-
-				$(document_wrapper).append(divContents); //add input box
-
-				k++;
-
-				//Validate file type
-				$(".supp_documents").each(function () {
-				$(this).rules('add', {
-					accept: "application/pdf",
-					messages: {
-						accept: "Document must be a pdf!"
-					}
-				});
-				});
-
-				//Validate that doc type is selected
-				$(".supp_doc_type_select").each(function () {
-				$(this).rules('add', {
-					required: {
-						depends: function (element) {
-							return $('.supp_documents').is(':filled');
-						}
-					},
-					messages: {
-						required: "Please select a doc type!"
-					}
-				});
-				});
-
-				//Validate other doc type
-				$(".doc_other_text").each(function () {
-					$(this).rules('add', {
-						required: true,
-						messages: {
-							required: "Please enter a doc type!"
-						}
-					});
-				});
-			});
-
-			$(document_wrapper).on("click",".remove_field", function(e){ //user click on remove text
-				e.preventDefault(); $(this).parent('.additional_document').remove();
-			})
 
 
 			//Defendants wrapper
@@ -630,5 +547,7 @@
 
 
 <a href="{{ URL::previous() }}">Go Back</a>
+
+{{HTML::script('/js/documents.js')}}
 
 @stop

@@ -197,7 +197,7 @@ class OrdersController extends \BaseController {
 
                         } else {
 
-                            $job->status = 0;
+                            $job->status = 2;
 
                         }
 
@@ -256,7 +256,19 @@ class OrdersController extends \BaseController {
 				//Load task into db
                 $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
-                //Update job with process
+					//Check for dependent jobs
+
+					if (!$this->jobs->depProcess(['process' => $process, 'orderId' => $orders_id])) {
+
+						$job->status = 1;
+
+					} else {
+
+						$job->status = 2;
+
+					}
+
+				//Update job with process
                 $job->process = $process;
                 $job->save();
 
@@ -315,6 +327,8 @@ class OrdersController extends \BaseController {
 		$verify = Jobs::whereService('Verify Documents')
 				  ->whereorderId($id)->first();
 
+		$verifyTask = "";
+
 			//Find verify task
 			if(!empty($verify)) {
 				$verifyTask = Tasks::wherejobId($verify->id)
@@ -325,6 +339,8 @@ class OrdersController extends \BaseController {
 		//Find filing jobs
 		$filing = Jobs::whereService('Filing')
 				  ->whereorderId($id)->first();
+
+		$filingTasks = "";
 
 			//Find filing tasks
 			if(!empty($filing)) {

@@ -160,6 +160,10 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		$data["server"] = 1;
 		$data["rate"] = 75;
+		$data["addServeeRate"] = 75;
+		$data["personalRate"] = 0;
+		$data["freePgs"] = 50;
+		$data["pageRate"] = 0.25;
 
 		return $data;
 	}
@@ -251,6 +255,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			}
 
 			//if multiple servees at same address, add to rate
+			$vendor["addServeeRate"][$select["UserData"]] = 0;
+
 			if($serverData["numServees"] > 1){
 
 			//Find additional servee rate

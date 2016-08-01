@@ -302,6 +302,42 @@ class JobsController extends \BaseController {
 		//Find task data
 		$tasks = Tasks::wherejobId($id)->OrderBy('sort_order', 'asc')->get();
 
+		//Create data array
+		$data = array();
+
+		$first = true;
+
+		foreach ($tasks as $task){
+
+			$data[$task->id]["process"] = $task->process;
+			$data[$task->id]["deadline"] = date("m/d/y", strtotime($task->deadline));
+
+			if(is_null($task->completion) AND $first == true AND $task->status == '1'){
+
+				$data[$task->id]["completion"] = true;
+
+				$first = false;
+			}
+			elseif(is_null($task->completion) AND $first == true){
+
+				$data[$task->id]["completion"] = "Job Is On Hold";
+
+				$first = false;
+
+			}
+			elseif(is_null($task->completion) AND $first == false){
+
+				$data[$task->id]["completion"] = " ";
+
+			}
+			else{
+
+				$data[$task->id]["completion"] = date("m/d/y", strtotime($task->completion));
+			}
+			
+
+		}
+
 		//Find job data
 		$jobs = Jobs::whereId($id)->OrderBy('id', 'asc')->first();
 
@@ -309,9 +345,7 @@ class JobsController extends \BaseController {
 		
 		if(Auth::user()->user_role=='Admin' OR Auth::user()->company_id==$jobs->vendor){
 
-				$first = 'true';
-
-                return View::make('jobs.view')->with('jobs', $jobs)->with('tasks', $tasks)->with('token', $token)->with('first', $first);
+                return View::make('jobs.view')->with('jobs', $jobs)->with('tasks', $tasks)->with('token', $token)->with(['data' => $data]);
             }
 
 		else{
@@ -324,6 +358,8 @@ class JobsController extends \BaseController {
 
 		//Get job info
 		$jobs = Jobs::whereId(Input::get('jobId'))->get();
+
+		dd($jobs);
 
 		//If taking an action for all jobs for an order
 		if(empty($jobs)){

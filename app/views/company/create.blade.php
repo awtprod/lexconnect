@@ -15,6 +15,11 @@
 	{{ $errors->first('v_c') }}
 	</div>
 	<div>
+	{{ Form::label('pay_method', 'Payment Method: ') }}
+	{{ Form::select('pay_method', array('Check' => 'Check', 'ACH Debit/Credit' => 'ACH Debit/Credit')); }}
+	{{ $errors->first('pay_method') }}
+	</div>
+	<div>
 	{{ Form::label('address', 'Street Address: ') }}
 	{{ Form::text('address') }}
 	{{ $errors->first('address') }}

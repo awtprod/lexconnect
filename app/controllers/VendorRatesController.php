@@ -175,6 +175,20 @@ class VendorRatesController extends \BaseController {
         Return Redirect::Route('vendorrates.index');
 	}
 
+    public function show($id)
+    {
+        if(Auth::user()->user_role == 'Admin'){
+
+            $rates = VendorRates::whereVendor($id)->orderBy('state', 'asc')->get();
+
+            $states = DB::table('states')->orderBy('abbrev', 'asc')->lists('abbrev', 'abbrev');
+
+            Return View::make('vendorRates.index')->with(['rates' => $rates])->with(['states'=>$states]);
+        }
+        else{
+            Return "Not Authorized!";
+        }
+    }
 
 	/**
 	 * Remove the specified resource from storage.

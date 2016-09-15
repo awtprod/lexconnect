@@ -49,6 +49,14 @@ Route::get('home/', [
         'as' => 'vendorrates.index',
         'uses' => 'VendorRatesController@index'
     ]);
+	Route::get('rates/Vendor/{id}', [
+		'as' => 'vendorrates.show',
+		'uses' => 'VendorRatesController@show'
+	]);
+	Route::get('rates/Client/{id}', [
+		'as' => 'clientrates.show',
+		'uses' => 'ClientRatesController@show'
+	]);
 	Route::get('rates/vendor/destroy/{id}', [
 			'as' => 'vendorrates.destroy',
 			'uses' => 'VendorRatesController@destroy'
@@ -120,6 +128,10 @@ Route::get('home/', [
 	Route::get('documents/upload/{id}', [
 		'as' => 'documents.upload',
 		'uses' => 'DocumentsController@upload'
+	]);
+	Route::get('company/', [
+		'as' => 'company.index',
+		'uses' => 'CompanyController@index'
 	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
@@ -274,6 +286,10 @@ Route::post('serve/add', [
 Route::post('counties/update', [
 			'as' => 'counties.update',
 			'uses' => 'CountiesController@update'
+	]);
+Route::post('company/update', [
+		'as' => 'company.save',
+		'uses' => 'CompanyController@save'
 	]);
 
 });

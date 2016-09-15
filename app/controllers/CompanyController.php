@@ -10,9 +10,12 @@ class CompanyController extends \BaseController {
 	 */
 	public function index()
 	{
-				$company = $this->company->all();
-		
-		return View::make('company.index', ['company' => $company]);
+		if(Auth::user()->user_role=='Admin') {
+
+			$company = $this->company->all();
+
+			return View::make('company.index', ['company' => $company]);
+		}
 	}
 
 
@@ -23,8 +26,11 @@ class CompanyController extends \BaseController {
 	 */
 	public function create()
 	{
-		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
-		return View::make('company.create', array('states' => $states));
+		if(Auth::user()->user_role=='Admin') {
+
+			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+			return View::make('company.create', array('states' => $states));
+		}
 	}
 	
 	public function store()
@@ -44,9 +50,13 @@ class CompanyController extends \BaseController {
 	
 	public function show($id)
 	{
-		$company = $this->company->whereId($id)->first();
-	
-		return View::make('company.show', ['company' => $company]);
+
+		if(Auth::user()->user_role=='Admin' OR (Auth::user()->company_id == $id AND Auth::user()->role == 'Supervisor')) {
+
+			$company = $this->company->whereId($id)->first();
+
+			return View::make('company.show', ['company' => $company]);
+		}
 	}
 
 
@@ -58,8 +68,15 @@ class CompanyController extends \BaseController {
 	 */
 	public function edit($id)
 	{
-		//
-	}
+		if(Auth::user()->user_role=='Admin' OR (Auth::user()->company_id == $id AND Auth::user()->role == 'Supervisor')) {
+
+			$company = $this->company->whereId($id)->first();
+
+			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+
+			return View::make('company.edit', ['company' => $company, 'states' => $states]);
+		}
+		}
 
 
 	/**
@@ -68,9 +85,31 @@ class CompanyController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function save()
 	{
-		//
+		$input = Input::all();
+
+		if ( ! $this->company->fill($input)->isValid())
+		{
+			return Redirect::back()->withInput()->withErrors($this->company->errors);
+		}
+
+		$update = Company::whereId($input["id"])->first();
+
+		$update->name = Input::get('name');
+		$update->v_c = Input::get('v_c');
+		$update->pay_method = Input::get('pay_method');
+		$update->address = Input::get('address');
+		$update->city = Input::get('city');
+		$update->state = Input::get('state');
+		$update->zip_code = Input::get('zip_code');
+		$update->phone = Input::get('phone');
+		$update->email = Input::get('email');
+
+		$update->save();
+
+		return Redirect::route('company.show', $input["id"]);
+
 	}
 
 

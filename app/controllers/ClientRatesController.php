@@ -110,6 +110,27 @@ class ClientRatesController extends \BaseController {
         Return Redirect::route('clientRates.index')->with('clientId', Input::get('clientId'));
 	}
 
+	public function show($id)
+	{
+		if(Auth::user()->user_role == 'Admin'){
+
+
+			//Find states
+			$states = DB::table('states')->orderBy('abbrev', 'asc')->get();
+
+			//Get company data for client
+			$company = DB::table('company')->where('id', $id)->first();
+
+			//Find rates for client
+			$rates = ClientRates::whereClient($id)->orderBy('state', 'asc')->get();
+
+			Return View::make('clientRates.show')->with(['rates' => $rates])->with('states', $states)->with('clientId',$id)->with(['company' => $company]);
+		}
+		else{
+			Return "Not Authorized!";
+		}
+	}
+
 
 	/**
 	 * Remove the specified resource from storage.

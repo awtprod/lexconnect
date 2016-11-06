@@ -28,7 +28,7 @@ class CompanyController extends \BaseController {
 	{
 		if(Auth::user()->user_role=='Admin') {
 
-			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+			$states = DB::table('states')->orderBy('name', 'asc')->lists('abbrev', 'abbrev');
 			return View::make('company.create', array('states' => $states));
 		}
 	}
@@ -41,9 +41,25 @@ class CompanyController extends \BaseController {
 			{
 				return Redirect::back()->withInput()->withErrors($this->company->errors);	
 			}
-			
-			
-		$this->company->save();
+
+		//Create new company
+		$new = Company::create($input)->id;
+
+		$address = array (
+			"Type" => "UserDefined",
+			"Name" => $input["name"],
+			"Address" => $input["address"],
+			"City" => $input["city"],
+			"Region" => $input["state"],
+			"PostalCode" => $input["zip_code"],
+			"Country" => "US",
+			"Category" => $input["v_c"],
+			"UserData" => $new
+		);
+
+
+		//Post data to GeoSvc
+		$this->locations->postLocation(array(['address_string' => json_encode($address), 'address' => $address]));
 		
 		return Redirect::route('company.index');
 	}

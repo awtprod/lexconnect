@@ -4,11 +4,16 @@
 <h1>Add New User</h1>
 
 {{ Form::open(['route' => 'users.store']) }}
-	<div>
-	{{ Form::label('name', 'Name: ') }}
-	{{ Form::text('name') }}
-	{{ $errors->first('name') }}
-	</div>
+<div>
+	{{ Form::label('First Name', 'First Name: ') }}
+	{{ Form::text('fname') }}
+	{{ $errors->first('fname') }}
+</div>
+<div>
+	{{ Form::label('Last Name', 'Last Name: ') }}
+	{{ Form::text('lname') }}
+	{{ $errors->first('lname') }}
+</div>
 	<div>
 	{{ Form::label('email', 'Email: ') }}
 	{{ Form::email('email') }}

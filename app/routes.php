@@ -133,6 +133,10 @@ Route::get('home/', [
 		'as' => 'company.index',
 		'uses' => 'CompanyController@index'
 	]);
+	Route::get('users/delete/{id}', [
+		'as' => 'user.delete',
+		'uses' => 'UsersController@delete'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [

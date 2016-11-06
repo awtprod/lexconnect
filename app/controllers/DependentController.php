@@ -22,23 +22,23 @@ class DependentController extends \BaseController {
 
             //Determine if process is dependent on current process
 
-            $depArray = array();
+            $predArray = array();
 
-            foreach($processes as $dependent){
+            foreach($processes as $predecessor){
 
                 //check to see if process is in dependent table
 
-                $depProcess = Dependent::wherepredProcess($id)->wheredepProcess($dependent->id)->first();
+                $predProcess = Dependent::wheredepProcess($id)->wherepredProcess($predecessor->id)->first();
 
                 //if found in dependent table, set var to "yes"
-                if(!empty($depProcess)){
-                    $depArray[$dependent->id] = "yes";
+                if(!empty($predProcess)){
+                    $predArray[$predecessor->id] = "yes";
                 }
 
             }
 
 
-            Return View::make('dependent.edit')->with(['processes' => $processes ])->with(['depArray' => $depArray])->with('predProcess',$process);
+            Return View::make('dependent.edit')->with(['processes' => $processes ])->with(['predArray' => $predArray])->with('predProcess',$process);
 
         }
         else{
@@ -56,32 +56,32 @@ class DependentController extends \BaseController {
 
         //Retrieve Data
         $dependent = Input::get('dependent');
-        $predProcess = Input::get('processId');
+        $depProcess = Input::get('processId');
 
         //Find processes in table
-        $processes = Processes::where('id', '!=', $predProcess)->get();
+        $processes = Processes::where('id', '!=', $depProcess)->get();
 
         //Save new data
         foreach($processes as $process) {
 
             //Find process is in dependent table
-            $depProcess = Dependent::wheredepProcess($process->id)
-                                    ->wherepredProcess($predProcess)->first();
+            $predProcess = Dependent::wherepredProcess($process->id)
+                                    ->wheredepProcess($depProcess)->first();
 
             //If process is in dependent table, update value
-            if(!empty($depProcess)) {
+            if(!empty($predProcess)) {
 
                 //If box is unchecked, remove entry
-                if (!isset($dependent[$process->id])) {
-                    $depProcess->delete();
+                if (!isset($predecessor[$process->id])) {
+                    $predProcess->delete();
                 }
             }
 
             //If process in NOT in dependent table, create new entry
             else{
                 $newDependent = new Dependent;
-                $newDependent->pred_process = $predProcess;
-                $newDependent->dep_process = $process->id;
+                $newDependent->pred_process = $process->id;
+                $newDependent->dep_process = $depProcess;
                 $newDependent->save();
 
             }

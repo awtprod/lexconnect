@@ -1,5 +1,14 @@
 @extends('layouts.default')
 @section('head')
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function() {
+            $("#checkAll").change(function () {
+                $("input:checkbox").prop('checked', $(this).prop("checked"));
+            });
+        });
+    </script>
 @stop
 @section('content')
 
@@ -26,51 +35,37 @@ Reference: {{ $orders->reference }}<p>
 
   </div>
 
+<div>
+
+{{ Form::open(['route' => 'jobs.actions']) }}
+
+    <table>
+        <tr>
+            <th>Servee</th>
+            <th>Status</th>
+            <th>Due Date</th>
+            <th>History</th>
+            <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
+        </tr>
 
 @if(!empty($verify))
 
-    <div>
-        <h2> Documents Need To Be Uploaded: </h2><p>
-        <table>
             <tr>
-                <th>Task</th>
-                <th>Due Date</th>
-                <th>Action</th>
-            </tr>
-
-            <tr>
+                <td>Verify Documents</td>
                 <td>{{ $verify->process }}</td>
                 <td>{{ date("m/d/y", strtotime($verify->deadline)) }} </td>
                 <td></td>
+                <td>{{ Form::checkbox('jobId[]', $verify->job_id) }}</td>
             </tr>
-
-        </table>
-    </div>
-    <br>
 
 @endif
 
 @if(!empty($recording))
-
-    <div>
-        <h2> Recording: </h2><p>
-        <table>
             <tr>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Actions</th>
-            </tr>
-
-            <tr>
-
-                //Location
                 <td>{{ $recording->defendant }}</td>
 
-                //Status
                 <td> {{ $recordingStatus }} </td>
 
-                //Due Date
                 @if(!empty($recordingTasks))
                 <td>{{ date("m/d/y", strtotime($recordingTasks->deadline)) }} </td>
 
@@ -79,44 +74,19 @@ Reference: {{ $orders->reference }}<p>
                 <td></td>
 
                 @endif
-
-                //Actions
-                <td>
-                    {{ Form::open(['route' => 'jobs.actions']) }}
-                    {{ Form::select('action', $recordingActions) }}
-                    {{ Form::hidden('jobId', $recording->id) }}
-                    {{ Form::submit('Submit') }}
-                    {{ Form::close() }}
-                </td>
+                <td></td>
+                <td>{{ Form::checkbox('jobId[]', $recording->id) }}</td>
             </tr>
-
-        </table>
-    </div>
-    <br>
-
 @endif
 
 @if(!empty($filing))
 
-    <div>
-        <h2> Court Filing: </h2><p>
-        <table>
-            <tr>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Actions</th>
-            </tr>
-
             <tr>
 
-                //Location
                 <td>{{ $filing->defendant }}</td>
 
-                //Status
                 <td> {{ $filingStatus }} </td>
 
-                //Due Date
                 @if(!empty($filingTasks))
                     <td>{{ date("m/d/y", strtotime($filingTasks->deadline)) }} </td>
 
@@ -125,44 +95,23 @@ Reference: {{ $orders->reference }}<p>
                     <td></td>
 
                 @endif
-
-                //Actions
-                <td>
-                    {{ Form::open(['route' => 'jobs.actions']) }}
-                    {{ Form::select('server', $filingActions) }}
-                    {{ Form::hidden('jobId', $filing->id) }}
-                    {{ Form::submit('Submit') }}
-                    {{ Form::close() }}
-                </td>
+                <td></td>
+                <td>{{ Form::checkbox('jobId[]', $filing->id) }}</td>
             </tr>
-
-        </table>
-    </div>
-    <br>
 
 @endif
 
 @if(!empty($defendants))
 
 @foreach($servees as $servee)
-    <div>
-        <table>
-            <tr>
-                <th>Defendant</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Actions</th>
-            </tr>
+
 
             <tr>
 
-                //Defendant
                 <td>{{ $servee->defendant }}</td>
 
-                //Status
                 <td> {{ $defendants[$servee->id]["status"] }} </td>
 
-                //Due Date
                 @if(!empty($defendants[$servee->id]["due"]))
                     <td>{{ date("m/d/y", strtotime($defendants[$servee->id]["due"])) }} </td>
 
@@ -171,26 +120,20 @@ Reference: {{ $orders->reference }}<p>
                     <td></td>
 
                 @endif
-
-                //Actions
-                <td>
-                    {{ Form::open(['route' => 'jobs.actions']) }}
-                    {{ Form::select('action', $defendants[$servee->id]["actions"]) }}
-                    {{ Form::hidden('jobId', $defendants[$servee->id]["jobId"]) }}
-                    {{ Form::submit('Submit') }}
-                    {{ Form::close() }}
-                </td>
+                <td></td>
+                <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
             </tr>
 
-        </table>
-    </div>
-    <br>
 @endforeach
 
-@else
- <h2>No Defendants to display!</h2>
-
 @endif
+    </table>
+<br>
 
+{{ Form::select('action', $actions) }}
+{{ Form::submit('Submit') }}
+{{ Form::close() }}
+
+</div>
 <a href="{{ URL::previous() }}">Go Back</a>
 @stop

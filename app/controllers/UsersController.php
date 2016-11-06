@@ -7,7 +7,18 @@ class UsersController extends \BaseController {
 	public function index()
 	{
 		if (Auth::check()){
-		$users = $this->user->all();
+
+		if(Auth::user()->user_role == 'Admin') {
+
+			$users = User::all();
+		}
+		elseif(Auth::user()->role == 'Supervisor'){
+
+			$users = User::wherecompanyId(Auth::user()->company_id)->orderBy('id', 'asc')->get();
+		}
+		else{
+			return "Not Authorized";
+		}
 		
 		return View::make('users.index', ['users' => $users]);
 		}
@@ -38,7 +49,7 @@ class UsersController extends \BaseController {
 	{
 		$input = Input::all();
 		
-		if ( ! $this->user->fill($input)->isValid())
+		if ( ! $this->User->fill($input)->isValid())
 			{
 				return Redirect::back()->withInput()->withErrors($this->user->errors);	
 			}
@@ -49,8 +60,9 @@ class UsersController extends \BaseController {
 
         User::create([
             'email' => Input::get('email'),
-            'name' => Input::get('name'),
-            'company' => Input::get('company'),
+            'fname' => Input::get('fname'),
+			'lname' => Input::get('lname'),
+			'company' => Input::get('company'),
             'role' => Input::get('role'),
             'user_role' => Input::get('user_role'),
             'company_id' => $company_id,
@@ -66,6 +78,75 @@ class UsersController extends \BaseController {
 		
 		return Redirect::route('users.index');
 	}
+
+	public function edit($id)
+	{
+		if (Auth::check()){
+
+			$user = User::whereId($id)->first();
+
+			if(Auth::user()->user_role == 'Admin' OR (Auth::user()->role == 'Supervisor' AND Auth::user()->company_id == $user->company_id)) {
+
+				$company = DB::table('company')->orderBy('name', 'asc')->lists('name', 'name');
+				$user = User::whereId($id)->first();
+				return View::make('users.edit', ['company' => $company], ['user' => $user]);
+
+			}
+		}
+		return Redirect::route('login');
+	}
+	public function store_edit()
+	{
+		$input = Input::all();
+		$user = User::find(Input::get('id'));
+
+		if ($user->email == Input::get('email'))
+		{
+			if ( ! $this->User->fill($input)->isValid())
+			{
+				return Redirect::back()->withInput()->withErrors($this->User->errors);
+			}
+			$user->fname = Input::get('fname');
+			$user->lname = Input::get('lname');
+			$user->company = Input::get('company');
+			$user->role = Input::get('role');
+			$user->user_role = Input::get('user_role');
+			$user->company_id = Input::get('company_id');
+			$user->save();
+			return Redirect::route('users.index');
+		}
+		elseif ( ! $this->user->fill($input)->isValidAll())
+		{
+			return Redirect::back()->withInput()->withErrors($this->user->errors);
+		}
+		$user->email = Input::get('email');
+		$user->fname = Input::get('fname');
+		$user->lname = Input::get('lname');
+		$user->company = Input::get('company');
+		$user->role = Input::get('role');
+		$user->user_role = Input::get('user_role');
+		$user->company_id = Input::get('company_id');
+		$user->save();
+		return Redirect::route('users.show', $input{id});
+	}
+
+	public function delete($id){
+
+		if (Auth::check()){
+
+			$user = User::whereId($id)->first();
+
+			if(Auth::user()->user_role == 'Admin' OR (Auth::user()->role == 'Supervisor' AND Auth::user()->company_id == $user->company_id)) {
+
+				$user->delete();
+
+				return View::make('user.index');
+
+			}
+		}
+		return Redirect::route('login');
+	}
+
 	public function resend_activation()
 	{
 		return View::make('users.resend_activation');
@@ -124,53 +205,6 @@ class UsersController extends \BaseController {
           	return Redirect::route('users.index');
     	}
 
-    	public function edit($id)
-    	{
-    		if (Auth::check()){
-    		$company = DB::table('company')->orderBy('name', 'asc')->lists('name', 'name');
-    		$user = User::whereId($id)->first();
-    		return View::make('users.edit', ['company' => $company], ['user' => $user]);
-    		}
-		return Redirect::route('login');
-    	}
-    	public function store_edit()
-    	{
-    		$input = Input::all();	
-    		$user = User::find(Input::get('id'));
-    		$password = Input::get('password');
-    		if ($user->email == Input::get('email'))
-    		{
-    			if ( ! $this->user->fill($input)->isValid())
-    			{
-		return Redirect::back()->withInput()->withErrors($this->user->errors);	
-			}
-			$user->name = Input::get('name');
-			$user->company = Input::get('company');
-			$user->role = Input::get('role');
-			$user->user_role = Input::get('user_role');
-			$user->company_id = Input::get('company_id');
-			if ( ! empty($password)){	
-			$user->password = Hash::make(Input::get('password'));
-			}
-			$user->save();
-			return Redirect::route('users.index');
-		}
-		elseif ( ! $this->user->fill($input)->isValidAll())
-		{
-		return Redirect::back()->withInput()->withErrors($this->user->errors);	
-		}		
-			$user->email = Input::get('email');
-			$user->name = Input::get('name');
-			$user->company = Input::get('company');
-			$user->role = Input::get('role');
-			$user->user_role = Input::get('user_role');
-			$user->company_id = Input::get('company_id');
-			if ( ! empty($password)){	
-			$user->password = Hash::make(Input::get('password'));
-			}
-			$user->save();
-			return Redirect::route('users.index');
-	}
 	
 	public function forgot_password()
 	{
@@ -179,8 +213,11 @@ class UsersController extends \BaseController {
 	
 	public function push_forgot_password()
 	{
+		$input = Input::all();
+
 		$email = Input::only('email');
 		$user = User::whereEmail($email)->first();
+
 		if (empty($user)){
 		Return Redirect::back()->withInput()->withErrors('Email Not Found!');
 		}

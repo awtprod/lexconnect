@@ -90,9 +90,9 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	}
 
-	public function depProcess ($process){
+	public function depProcess ($process, $orderId){
 
-		$depProcesses = Dependent::wheredepProcess($process["process"])->get();
+		$depProcesses = Dependent::wheredepProcess($process)->get();
 
 		//If additional dependent processes exist, check for existing jobs
 
@@ -104,7 +104,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 				$addJob = Jobs::whereProcess($depProcess->pred_process)
 						->whereNull('completed')
-						->whereorderId($process["orderId"])->get();
+						->whereorderId($orderId)->get();
 			}
 
 			if(!empty($addJob)){
@@ -148,7 +148,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	//Find nearby vendors
 	$zipcode = substr($serverData['zipcode'],0,5);
 
-	$req = "http://api.geosvc.com/rest/usa/{$zipcode}/nearby?pt=vendors&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
+	$req = "http://api.geosvc.com/rest/usa/{$zipcode}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
 
 
@@ -479,11 +479,50 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 
 	}
+
+public 	function Email($template, $job, $vendor, $subject){
+
+	Mail::send($template, ['job' => $job], function($message) use ($vendor, $subject){
+		$message->from('no-reply@lexsend.com', 'LexSend');
+		$message->to('awtprod@gmail.com')
+			->subject($subject);
+	});
+
+}
 	
 public function vendorNotification($data){
 
+
+
 	//Get job info
 	$job = Jobs::whereId($data["job"])->first();
+
+	//Get email
+	$vendor = Company::whereId($job->vendor)->first();
+
+	//Send email notification
+
+	//Hold notification
+	if($data["action"] == '0'){
+
+		$this->Email('emails.hold', $job, $vendor, 'Job Hold Notification');
+
+	}
+	//Resume notification
+	elseif($data["action"] == '1'){
+
+		$this->Email('emails.resume', $job, $vendor, 'Resume Job Notification');
+
+	}
+
+	//Cancel notification
+	elseif($data["action"] == '2'){
+
+		$this->Email('emails.cancel', $job, $vendor, 'Job Cancel Notification');
+
+	}
+
+	/*
 
 	//Find previous task
 	$sortOrder = Tasks::wherejobId($job->id)
@@ -511,6 +550,8 @@ public function vendorNotification($data){
 	$tasks->deadline = Carbon::now();
 	$tasks->days = 0;
 	$tasks->save();
+	
+	*/
 }
 
 }

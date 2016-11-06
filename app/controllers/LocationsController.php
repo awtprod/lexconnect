@@ -67,7 +67,7 @@ class LocationsController extends \BaseController {
                     "Region" => $input["location"][$location->id]["state"],
                     "PostalCode" => $input["location"][$location->id]["zipcode"],
                     "Country" => "US",
-                    "Category" => "Vendors",
+                    "Category" => "Vendor",
                     "UserData" => Auth::user()->company_id
                 );
 
@@ -100,7 +100,7 @@ class LocationsController extends \BaseController {
                    "Region" => $input["location"][0]["state"],
                    "PostalCode" => $input["location"][0]["zipcode"],
                    "Country" => "US",
-                   "Category" => "Vendors",
+                   "Category" => "Vendor",
                    "UserData" => Auth::user()->company_id
             );
 

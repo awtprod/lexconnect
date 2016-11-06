@@ -71,7 +71,7 @@ class Locations extends Eloquent implements UserInterface, RemindableInterface {
 // execute the request
 
 		$output = curl_exec($ch);
-
+		
 //covert output
 		$geoId= (array) simplexml_load_string($output);
 
@@ -79,7 +79,6 @@ class Locations extends Eloquent implements UserInterface, RemindableInterface {
 		if(curl_error($ch)){
 
 			$error = curl_error($ch);
-dd($error);
 			// close curl resource to free up system resources
 			curl_close($ch);
 
@@ -108,7 +107,7 @@ dd($error);
 				$location = Locations::whereGeoId($data[0]["address"]["Id"])->first();
 
 			}
-			$location->company_id = Auth::user()->company_id;
+			$location->company_id = $data[0]["address"]["UserData"];
 			$location->name = $data[0]["address"]["Name"];
 			$location->street = $data[0]["address"]["Address"];
 			$location->city = $data[0]["address"]["City"];

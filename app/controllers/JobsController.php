@@ -357,17 +357,7 @@ class JobsController extends \BaseController {
 	public function actions(){
 
 		//Get job info
-		$jobs = Jobs::whereId(Input::get('jobId'))->get();
-
-		dd($jobs);
-
-		//If taking an action for all jobs for an order
-		if(empty($jobs)){
-
-			$jobs = Jobs::whereorderId(Input::get('orderId'))
-						  ->whereNull('completed')->get();
-
-		}
+		$jobs = Input::get('jobId');
 
 		//Place job on hold
 		if(Input::get('action')==0){
@@ -376,9 +366,8 @@ class JobsController extends \BaseController {
 			//Update jobs
 			foreach($jobs as $job){
 
-
 				//Update status to 0
-				$status = Jobs::whereId($job->id)->first();
+				$status = Jobs::whereId($job)->first();
 
 				//Check if job is already on hold
 				if($status->status == 0){
@@ -389,20 +378,20 @@ class JobsController extends \BaseController {
 					$status->save();
 
 					//Put current task on hold
-					$curTask = Tasks::wherejobId($job->id)
+					$curTask = Tasks::wherejobId($job)
 							->whereStatus(1)->first();
 					$curTask->status = 0;
 					$curTask->save();
 
 				//Create array to notify vendor
-				$data = array('job'=>$job->id, 'type'=>'Hold Job');
+				$data = array('job'=>$job, 'action'=>'0');
 
 				//Create task to notify vendor
 				$this->jobs->vendorNotification($data);
 
 				}
 
-				$orderId = $job->order_id;
+				$orderId = $status->order_id;
 			}
 
 		}
@@ -413,27 +402,34 @@ class JobsController extends \BaseController {
 			//Update jobs
 			foreach($jobs as $job) {
 
-				//Update status to 1
-				$status = Jobs::whereId($job->id)->first();
-				$status->status = 1;
-				$status->save();
+				$jobData = Jobs::whereId($job)->first();
 
-				//Resume current task
-				$curTask = Tasks::wherejobId($job->id)
-								  ->whereNull('completion')->orderBy('sort_order','asc')->first();
-				$curTask->status = 1;
-				$curTask->save();
+				$orderId = $jobData->order_id;
 
-				//Update tasks
-				$this->tasks->TaskForecast($curTask->id);
+				//Check for dependent jobs
+				if(!$this->jobs->depProcess($jobData->process, $jobData->order_id)) {
 
-				//Create array to notify vendor
-				$data = array('job'=>$job->id, 'type'=>'Resume Job');
+					//Update status to 1
+					$status = Jobs::whereId($job)->first();
+					$status->status = 1;
+					$status->save();
 
-				//Create task to notify vendor
-				$this->jobs->vendorNotification($data);
+					//Resume current task
+					$curTask = Tasks::wherejobId($job)
+						->whereNull('completion')->orderBy('sort_order', 'asc')->first();
+					$curTask->status = 1;
+					$curTask->save();
 
-				$orderId = $job->order_id;
+					//Update tasks
+					$this->tasks->TaskForecast($curTask->id);
+
+					//Create array to notify vendor
+					$data = array('job' => $job, 'action' => '1');
+
+					//Create task to notify vendor
+					$this->jobs->vendorNotification($data);
+
+				}
 
 			}
 
@@ -445,7 +441,7 @@ class JobsController extends \BaseController {
 			foreach($jobs as $job){
 
 				//Update status to 1
-				$status = Jobs::whereId($job->id)->first();
+				$status = Jobs::whereId($job)->first();
 				$status->status = 3;
 				$status->save();
 
@@ -453,18 +449,15 @@ class JobsController extends \BaseController {
 				if($job->service == "Process Service"){
 
 				//Determine if any attempts have been made
-				$attempts = Attempts::wherejobId($job->id)->get();
-
-				//Determine if defendant has been served
-				$served = Serve::wherejobId($job->id)->first();
+				$attempts = Attempts::wherejobId($job)->get();
 
 				//Find servee info
-				$servee = Servee::wherejobId($job->id)->first();
+				$servee = Servee::wherejobId($job)->first();
 
 				//If no attempts have been made, cancel current task
-				if(empty($attempts) AND empty($served)){
+				if(empty($attempts) AND $servee->status == 0){
 
-					$curTask = Tasks::wherejobId($job->id)
+					$curTask = Tasks::wherejobId($job)
 							          ->whereNull('completion')->orderBy('sort_order','asc')->first();
 					$curTask->status = 0;
 					$curTask->save();
@@ -475,14 +468,14 @@ class JobsController extends \BaseController {
 				elseif(empty($served) AND $servee->status == 0){
 
 					//Complete current task
-					$curTask = Tasks::wherejobId($job->id)
+					$curTask = Tasks::wherejobId($job)
 									  ->whereNull('completion')->orderBy('sort_order','asc')->first();
 					$curTask->completion = Carbon::now();
 					$curTask->completed_by = Auth::user()->id;
 					$curTask->save();
 
 					//Update next task
-					$nextTask = Tasks::wherejobId($job->id)
+					$nextTask = Tasks::wherejobId($job)
 									   ->whereNull('completion')->orderBy('sort_order','asc')->first();
 					$nextTask->status = 1;
 					$nextTask->save();
@@ -496,7 +489,7 @@ class JobsController extends \BaseController {
 				else{
 
 					//Pause current task
-					$curTask = Tasks::wherejobId($job->id)
+					$curTask = Tasks::wherejobId($job)
 								  ->whereNull('completion')->orderBy('sort_order','asc')->first();
 					$curTask->status = 0;
 					$curTask->save();
@@ -504,31 +497,14 @@ class JobsController extends \BaseController {
 				}
 
 				//Create array to notify vendor
-				$data = array('job'=>$job->id, 'type'=>'Stop Job');
+				$data = array('job'=>$job, 'action'=>'2');
 
 				//Create task to notify vendor
 				$this->jobs->vendorNotification($data);
 
-				$orderId = $job->order_id;
+				$orderId = $status->order_id;
 
 			}
-
-		}
-
-		//Submit new address
-		elseif(Input::get('action')==3){
-
-			//Retrieve Order Information
-			$servee = Servee::whereId($jobs->servee_id)->first();
-
-
-			//Retrieve previously attempted addresses
-			$prevJobs = Jobs::whereserveeId($servee->id)->orderBy('created_at', 'asc')->get();
-
-			//Retrieve states names
-			$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
-
-			Return View::make('jobs.new')->with(['states' => $states])->with(['servee' => $servee])->with(['jobs' => $prevJobs]);
 
 		}
 

@@ -1,13 +1,13 @@
 @extends('layouts.default')
 
 @section('content')
-<h1>Dependent Processes for {{ $predProcess->name }}</h1>
+<h1>Predecessor Processes for {{ $predProcess->name }}</h1>
 
 {{ Form::open(['route' => 'dependent.store']) }}
 <table>
   <tr>
     <th>Process</th>
-    <th>Dependent</th>
+    <th>Predecessor</th>
   </tr>
 
 @foreach ($processes as $process)
@@ -18,16 +18,16 @@
     </div>
 	<div>
 
-@if(!empty($depArray[$process->id]))
+@if(!empty($predArray[$process->id]))
 	<div><td>
-	{{ Form::label('dependent') }}
-	{{ Form::checkbox('dependent['.$process->id.']', 'yes', true) }}
+	{{ Form::label('predecessor') }}
+	{{ Form::checkbox('predecessor['.$process->id.']', 'yes', true) }}
 	</div>
 	</td>
 @else
 	<div><td>
-	{{ Form::label('dependent') }}
-	{{ Form::checkbox('dependent['.$process->id.']', 'yes') }}
+	{{ Form::label('predecessor') }}
+	{{ Form::checkbox('predecessor['.$process->id.']', 'yes') }}
 	</div>
 	</td>
 @endif
@@ -38,7 +38,7 @@
 
 <td>{{ Form::hidden('processId', $predProcess->id) }}</td>
 
-	<div>{{ Form::submit('Save Dependents') }}{{ Form::reset('Reset') }}</div>
+	<div>{{ Form::submit('Save Predecessors') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}
 <a href="{{ URL::previous() }}">Go Back</a>
 @stop

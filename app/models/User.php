@@ -4,24 +4,29 @@ use Illuminate\Auth\UserTrait;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableTrait;
 use Illuminate\Auth\Reminders\RemindableInterface;
+//use Illuminate\Database\Eloquent\SoftDeletingTrait;
 
 class User extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['email','email_confirmation','role','name','password','activation_code','activation','password_confirmation','company', 'user_role', 'company_id'];
-	
+	protected $fillable = ['email','email_confirmation','role','fname','lname','password','activation_code','activation','password_confirmation','company', 'user_role', 'company_id'];
+
+	//protected $dates = ['deleted_at'];
+
 	public static $rules = [
 		'password' => 'confirmed|min:8',
-		'name' => 'required'
-	
-		
+		'fname' => 'required',
+		'lname' => 'required'
+
+
 	];
 	
 		public static $rulesall = [
 		'email' => 'required|confirmed|email|unique:users',
-		'name' => 'required',
-		'password' => 'confirmed|min:8'
+		'password' => 'confirmed|min:8',
+		'fname' => 'required',
+		'lname' => 'required'
 	];
 	
 	public static $passrules = [

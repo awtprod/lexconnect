@@ -5,9 +5,14 @@
 
 {{ Form::open(['route' => 'users.store_edit']) }}
 	<div>
-	{{ Form::label('name', 'Name: ') }}
-	{{ Form::text('name', $user->name) }}
-	{{ $errors->first('name') }}
+	{{ Form::label('First Name', 'First Name: ') }}
+	{{ Form::text('fname', $user->fname) }}
+	{{ $errors->first('fname') }}
+	</div>
+	<div>
+	{{ Form::label('Last Name', 'Last Name: ') }}
+	{{ Form::text('lname', $user->lname) }}
+	{{ $errors->first('lname') }}
 	</div>
 	<div>
 	{{ Form::label('email', 'Email: ') }}
@@ -18,16 +23,6 @@
 	{{ Form::label('email_confirmation', 'Confirm Email: ') }}
 	{{ Form::email('email_confirmation', $user->email) }}
 	{{ $errors->first('email_confirmation') }}
-	</div>
-	<div>
-	{{ Form::label('password', 'Password: ') }}
-	{{ Form::password('password') }}
-	{{ $errors->first('password') }}
-	</div>
-	<div>
-	{{ Form::label('password_confirmation', 'Confirm Password: ') }}
-	{{ Form::password('password_confirmation') }}
-	{{ $errors->first('password_confirmation') }}
 	</div>
 	<div>
 	{{ Form::label('role', 'User Level: ') }}

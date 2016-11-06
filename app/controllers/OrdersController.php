@@ -191,7 +191,7 @@ class OrdersController extends \BaseController {
 
                         //Check for dependent jobs
 
-                        if (!$this->jobs->depProcess(['process' => $process, 'orderId' => $orders_id])) {
+                        if (!$this->jobs->depProcess($process, $orders_id)) {
 
                             $job->status = 1;
 
@@ -258,7 +258,7 @@ class OrdersController extends \BaseController {
 
 					//Check for dependent jobs
 
-					if (!$this->jobs->depProcess(['process' => $process, 'orderId' => $orders_id])) {
+					if (!$this->jobs->depProcess($process, $orders_id)) {
 
 						$job->status = 1;
 
@@ -306,6 +306,8 @@ class OrdersController extends \BaseController {
 	public function show($id)
 	{
 
+		$actions = array('0' => 'Hold', '1' => 'Resume', '2' => 'Cancel');
+
 		//Retrieve Order
 		$order = Orders::whereId($id)->first();
 		
@@ -350,11 +352,8 @@ class OrdersController extends \BaseController {
 				//Filing status
 				$filingStatus = $this->orders->status($filing->id);
 
-				//Find recording actions
-				$filingActions = $this->orders->actions($filing->id);
 
 				View::share(['filingTasks' => $filingTasks]);
-				View::share(['filingActions' => $filingActions]);
 				View::share('filingStatus', $filingStatus);
 			}
 
@@ -372,11 +371,8 @@ class OrdersController extends \BaseController {
 				//Recording status
 				$recordingStatus = $this->orders->status($recording->id);
 
-				//Find recording actions
-				$recordingActions = $this->orders->actions($recording->id);
 
 				View::share(['recordingTasks' => $recordingTasks]);
-				View::share(['recordingActions' => $recordingActions]);
 				View::share('recordingStatus', $recordingStatus);
 			}
 
@@ -401,16 +397,13 @@ class OrdersController extends \BaseController {
 				$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["jobId"]);
 
 
-				//Find job actions
-				$defendants[$viewservee->id]["actions"] = $this->orders->actions($defendants[$viewservee->id]["jobId"]);
-
 			}
 		}
 
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token);
+		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions]);
 		}
 		else{
 		Return redirect::to('login');	

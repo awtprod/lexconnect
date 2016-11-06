@@ -6,7 +6,7 @@
 @if ($users->count())
 
 @foreach ($users as $user)
-<li>{{ link_to("/users/{$user->id}", $user->name) }} &nbsp; {{ link_to("/users/{$user->id}/edit", 'Edit') }}</li> 
+<li>{{ link_to("/users/{$user->id}", $user->fname.''.$user->lname) }} &nbsp; {{ link_to("/users/{$user->id}/edit", 'Edit') }} &nbsp; {{ link_to("/users/delete/{$user->id}/", 'Delete') }}</li>
 @endforeach
 @else
 <h2>No Users to display!</h2>

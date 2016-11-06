@@ -2,7 +2,7 @@
 
 class BaseController extends Controller {
 
-	public function __construct (Company $company, Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties)
+	public function __construct (Company $company, Servee $Servee, Documents $Documents, User $user, Orders $orders, Tasks $tasks, Reprojections $reprojections, Jobs $jobs, Invoices $invoices, DocumentsServed $DocumentsServed, Processes $processes, Steps $steps, Template $template, Counties $counties, Locations $locations)
 	{
 
 		$this->orders = $orders;
@@ -19,6 +19,7 @@ class BaseController extends Controller {
 		$this->Documents = $Documents;
 		$this->Servee = $Servee;
 		$this->company = $company;
+		$this->locations = $locations;
 	}
 
 	/**

@@ -159,11 +159,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$data = array();
 
 		$data["server"] = 1;
-		$data["rate"] = 75;
-		$data["addServeeRate"] = 75;
+		$data["rate"] = 0;
+		$data["addServeeRate"] = 0;
 		$data["personalRate"] = 0;
-		$data["freePgs"] = 50;
-		$data["pageRate"] = 0.25;
+		$data["freePgs"] = 0;
+		$data["pageRate"] = 0;
 
 		return $data;
 	}
@@ -325,11 +325,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$data = array();
 
 		$data["server"] = 1;
-		$data["rate"] = 75;
-		$data["addServeeRate"] = 75;
+		$data["rate"] = 0;
+		$data["addServeeRate"] = 0;
 		$data["personalRate"] = 0;
-		$data["freePgs"] = 50;
-		$data["pageRate"] = 0.25;
+		$data["freePgs"] = 0;
+		$data["pageRate"] = 0;
 
 		return $data;
 	}

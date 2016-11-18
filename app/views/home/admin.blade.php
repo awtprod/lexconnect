@@ -5,7 +5,7 @@
 <h1>Task List</h1>
 
 
-@if (!empty($job))
+@if (!empty($tasks))
 
 <table>
   <tr>
@@ -16,22 +16,18 @@
     <th>Defendant</th>
     <th>Deadline</th>
   </tr>
-@foreach ($job as $jobs)
+@foreach ($tasks as $task)
 <tr>
-<td>{{ link_to("/jobs/{$jobs["id"]}", $jobs["id"]) }}</td>
-<td>{{ link_to("/orders/{$jobs["order_id"]}", $jobs["order_id"]) }}</td>
-<td>{{ $jobs["vendor"] }}</td>
-<td>{{ $jobs["task"] }}</td>
-<td>{{ $jobs["defendant"] }}</td> 
-@if (!empty($jobs["link"]["link"]))
-<td>{{ link_to("/reprojections/{$jobs["link"]["link"]}", $jobs["deadline"]) }} </td>
-@else
-<td>{{ $jobs["deadline"] }}</td> 
-@endif
+<td>{{ link_to("/jobs/{$task->job_id}", $task->job_id) }}</td>
+<td>{{ link_to("/orders/{$task->order_id}", $task->order_id) }}</td>
+<td></td>
+<td>{{ str_replace('_', ' ', $task->service) }}</td>
+<td></td>
+<td>{{ date("m/d/y", strtotime($task->deadline))}}</td>
 
 @endforeach
 @else
-<h2>No Jobs to display!</h2>
+<h2>No tasks to display!</h2>
 @endif
 
 <a href="{{ URL::previous() }}">Go Back</a>

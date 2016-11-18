@@ -36,20 +36,10 @@ class HomeController extends BaseController {
 	if(Auth::user()->user_role=='Admin'){
 	//Find current tasks
 	
-	$openjobs = DB::table('jobs')
-				->join('tasks', function($opentasks)
-			{
-				$opentasks->on('jobs.id', '=', 'tasks.job_id')
-				->where('jobs.status', '=', 0)
-				->whereNULL('jobs.completed')
-				->whereNULL('tasks.completion')
-				->where('tasks.status', '=', 1);
-			})
-			->select('tasks.job_id', 'jobs.defendant', 'tasks.id', 'tasks.process', 'tasks.deadline', 'jobs.vendor', 'jobs.order_id')
-			->orderBy('tasks.deadline', 'asc')
-			->get();
+	$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
 
-			
+
+	/*
 	//Build tasks list
 	$tasklist = array();
 	
@@ -57,16 +47,16 @@ class HomeController extends BaseController {
 		
 		$vendor = DB::table('company')->where('id', $job->vendor)->pluck('name');
 		
-		$tasklist[$job->job_id]['task'] = $this->tasks->TaskStatus($job->id);
-		$tasklist[$job->job_id]['link'] = $this->tasks->TaskLink($job->id);
+		$tasklist[$job->job_id]['task'] = $job->service;
+		$tasklist[$job->job_id]['priority'] = $job->priority;
+		$tasklist[$job->job_id]['defendant'] = $job->defendant;
 		$tasklist[$job->job_id]['deadline'] = date("m/d/y", strtotime($job->deadline));
 		$tasklist[$job->job_id]['id'] = $job->job_id;
-		$tasklist[$job->job_id]['defendant'] = $job->defendant;
 		$tasklist[$job->job_id]['vendor'] = $vendor;
 		$tasklist[$job->job_id]['order_id'] = $job->order_id;
 	}
-	
-	Return View::make('home.admin')->with(['job' => $tasklist]);		
+	*/
+	Return View::make('home.admin')->with(['tasks' => $tasks]);
 		
 	}
 	
@@ -75,24 +65,12 @@ class HomeController extends BaseController {
 	elseif(Auth::user()->user_role=='Vendor'){
 		
 	//Find current tasks
-	
-	$openjobs = DB::table('jobs')
-				->join('tasks', function($opentasks)
-			{
-				$opentasks->on('jobs.id', '=', 'tasks.job_id')
-				->where('jobs.vendor', '=', Auth::user()->company_id)
-				->where('jobs.status', '=', 0)
-				->whereNULL('jobs.completed')
-				->whereNULL('tasks.completion')
-				->where('tasks.status', '=', 1)
-				->where('tasks.vendor', '=', Auth::user()->company_id);
-			})
-			->select('tasks.job_id', 'jobs.defendant', 'tasks.id', 'tasks.process', 'tasks.deadline')
-			->orderBy('tasks.deadline', 'asc')
-			->get();
 
-			
-	//Build tasks list
+	$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
+
+/*
+
+		//Build tasks list
 	$tasklist = array();
 	
 	foreach($openjobs as $job){
@@ -102,8 +80,8 @@ class HomeController extends BaseController {
 		$tasklist[$job->job_id]['id'] = $job->job_id;
 		$tasklist[$job->job_id]['defendant'] = $job->defendant;
 	}
-	
-	Return View::make('home.vendor')->with(['job' => $tasklist]);
+	*/
+	Return View::make('home.vendor')->with(['tasks' => $tasks]);
 	}
 	
 	//If User is Client

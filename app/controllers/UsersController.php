@@ -241,11 +241,8 @@ class UsersController extends \BaseController {
 	}
 	public function post_reset_password()
 	{
-	   $input = Input::all();	
-    	if ( ! $this->user->fill($input)->isValidPassword())
-	{
-		return Redirect::back()->withInput()->withErrors($this->user->errors);	
-	}
+	   $input = Input::all();
+
 	$password_reset = Input::get('password_reset');
 	$user = User::wherePasswordReset($password_reset)->first();
         if ( ! $user)
@@ -258,7 +255,7 @@ class UsersController extends \BaseController {
         
         Return Redirect::to('/');
 	}
-	public function yish()
+	public function test()
 	{
 		$companies = DB::table('company')->get();
 		//$companies = DB::select('select * from company where id = ?', array(1));

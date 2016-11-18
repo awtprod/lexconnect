@@ -36,7 +36,7 @@ class OrdersController extends \BaseController {
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
 
 		if(Auth::user()->user_role=='Admin'){
-			$company = DB::table('company')->where('v_c', 'Client')->orderBy('name', 'asc')->lists('name', 'name');
+			$company = DB::table('company')->where('v_c', 'Client')->orderBy('name', 'asc')->lists('name', 'id');
 		}
 		else{
 			$company = Auth::user()->company;
@@ -155,12 +155,49 @@ class OrdersController extends \BaseController {
                     $job->process = $process;
                     $job->save();
                 }
+		
+				//create court run tasks
+				if (!empty($input["run_docs"])) {
 
-                //create tasks/jobs for filing/recording, if requested
+					//Create job for filing
+					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
+
+					//Select Server
+
+					$server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"]]);
+
+					//Load task into db
+					$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+
+					//Check for dependent jobs
+
+					if (!$this->jobs->depProcess($process, $orders_id)) {
+
+						$job->status = 1;
+
+					} else {
+
+						$job->status = 2;
+
+					}
+
+					//Update job with process
+					$job->vendor = $server["server"];
+					$job->process = $process;
+					$job->save();
+
+					//Create Invoice
+					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'court run', 'personal' => '', 'personalRate' => $server["data"]["personalRate"], 'rate' => $server["data"]["rate"], 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
+
+					$input["filing"] = '';
+					
+				}
+					
+				//create tasks/jobs for filing/recording, if requested
 
                 if(!empty($input["filing"]) OR !empty($input["recording"])){
 
-                for ($i = 1; $i < 3; $i++) {
+                for ($i = 1; $i < 2; $i++) {
 
 
                     if (!empty($input["filing"])) {
@@ -173,11 +210,6 @@ class OrdersController extends \BaseController {
                         $service = "recording";
 
                     }
-					elseif (!empty($input["run_docs"])) {
-
-						$service = "court run";
-
-					}
 
                         //Create job for filing
 						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
@@ -187,7 +219,7 @@ class OrdersController extends \BaseController {
                         $server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"]]);
 
                         //Load task into db
-						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
                         //Check for dependent jobs
 
@@ -202,7 +234,7 @@ class OrdersController extends \BaseController {
                         }
 
                         //Update job with process
-                        $job->vendor = $server["server"];
+                        $job->vendor = 1;
                         $job->process = $process;
                         $job->save();
 

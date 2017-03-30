@@ -216,6 +216,11 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 			//If it is last task, return back to controller
 			if (is_null($nextTasks->first())) {
+
+				$this->jobs->JobComplete($tasksFirst->job_id);
+			}
+				//Duplicate job completion process? Remove if this doesn't break code
+				/*
 				//Mark Job as complete
 				$job = Jobs::whereId($tasksFirst->job_id)->first();
 				$job->completed = Carbon::now();
@@ -272,14 +277,17 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 										$depTask->save();
 
 										$this->tasks->Forecast($depTask->id);
+
 									}
 								}
 
 							}
+
 						}
 
 					}
-				}
+				*/
+
 				Return true;
 			}
 
@@ -321,7 +329,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			}
 			Cache::forget('days', 'step');
 		}
-		}
+
 
 
 

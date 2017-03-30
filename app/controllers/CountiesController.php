@@ -121,6 +121,7 @@ class CountiesController extends \BaseController {
 
     public function getCounties()
     {
+
         $input = Input::get('option');
         $counties = Counties::whereState($input)->get();
 

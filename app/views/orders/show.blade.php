@@ -31,7 +31,7 @@ Reference: {{ $orders->reference }}<p>
  <div>
 
      {{ link_to("/documents/upload/{$orders->id}", 'Upload Documents') }}<br>
-     {{ link_to("/documents/view/{$orders->id}", 'View Documents') }}<br>
+     {{ link_to("/documents/view/?orderId={$orders->id}", 'View Documents') }}<br>
 
   </div>
 

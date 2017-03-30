@@ -15,12 +15,7 @@ class ClientRatesController extends \BaseController {
 
 		//Get client Id
 		$clientId = Input::get('clientId');
-
-		if(empty($clientId)) {
-
-				$clientId = Session::get('clientId');
-		}
-
+			
         //Get list of clients
         $clients = DB::table('company')->where('v_c', 'Client')->orderBy('v_c', 'asc')->lists('name', 'id');
 
@@ -107,7 +102,7 @@ class ClientRatesController extends \BaseController {
 			}
 		}
 
-        Return Redirect::route('clientRates.index')->with('clientId', Input::get('clientId'));
+        Return Redirect::route('clientRates.index', ['clientId' => Input::get('clientId')]);
 	}
 
 	public function show($id)

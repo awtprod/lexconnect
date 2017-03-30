@@ -11,6 +11,7 @@ class DocumentsController extends \BaseController {
      */
     public function show($id)
     {
+
         //Find document data
         $document = Documents::whereId($id)->first();
 
@@ -75,7 +76,10 @@ class DocumentsController extends \BaseController {
 
     }
 
-    public function view($orderId){
+    public function view(){
+
+        //Get job Id, if available
+        $orderId = Input::get('orderId');
 
         //Get order information
         $order = Orders::whereId($orderId)->first();
@@ -86,6 +90,13 @@ class DocumentsController extends \BaseController {
         //Get job information
         $job = Jobs::whereId($jobId)->first();
 
+        //if provide only job id, find order info
+        if(empty($order)){
+
+            $orderId = $job->order_id;
+
+            $order = Orders::whereId($job->order_id)->first();
+        }
         //Find documents for order
 
         //Find if client or Admin or vendor

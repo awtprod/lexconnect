@@ -11,7 +11,7 @@
     </tr>
 @foreach($documents as $document)
 <tr>
-    <td>{{link_to("{$document->filepath}/{$document->filename}", str_replace('_', ' ', $document->document))}}</td>
+    <td>{{link_to("/documents/show/{$document->id}", str_replace('_', ' ', $document->document))}}</td>
     <td>{{$document->created_at}}</td>
     </tr>
 @endforeach

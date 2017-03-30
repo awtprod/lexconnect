@@ -31,6 +31,7 @@ class OrdersController extends \BaseController {
 	 */
 	public function create()
 	{
+
 		$states = ['' => 'Select State']+DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
@@ -214,10 +215,6 @@ class OrdersController extends \BaseController {
                         //Create job for filing
 						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
 
-                        //Select Server
-
-                        $server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"]]);
-
                         //Load task into db
 						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
@@ -239,7 +236,7 @@ class OrdersController extends \BaseController {
                         $job->save();
 
 						//Create Invoice
-						$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $service, 'personal' => '', 'personalRate' => $server["data"]["personalRate"], 'rate' => $server["data"]["rate"], 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
+						$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $service, 'personal' => '', 'personalRate' => '0', 'rate' => '0', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
 
                         $input["filing"] = '';
                     }

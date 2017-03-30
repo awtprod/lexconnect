@@ -28,16 +28,17 @@ table#t01 th	{
 </head>
 
 <body>
-<h1>Invoice</h1><p>
-<h2>Bill To:</h2><p>
-{{ $data['client'] }}<br>
-{{ $data['client_street'] }}<br>
-{{ $data['client_city'] }}, {{ $data['client_state'] }}&nbsp;{{ $data['client_zip'] }}<br>
+<h1>Invoice # {{ $invoice->id }}</h1><p>
+{{ $date }}<br>
+<h2>Bill To:</h2><br>
+{{ $client->name }}<br>
+{{ $client->street }}<br>
+{{ $client->city }}, {{ $client->state }}&nbsp;{{ $client->zip_code }}<br>
 
 
 <div>
-Order #{{ $data['order'] }}<br>
-Job #{{ $data['job'] }}<p>
+Order #{{ $job->order_id }}<br>
+Job #{{ $job->id }}<p>
 <table>
   <tr>
     <th>Service</th>
@@ -49,11 +50,11 @@ Job #{{ $data['job'] }}<p>
   </tr>
 
   <tr>
-      <td>{{ $data['product'] }}</td>
-      <td>{{ $data['serve_date'] }}</td>
-      <td>{{ $data['defendant'] }}</td>
-      <td>{{ $data['street'] }},&nbsp;{{ $data['city'] }},&nbsp;{{ $data['state'] }}&nbsp;{{ $data['zip'] }}</td>
-      <td>${{ $data['client_fee'] }}.00</td>
+      <td>{{ $job->service }}</td>
+      <td>{{ $serve->date }}&nbsp;{{ $serve->time }}</td>
+      <td>{{ $job->defendant }}</td>
+      <td>{{ $job->street }},&nbsp;{{ $job->city }},&nbsp;{{ $job->state }}&nbsp;{{ $job->zipcode }}</td>
+      <td>${{ $invoice->client_amt }}.00</td>
 
 
   </tr>
@@ -61,9 +62,9 @@ Job #{{ $data['job'] }}<p>
 </div>
 -------------------------------------------<p>
 <h2><table>
-<tr><td>Amount Due</td><td>${{ $data['client_fee'] }}.00</td>
+<tr><td>Amount Due</td><td>${{ $invoice->client_amt }}.00</td>
 </tr>
-</table>
+</table></h2>
 
 </body>
 </html>

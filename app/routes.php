@@ -45,7 +45,7 @@ Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
 	]);
-    Route::get('rates/vendor/', [
+	Route::match(array('GET', 'POST'),'rates/vendor/', [
         'as' => 'vendorrates.index',
         'uses' => 'VendorRatesController@index'
     ]);
@@ -121,9 +121,13 @@ Route::get('home/', [
 			'as' => 'clientRates.index',
 			'uses' => 'ClientRatesController@index'
 	]);
-	Route::get('documents/view/{id}', [
+	Route::get('documents/view/', [
 		'as' => 'documents.view',
 		'uses' => 'DocumentsController@view'
+	]);
+	Route::get('documents/show/{id}', [
+		'as' => 'documents.show',
+		'uses' => 'DocumentsController@show'
 	]);
 	Route::get('documents/upload/{id}', [
 		'as' => 'documents.upload',
@@ -318,7 +322,6 @@ Route::resource('serve', 'ServeController');
 Route::resource('servee', 'ServeeController');
 Route::resource('rules', 'RulesController');
 Route::resource('reprojections', 'ReprojectionsController');
-Route::resource('documents', 'DocumentsController');
 Route::resource('processes', 'ProcessesController');
 Route::resource('dependent', 'DependentController');
 

@@ -84,6 +84,22 @@
     </style>
 </head>
 <body>
+
+
+<br><div>{{ Form::open(['route' => 'vendorrates.index']) }}
+    {{ Form::label('vendorId', 'Select Vendor: ') }}
+
+    @if(!empty($company))
+        {{ Form::select('vendorId', $vendors, $company->id) }}
+    @else
+        {{ Form::select('vendorId', $vendors) }}
+    @endif
+    {{ Form::submit('Submit') }}</div></br>
+{{ Form::close() }}
+
+@if(!empty($company))
+
+
 <h1>Modify Rates for Service</h1>
 <table>
     <tr>
@@ -98,9 +114,10 @@
 
     <tr>
     {{ Form::open(['route' => 'vendorrates.store']) }}
-
+    @if(!empty($rates))
         @foreach($rates as $rate)
-    <tr class="table">
+
+        <tr class="table">
         <div><td>
                 {{ $rate->state }}
         </div>
@@ -170,6 +187,7 @@
                 @else
                 <div class="mileage">
                 @endif
+
                 {{ Form::label('Base Rate:') }}
                     {{ Form::text('revServiceBase['.$rate->id.']',$rate->serviceBase) }}<br>
                 {{ Form::label('Plus Mileage Rate:') }}
@@ -218,6 +236,7 @@
                 {{ Form::text('revPostRush['.$rate->id.']',$rate->postRush) }}<br>
                 {{ Form::label('Same Day Surcharge:') }}
                 {{ Form::text('revPostSameDay['.$rate->id.']',$rate->postSameDay) }}<br>
+
         </div>
         </td>
         <div><td>
@@ -227,10 +246,11 @@
                 {{ Form::text('revPageRate['.$rate->id.']',$rate->pg_rate) }}<br>
             </td></div>
         <div><td>{{ link_to("/vendorrates/destroy/{$rate->id}", 'Delete County') }}</td></div>
-    </tr>
         {{Form::hidden('rateId['.$rate->id.']', $rate->id)}}
+</tr>
     @endforeach
-    <tr class="table">
+    @endif
+
     <td>
     <div>
         {{ Form::label('') }}
@@ -331,10 +351,13 @@
                 {{ Form::label('Rate Per Page(After included pages):') }}
                 {{ Form::text('pg_rate') }}<br>
             </td></div>
-</tr>
+
+        </tr>
+{{Form::hidden('vendor', $vendorId) }}
 </table>
-	<div>{{ Form::submit('Add County') }}{{ Form::reset('Reset') }}</div>
+	<div>{{ Form::submit('Save Changes') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}
 <a href="{{ URL::previous() }}">Go Back</a>
+@endif
 </body>
 </html>

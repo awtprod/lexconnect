@@ -8,7 +8,7 @@ class UsersController extends \BaseController {
 	{
 		if (Auth::check()){
 
-		if(Auth::user()->user_role == 'Admin') {
+		if(Auth::user()->user_role == 'Admin' OR Auth::user()->user_role == 'Vendor') {
 
 			$users = User::all();
 		}
@@ -29,7 +29,7 @@ class UsersController extends \BaseController {
 	public function show($id)
 	{
 		if (Auth::check()){
-		$user = $this->user->whereId($id)->first();
+		$user = User::whereId($id)->first();
 	
 		return View::make('users.show', ['user' => $user]);	
 		}
@@ -92,6 +92,7 @@ class UsersController extends \BaseController {
 				return View::make('users.edit', ['company' => $company], ['user' => $user]);
 
 			}
+			return Redirect::back()->with('message', 'Not Authorized to Edit User');
 		}
 		return Redirect::route('login');
 	}
@@ -100,12 +101,25 @@ class UsersController extends \BaseController {
 		$input = Input::all();
 		$user = User::find(Input::get('id'));
 
-		if ($user->email == Input::get('email'))
-		{
-			if ( ! $this->User->fill($input)->isValid())
-			{
-				return Redirect::back()->withInput()->withErrors($this->User->errors);
+		//Check if user has permission to make edit
+		if((Input::get('id') == Auth::user()->id) OR (Auth::user()->user_role == 'Admin') OR (Auth::user()->company_id == $user->company_id AND Auth::user()->role == 'Supervisor')){
+
+			if ($user->email == Input::get('email')) {
+				if (!$this->User->fill($input)->isValid()) {
+					return Redirect::back()->withInput()->withErrors($this->User->errors);
+				}
+				$user->fname = Input::get('fname');
+				$user->lname = Input::get('lname');
+				$user->company = Input::get('company');
+				$user->role = Input::get('role');
+				$user->user_role = Input::get('user_role');
+				$user->company_id = Input::get('company_id');
+				$user->save();
+				return Redirect::route('users.index');
+			} elseif (!$this->user->fill($input)->isValidAll()) {
+				return Redirect::back()->withInput()->withErrors($this->user->errors);
 			}
+			$user->email = Input::get('email');
 			$user->fname = Input::get('fname');
 			$user->lname = Input::get('lname');
 			$user->company = Input::get('company');
@@ -113,21 +127,8 @@ class UsersController extends \BaseController {
 			$user->user_role = Input::get('user_role');
 			$user->company_id = Input::get('company_id');
 			$user->save();
-			return Redirect::route('users.index');
+			return Redirect::route('users.show', $input{id});
 		}
-		elseif ( ! $this->user->fill($input)->isValidAll())
-		{
-			return Redirect::back()->withInput()->withErrors($this->user->errors);
-		}
-		$user->email = Input::get('email');
-		$user->fname = Input::get('fname');
-		$user->lname = Input::get('lname');
-		$user->company = Input::get('company');
-		$user->role = Input::get('role');
-		$user->user_role = Input::get('user_role');
-		$user->company_id = Input::get('company_id');
-		$user->save();
-		return Redirect::route('users.show', $input{id});
 	}
 
 	public function delete($id){

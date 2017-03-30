@@ -8,7 +8,7 @@ class UsersController extends \BaseController {
 	{
 		if (Auth::check()){
 
-		if(Auth::user()->user_role == 'Admin' OR Auth::user()->user_role == 'Vendor') {
+		if(Auth::user()->user_role == 'Admin') {
 
 			$users = User::all();
 		}

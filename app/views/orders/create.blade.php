@@ -30,7 +30,6 @@
 
         });
 
-
 		function getCounty(state){
 			$.get("{{ url('api/getcounties')}}", { option: state },
 					function(data) {
@@ -46,6 +45,7 @@
 						});
 					});
 		};
+
 
 
 		jQuery(document).ready(function($) {

@@ -91,7 +91,7 @@ class HomeController extends BaseController {
 	//Find Open Orders
 	
 	$openorders = DB::table('orders')
-					->where('company', Auth::user()->company)
+					->where('company', Auth::user()->company_id)
 					->whereNULL('completed')->orderBy('created_at', 'asc')->get();
 					
 	Return View::make('home.client')->with(['openorders' => $openorders]);

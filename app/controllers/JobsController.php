@@ -117,10 +117,9 @@ class JobsController extends \BaseController {
 			}
 
 
-			if (!$this->jobs->fill($input)->isValid()) {
-				return Redirect::back()->withInput()->withErrors($this->jobs->errors);
-			}
-			dd($input);
+			//if (!$this->jobs->fill($input)->isValid()) {
+			//	return Redirect::back()->withInput()->withErrors($this->jobs->errors);
+			//}
 
 			//Retrieve previously entered defendants
 			$jobs = Jobs::whereorderId(Input::get('orders_id'))
@@ -160,126 +159,92 @@ class JobsController extends \BaseController {
 
 		$input = Input::all();
 
-		$jobs = Jobs::whereorderId($input["orders_id"])
-				->whereNotNull('street')->orderBy('id', 'asc')->get();
+		//Determine # of servees at address
+		$numServees = count($input["defendants"]);
 
-		$states = DB::table('states')->orderBy('name', 'asc')->lists('abbrev', 'abbrev');
+		//Determine # of personal serves at address
+		$numPersonal = 0;
 
-		View::share(['states'=>$states]);
-		View::share(['jobs'=>$jobs]);
+		for ($i = 1; $i <= $numServees; $i++) {
 
-		//Return to new defendant form
-		if(Input::get('edit_create')){
+			if (!empty($input["defendants"][$i]["personal"])) {
 
-			Return View::make('jobs.create')->with(['input' => $input]);
-		}
-		
-		//Return to new serve address form
-		elseif(Input::get('edit_add')){
+				$numPersonal++;
 
-			Return Redirect::route('jobs.add')->with('edit', TRUE)->with(['input' => Input::all()]);
-			
-		}
-
-		elseif(Input::get('verify')){
-
-		$client = DB::table('orders')->where('id', Input::get('orders_id'))->pluck('company');
-
-		//Retrieve servee id from form
-		$servee_id = Input::get('servee_id');
-
-		//If adding new service address, set status to 0
-		if(!empty($servee_id)) {
-
-			$servee = Servee::whereId($servee_id)->first();
-			$servee->status = 0;
-			$servee->save();
-
-		}
-
-		//If new defendant, create servee
-			elseif(empty($servee_id)) {
-
-				$servee_id = DB::table('servee')->insertGetId(
-						array('order_id' => input::get('orders_id'), 'client' => $client, 'user' => Auth::user()->id, 'defendant' => input::get('defendant'))
-				);
-
-
-				$order = Orders::whereId(Input::get('orders_id'))->first();
-
-				//Mark to send back to new defendant form
-
-				$new = TRUE;
 			}
-		else{
-		
-		$new = FALSE;
 		}
 
+		//Find documents being served
+		$docsServed = DocumentsServed::whereOrderId($input["orders_id"])->get();
 
-		$street2 = Input::get('street2');
+		//Find number of pages of service package
+		$numPgs = 0;
 
-		$job = new Jobs;
-		$job->servee_id = $servee_id;
-		$job->service = 'Process Service';
-		$job->priority = $input["service"]["priority"];
-		$job->client = $client;
-		$job->order_id = Input::get('orders_id');
-		$job->defendant = Input::get('defendant');
-		$job->street = Input::get('street');
-		if(!empty($street2)){
-		$job->street2 = Input::get('street2');
+		foreach ($docsServed as $docServed) {
+
+			$numPgs += Documents::whereDocument($docServed->document)->whereOrderId($input["orders_id"])->orderBy('created_at', 'desc')->pluck('pages');
+
 		}
-		$job->city = Input::get('city');
-		$job->state = Input::get('state');
-        $job->county = Input::get('county');
-		$job->zipcode = Input::get('zipcode');
-
-        if(!empty(Input::get('notes'))) {
-            $job->notes = Input::get('notes');
-        }
-		$job->save();
 
 		//Select Server
-		$serverData = array('zipcode' => Input::get('zipcode'), 'state' => Input::get('state'), 'county' => Input::get('county'), 'jobId' => $job->id, 'process' => 'service', 'priority' => $input["service"]["priority"], 'client' => $client);
-		$server = $this->jobs->SelectServer($serverData);
 
-			//Create Service Tasks Array
-		$sendTask = array('county'=>$order->county,'judicial'=>$order->judicial,'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => Input::get('orders_id'), 'court' => $order->court, 'process' => $input["type"], 'priority'=>$input["service"]["priority"], 'client' => $client, 'state' => $order->state );
+		$server = $this->jobs->SelectServer(['zipcode' => $input["zipcode"], 'state' => $input["state"], 'county' => $input["county"], 'jobId' => 'Null', 'process' => $input["type"], 'priority' => $input["priority"], 'client' => $input["company"], 'orderId' => $input["orders_id"], 'numServees' => $numServees, 'numPersonal' => $numPersonal, 'numPgs' => $numPgs]);
+
+		$firstServee = true;
+
+		//loop through all servees for address
+		foreach ($input["defendants"] as $defendant) {
 
 
-        //Create Service Tasks
-        $process = $this->tasks->CreateTasks($sendTask);
+			//create servee
+			$serveeId = $this->Servee->createServee(['defendant' => $defendant["name"], 'company' => $input["company"], 'orders_id' => $input["orders_id"], 'status' => '1']);
 
-		//Check for dependent jobs
-		$depData = array('process' => $process, 'orderId'=>Input::get('orders_id'));
+			//Create job for servee
+			$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $defendant["name"], 'servee' => $defendant, 'notes' => $input["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $input["orders_id"], 'service' => $input["type"], 'priority' => $input["priority"], 'status' => '0', 'street' => $input["street"], 'city' => $input["city"], 'state' => $input["state"], 'zip' => $input["zipcode"]]);
 
-		if(! $this->jobs->depProcess($depData)){
+			//Load task into db
+			$process = $this->tasks->CreateTasks(['judicial' => 'Judicial', 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $input["orders_id"], 'county' => $input["county"], 'process' => $input["type"], 'priority' => $input["priority"], 'client' => $input["company"], 'state' => $input["state"]]);
 
-		$job->status = 1;
+			//Check for dependent jobs
+
+			if (!$this->jobs->depProcess($process, $input["orders_id"])) {
+
+				$job->status = 1;
+
+			} else {
+
+				$job->status = 2;
 
 			}
-		else{
 
-		$job->status = 0;
+			//Update job with process
+			$job->process = $process;
+			$job->save();
+
+			//if first servee, set regular rate
+			if($firstServee == true){
+
+				$rate = $server["rate"];
 
 			}
+			//otherwise set rate for additional servee
+			else{
 
-		//Update job with process
-		$job->vendor = $server["server"];
-		$job->process = $process;
-		$job->save();
-		Cache::forget('input');
-		
-		if($new == TRUE){
-		Return Redirect::route('jobs.create')->with('orders_id', Input::get('orders_id'));
-		}
-		else{
-		Return Redirect::route('orders.show')->with('orders_id', Input::get('orders_id'));	
+				$rate = $server["addServeeRate"];
+			}
+
+			//Create Invoice
+			$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $input["type"], 'personal' => $defendant, 'personalRate' => $server["personalRate"], 'rate' => $rate, 'numPgs' => $numPgs, 'freePgs' => $server["freePgs"], 'pageRate' => $server["pageRate"]]);
+
+			$firstServee = false;
 		}
 		
+
+		Return Redirect::route('orders.show', ['id' => Input::get('orders_id')]);
+		
+		
 	}
-	}
+
 
 
 	/**

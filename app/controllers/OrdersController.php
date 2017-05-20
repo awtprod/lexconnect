@@ -40,7 +40,7 @@ class OrdersController extends \BaseController {
 			$company = DB::table('company')->where('v_c', 'Client')->orderBy('name', 'asc')->lists('name', 'id');
 		}
 		else{
-			$company = Auth::user()->company;
+			$company = Auth::user()->company_id;
 		}
 
         $documents = array(['Notice of Trustee Sale', 'Notice of Trustee Sale'],['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
@@ -143,9 +143,6 @@ class OrdersController extends \BaseController {
 					}
 				}
 
-
-                if($docCount=='0') {
-
                     //Set job to verify that docs are uploaded
                     $job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'Verify Documents', 'priority' => 'Routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'zip' => '']);
 
@@ -155,8 +152,7 @@ class OrdersController extends \BaseController {
                     //Update job with process
                     $job->process = $process;
                     $job->save();
-                }
-		
+
 				//create court run tasks
 				if (!empty($input["run_docs"])) {
 
@@ -341,7 +337,7 @@ class OrdersController extends \BaseController {
 		$order = Orders::whereId($id)->first();
 		
 		//Check if user is Admin or Client
-		if(Auth::user()->company==$order->company OR Auth::user()->user_role=='Admin'){
+		if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin'){
 		
 		//If Admin, find all defendants
 		if(Auth::user()->user_role=='Admin'){
@@ -429,13 +425,15 @@ class OrdersController extends \BaseController {
 			}
 		}
 
+		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
+
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions]);
+		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions])->with(['states'=>$states]);
 		}
 		else{
-		Return redirect::to('login');	
+		Return Redirect::to('login');
 		}
 	}
 	

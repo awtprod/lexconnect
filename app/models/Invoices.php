@@ -63,7 +63,7 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 	$rate = $data["rate"];
 
 	//Determine if personal service is required
-	if(!empty($data["servee"]["personal"]))	{
+	if(!empty($data["personal"]["personal"]))	{
 
 		$rate += $data["personalRate"];
 

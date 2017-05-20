@@ -16,7 +16,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		'defendant' => 'required',
 		'street' => 'required',
 		'city' => 'required',
-		'zipcode' => 'required|min:5|max:5',
+		'zipcode' => 'required|min:5|max:10',
 	];
 	public static $file_rules = [
 		'Executed_proof' => 'mimes:pdf|max:10000',
@@ -65,8 +65,6 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function createJob ($data){
 
-		$client = Company::whereName($data["client"])->pluck('id');
-
 		$job = new Jobs;
 
 		if(!empty($data["serveeId"])){
@@ -77,11 +75,12 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		}
 		$job->defendant = $data["defendant"];
 		$job->vendor = $data["server"];
-		$job->client = $client;
+		$job->client = $data["client"];
 		$job->order_id = $data["orders_id"];
 		$job->service = $data["service"];
 		$job->priority = $data["priority"];
 		$job->status = $data["status"];
+		$job->street = $data["street"];
 		$job->state = $data["state"];
 		$job->zipcode = $data["zip"];
 		$job->save();

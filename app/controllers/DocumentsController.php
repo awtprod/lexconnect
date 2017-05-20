@@ -40,7 +40,7 @@ class DocumentsController extends \BaseController {
         }
 
         //Determine user access
-        if(Auth::user()->user_role=='Admin' OR $order->client == Auth::user()->company OR $vendor == true){
+        if(Auth::user()->user_role=='Admin' OR Auth::user()->company_id == $order->company OR $vendor == true){
 
         //Load pdf
             $filepath = storage_path().'/'.$document->filepath.'/'.$document->filename;
@@ -64,7 +64,7 @@ class DocumentsController extends \BaseController {
 
             $client = Orders::whereId($orderId)->pluck('company');
 
-            if (Auth::user()->company == $client OR Auth::user()->user_role == 'Admin') {
+            if (Auth::user()->company_id == $client OR Auth::user()->user_role == 'Admin') {
 
 
                 $documents = array(['Notice of Trustee Sale', 'Notice of Trustee Sale'],['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
@@ -77,6 +77,8 @@ class DocumentsController extends \BaseController {
     }
 
     public function view(){
+
+        $documents = [];
 
         //Get job Id, if available
         $orderId = Input::get('orderId');
@@ -99,30 +101,29 @@ class DocumentsController extends \BaseController {
         }
         //Find documents for order
 
-        //Find if client or Admin or vendor
-        if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin' OR (Auth::user()->company_id==$job->vendor AND $orderId == $job->order_id)){
-
-            //if vendor, find documents by job
-            if(!empty($job)){
-
-                $documents = Documents::wherejobId($jobId)->orWhere(function($query) use ($orderId)
-                                                            {
-                                                                $query->whereNull('job_id')
-                                                                      ->where('order_id', '=', $orderId);
-                                                            })
-                                                            ->orderBy('created_at', 'desc')->get();
-            }
-            else {
+        //Find if client or Admin
+        if(Auth::user()->company_id==$order->company OR Auth::user()->user_role=='Admin'){
 
                 $documents = Documents::whereOrderId($orderId)->orderBy('created_at', 'desc')->get();
             }
 
-            Return View::make('documents.OrderView')->with(['documents' => $documents, 'order' => $order]);
-        }
-        else{
-            Return "Not Authorized To View!";
+        //if vendor, find documents by job
+        if(!empty($job)){
 
+            if(Auth::user()->company_id==$job->vendor AND $orderId == $job->order_id){
+
+                $documents = Documents::wherejobId($jobId)->orWhere(function ($query) use ($orderId) {
+                    $query->whereNull('job_id')
+                        ->where('order_id', '=', $orderId);
+                })
+                    ->orderBy('created_at', 'desc')->get();
+            }
         }
+
+            Return View::make('documents.OrderView')->with(['documents' => $documents, 'order' => $order]);
+
+    }
+
 
         /*
 
@@ -229,7 +230,7 @@ class DocumentsController extends \BaseController {
 
             }
 */
-        }
+
 
 
     public function storeDocuments(){

@@ -28,7 +28,8 @@ Route::get('api/getcourts', 'OrdersController@getCourts');
 Route::get('api/getcounties', 'CountiesController@getCounties');
 Route::get('api/getRate', 'JobsController@getRate');
 Route::get('orders/courts/{id}', 'OrdersController@getCourts');
-Route::group(array('before'=>'auth'), function() { 
+Route::group(array('before'=>'auth'), function() {
+Route::get('api/tasksTable', 'TasksController@tasksTable');
 Route::get('jobs/add', [
 	'as' => 'jobs.add',
 	'uses' => 'JobsController@add'
@@ -141,6 +142,10 @@ Route::get('home/', [
 		'as' => 'user.delete',
 		'uses' => 'UsersController@delete'
 	]);
+	Route::get('tasks/test', [
+		'as' => 'tasks.complete',
+		'uses' => 'TasksController@complete'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [
@@ -227,10 +232,7 @@ Route::post('tasks/create_dec', [
 	'as' => 'tasks.create_dec',
 	'uses' => 'TasksController@create_dec'
 	]);
-Route::match(array('GET', 'POST'),'tasks/complete', [
-	'as' => 'tasks.complete',
-	'uses' => 'TasksController@complete'
-	]);
+
 Route::post('tasks/documents', [
 	'as' => 'tasks.documents',
 	'uses' => 'TasksController@documents'

@@ -150,7 +150,6 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	$req = "http://api.geosvc.com/rest/usa/{$zipcode}/nearby?pt=vendor&d=20&apikey=60e6b26c492541e0946cc43f57f33489&format=json";
 	$result = (array) json_decode(file_get_contents($req), true);
 
-
 		//If no servers, assign to Admin
 	if(empty($result)){
 
@@ -158,7 +157,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$data = array();
 
 		$data["server"] = 1;
-		$data["rate"] = 0;
+		$data["rate"] = 95;
 		$data["addServeeRate"] = 0;
 		$data["personalRate"] = 0;
 		$data["freePgs"] = 0;
@@ -284,10 +283,10 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 
 			//Find client
-			$client = DB::table('company')->where('name', $serverData['client'])->first();
+			$client = Company::whereId($serverData['client'])->first();
 
 			//Find maximum rate set by client
-			$maxRate = DB::table('clientrates')->where('client', $client->id)->where('state', $serverData['state'])->pluck($serverData['process'] . 'Max');
+			$maxRate = ClientRates::where('client', $client->id)->where('state', $serverData['state'])->pluck($serverData['process'] . 'Max');
 
 			//If client hasn't set max rate, set value at $100
 			if(empty($maxRate)){

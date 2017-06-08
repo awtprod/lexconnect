@@ -50,4 +50,8 @@ class Company extends Eloquent implements UserInterface, RemindableInterface {
 		
 		return false;
 }
+	public function taskVendor($id){
+
+		return Company::whereId($id)->pluck('name');
+	}
 }

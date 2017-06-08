@@ -46,9 +46,9 @@ class TasksController extends \BaseController {
 	public function complete()
     {
         //Retrieve task id from URL
-        $tasksId = Input::get('id');
+       $tasksId = Input::get('id');
 
-        //Retrieve task data from db
+		//Retrieve task data from db
         $CurrentTask = Tasks::whereId($tasksId)->first();
 
         //Get zip code of serve address
@@ -109,13 +109,14 @@ class TasksController extends \BaseController {
 
 		//if server accepted job, mark task as complete
 
-		if(Input::get('accept') == 'true'){
+		if(Input::get('accept') == 'Accept'){
 
 			$this->tasks->TaskComplete(Input::get('taskId'));
 
-			Return Redirect::route('jobs.show', $job->id);
+
 		}
 		else{
+			return Response::json($job);
 
 			//Find new server
 			$serverData = array('zipcode' => $job->zipcode, 'jobId' => $job->id);
@@ -125,8 +126,11 @@ class TasksController extends \BaseController {
 			$newServerData = array('vendor' => $server, 'orderId' => $job->order_id, 'jobId' => $job->id);
 			$newServer = $this->jobs->ReAssignServer($newServerData);
 
-			Return Redirect::route('jobs.show', $job->id);
 		}
+	}
+
+	public function verify(){
+		
 	}
 
 	public function attempt(){
@@ -368,8 +372,37 @@ class TasksController extends \BaseController {
 		
 	}
 
-	public function create_dec(){
-	
+	public function tasksTable(){
+
+		if(Auth::user()->user_role=='Admin') {
+			//Find current tasks
+
+			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
+
+			$tableData = array();
+
+			foreach ($tasks as $task){
+
+				$tableData[$task->id]["vendor"] = $this->company->taskVendor($task->group);
+			}
+
+			Return View::make('tasks.admin')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+
+		}
+		elseif(Auth::user()->user_role=='Vendor') {
+
+			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
+
+			$tableData = array();
+
+			foreach ($tasks as $task){
+
+				$tableData[$task->id]["defendant"] = Jobs::whereId($task->job_id)->pluck('defendant');
+			}
+
+			Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+		}
+
 	}
 	public function declaration(){
 		//Retrieve data for array for declaration

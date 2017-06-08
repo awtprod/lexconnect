@@ -1,6 +1,6 @@
 <div>
 
-    <form id="accept-task">
+    <form id="verify-task">
         <select id="accept">
             <option value="Accept">Accept</option>
             <option value="Deny">Deny</option>
@@ -24,7 +24,7 @@
                     });
         }
 
-        $("#accept-task").submit(function(event){
+        $("#verify-task").submit(function(event){
             event.preventDefault();
             var taskId = $('#taskId').val();
             var accept = $('#accept').val();
@@ -32,7 +32,7 @@
 
             $.ajax({
                 method: 'POST', // Type of response and matches what we said in the route
-                url: '/tasks/accept', // This is the url we gave in the route
+                url: '/tasks/verify', // This is the url we gave in the route
                 data: {taskId: taskId, accept: accept, _token: token }, // a JSON object to send back
                 success: function(response){ // What to do if we succeed
                     console.log(response);

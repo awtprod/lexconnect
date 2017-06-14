@@ -1,14 +1,64 @@
+<html>
+
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
+    <script src="//d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/2.8/jquery.liveaddress.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
+    <script>
+
+
+        $(document).ready(function() {
+
+
+
+
+            //Validate Data
+            $("#verify-task").validate({
+
+                rules: {
+                    plaintiff: "required",
+                    'documents[0][text]': "required",
+                    court: "required"
+                },
+            });
+
+            $(".doc_type_select").rules('add', {
+                required: {
+                    depends: function (element) {
+                        return $('.documents').is(':filled');
+                    }
+                },
+                messages: {
+                    required: "Please select a doc type!"
+                }
+            });
+
+            $(".documents").rules('add', {
+                accept: "application/pdf",
+                messages: {
+                    required: "Document must be a pdf!"
+                }
+            });
+
+        });
+
+
+    </script>
+</head>
+<body>
 <div>
 
     <form id="verify-task">
-        <select id="accept">
-            <option value="Accept">Accept</option>
-            <option value="Deny">Deny</option>
-        </select>
-        <input type="submit">
-        <input id="taskId" type="hidden" value="{{ $taskId }}">
-        <input id="token" type="hidden" value="{{ csrf_token() }}">
+        <input type="text" name="website" value="<?php echo $website;?>">
 
+    <input id="taskId" type="hidden" value="{{ $taskId }}">
+    <input id="token" type="hidden" value="{{ csrf_token() }}">
+    <input id="orderId" type="hidden" name="orderId" value= {{ $order->id }}>
+<!-- submit buttons -->
+    <input type="submit">
+
+    {{HTML::script('/js/documents.js')}}
     </form>
 
 
@@ -48,3 +98,5 @@
     });
     });
 </script>
+</body>
+</html>

@@ -65,10 +65,14 @@ class TasksController extends \BaseController {
 		//Get order data
         $order = Orders::whereId($CurrentTask->order_id)->first();
 
+		//Find documents to be served
+		$docs_served = DocumentsServed::whereOrderId($order->id)->get();
+
         //Find current task due
-        $LatestTask = Tasks::OrderBy('sort_order', 'asc')
+        /*$LatestTask = Tasks::OrderBy('sort_order', 'asc')
             ->where('job_id', $CurrentTask->job_id)
             ->where('completion', NULL)->first();
+
 
         //See if requested task is current task due, if not throw an error
         if ($LatestTask->id != $tasksId) {
@@ -78,27 +82,28 @@ class TasksController extends \BaseController {
         //Check to see if user is authorized to complete task
         } elseif (Auth::user()->user_role=='Admin' OR Auth::user()->company_id == $CurrentTask->group) {
 
-
+*/
 			//see if there is a popup window for task
 			if(!empty($CurrentTask->window)){
 
-				Return View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['job'=>$job])->with(['servers'=>$servers])->with('proof', $proof);
+
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
 
             $this->tasks->TaskComplete($tasksId);
 
-				Return Redirect::route('jobs.show', $job->id);
+				Return Response::json('no');
 
             }
 
 
-        }
+        /*}
         else{
 
             Return "Not Authorized To View!";
-        }
+        }*/
     }
 
 	public function accept(){
@@ -130,7 +135,7 @@ class TasksController extends \BaseController {
 	}
 
 	public function verify(){
-		
+
 	}
 
 	public function attempt(){

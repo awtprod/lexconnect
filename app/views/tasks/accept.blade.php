@@ -16,11 +16,15 @@
 
 <script>
     $(document).ready(function () {
+
+        $('#dataModal').modal("show");
+
         function task_table() {
 
             $.get("{{ url('api/tasksTable')}}",
                     function (data) {
                         $('#taskTable').html(data);
+
                     });
         }
 

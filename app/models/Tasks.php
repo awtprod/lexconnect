@@ -200,27 +200,24 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 		//Check if job is on hold
 		$job = Jobs::whereId($tasksFirst->job_id)->first();
 
-		if($job->status != 1){
+		if ($job->status != 1) {
 
 			return false;
-		}
-		else {
+		} else {
 			//Save date to cache to update the deadlines of upcoming tasks
 			Cache::put('days', Carbon::now(), 5);
 			Cache::increment('step');
 
 			//Determine if this was the last task for the job
-			$nextTasks = Tasks::whereJobId($tasksFirst->job_id)
-					->whereNull('completion')
-					->orderBy('sort_order', 'asc')->get();
+			$nextTask = Tasks::whereJobId($tasksFirst->job_id)
+				->whereNull('completion')
+				->orderBy('sort_order', 'asc')->first();
+
 
 			//If it is last task, return back to controller
-			if (is_null($nextTasks->first())) {
+			if (empty($nextTask)) {
 
-				$this->jobs->JobComplete($tasksFirst->job_id);
-			}
-				//Duplicate job completion process? Remove if this doesn't break code
-				/*
+
 				//Mark Job as complete
 				$job = Jobs::whereId($tasksFirst->job_id)->first();
 				$job->completed = Carbon::now();
@@ -237,19 +234,20 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 					foreach ($depProcess as $process) {
 
 						$depJobs[$process->dep_process] = Jobs::whereProcess($process->dep_process)
-								->whereOrderId($job->order_id)
-								->whereStatus(2)->get();
+							->whereOrderId($job->order_id)
+							->whereStatus(2)->get();
 					}
-
 					//Check to see if any additional dependent jobs, if any
 					if (!empty($depJobs)) {
 
-						foreach ($depProcess as $proces) {
+
+						foreach ($depProcess as $process) {
 
 							foreach ($depJobs[$process->dep_process] as $depJob) {
 
 								$addProcesses = Dependent::wheredepProcess($depJob->process)
-										->where('process', '!=', $job->process)->get();
+									->where('pred_process', '!=', $job->process)->get();
+
 
 								//If additional dependent processes exist, check for existing jobs
 
@@ -260,8 +258,8 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 									foreach ($addProcesses as $addProcess) {
 
 										$addJob = Jobs::whereProcess($addProcess->pred_process)
-												->whereNull('completed')
-												->whereorderId($job->order_id)->get();
+											->whereNull('completed')
+											->whereorderId($job->order_id)->get();
 									}
 
 									if (!empty($addJob)) {
@@ -269,14 +267,17 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 									} //If no active dependent jobs, remove hold on task(s)
 									else {
 
+										$depJob->status = 1;
+										$depJob->save();
+
 										$depTask = Tasks::wherejobId($depJob->id)
-												->whereNull('completion')
-												->orderBy('sort_order', 'asc')->first();
+											->whereNull('completion')
+											->orderBy('sort_order', 'asc')->first();
 
 										$depTask->status = 1;
 										$depTask->save();
 
-										$this->tasks->Forecast($depTask->id);
+										$this->TaskForecast($depTask->id);
 
 									}
 								}
@@ -286,7 +287,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 						}
 
 					}
-				*/
+				}
 
 				Return true;
 			}
@@ -304,6 +305,10 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			if (empty($active)) {
 				//Update upcoming tasks
 				$first = true;
+
+				$nextTasks = Tasks::whereJobId($tasksFirst->job_id)
+					->whereNull('completion')
+					->orderBy('sort_order', 'asc')->get();
 
 				foreach ($nextTasks as $nextTask) {
 					$curTask = Tasks::whereId($nextTask->id)->first();
@@ -329,7 +334,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			}
 			Cache::forget('days', 'step');
 		}
-
+	}
 
 
 

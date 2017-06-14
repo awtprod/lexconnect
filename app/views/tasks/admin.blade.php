@@ -31,14 +31,39 @@
                 @endif
                 <script>
                     $(document).ready(function() {
+                        function task_table() {
 
-                        $('.view_data').click(function () {
-                            var task_id = $(this).attr("id");
-                            $.get("{{ url('tasks/test')}}", { id: task_id },
-                                    function(data) {
-                                        $('#complete_task').html(data);
-                                        $('#dataModal').modal("show");
+                            $.get("{{ url('api/tasksTable')}}",
+                                    function (data) {
+                                        $('#taskTable').html(data);
                                     });
+                        }
+                        $(document).ready(function() {
+                            $('.view_data').click(function () {
+                                var task_id = $(this).attr("id");
+                                var token = $('#token').val();
+                                $.ajax({
+                                    method: 'POST', // Type of response and matches what we said in the route
+                                    url: '/tasks/complete', // This is the url we gave in the route
+                                    data: {id: task_id, _token: token },
+                                    success: function(response) {
+                                        if($.trim(response) == 'no') {
+                                            console.log(response);
+                                            task_table()
+                                        }
+                                        else {
+                                            console.log(response);
+                                            $('#complete_task').html(response['body']);
+                                            $('#task-title').html(response['title']);
+                                            $('#dataModal').modal("show");
+                                        }
+                                    },
+                                    error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                                        console.log(JSON.stringify(jqXHR));
+                                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                                    }
+                                });
+                            });
                         });
                     });
                 </script>

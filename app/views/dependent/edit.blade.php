@@ -20,13 +20,11 @@
 
 @if(!empty($predArray[$process->id]))
 	<div><td>
-	{{ Form::label('predecessor') }}
 	{{ Form::checkbox('predecessor['.$process->id.']', 'yes', true) }}
 	</div>
 	</td>
 @else
 	<div><td>
-	{{ Form::label('predecessor') }}
 	{{ Form::checkbox('predecessor['.$process->id.']', 'yes') }}
 	</div>
 	</td>

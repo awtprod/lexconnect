@@ -34,13 +34,10 @@ class AttemptsController extends \BaseController {
 	 */
 	public function store()
 	{
+
 		$input = Input::all();
 
-
-		if ( ! $this->attempts->fill($input)->isValid())
-			{
-				return Redirect::back()->withInput()->withErrors($this->attempts->errors);	
-			}
+		dd($input);
 //Save attempt
         Attempts::create([
             'date' => Input::get('date'),
@@ -52,10 +49,10 @@ class AttemptsController extends \BaseController {
 	$this->tasks->ServerScore(Input::get('taskId'));
 
 	//Redirect based on service status
-        if (Input::get('non-serve') === 'yes') {
+        if (Input::get('non_serve') === 'yes') {
 
 			//Find job
-			$job = Jobs::whereId(Input::get('job'))->first();
+			$job = Jobs::whereId(Input::get('jobId'))->first();
 
 			//Find servee
 			$servee = Servee::whereId($job->servee_id)->first();
@@ -67,12 +64,10 @@ class AttemptsController extends \BaseController {
 			//Complete task
             $this->tasks->TaskComplete(Input::get('taskId'));
 
-            return Redirect::to('/');
     	} else {
 
             $this->tasks->TaskForecast(Input::get('taskId'));
 
-            return Redirect::to('/');
     	}
 	}
 

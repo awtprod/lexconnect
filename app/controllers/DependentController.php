@@ -55,7 +55,7 @@ class DependentController extends \BaseController {
 	{
 
         //Retrieve Data
-        $dependent = Input::get('dependent');
+        $predecessor = Input::get('predecessor');
         $depProcess = Input::get('processId');
 
         //Find processes in table
@@ -78,7 +78,7 @@ class DependentController extends \BaseController {
             }
 
             //If process in NOT in dependent table, create new entry
-            else{
+            elseif(isset($predecessor[$process->id])){
                 $newDependent = new Dependent;
                 $newDependent->pred_process = $process->id;
                 $newDependent->dep_process = $depProcess;

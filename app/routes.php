@@ -142,7 +142,7 @@ Route::get('home/', [
 		'as' => 'user.delete',
 		'uses' => 'UsersController@delete'
 	]);
-	Route::get('tasks/test', [
+	Route::post('tasks/complete', [
 		'as' => 'tasks.complete',
 		'uses' => 'TasksController@complete'
 	]);

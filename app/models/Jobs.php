@@ -407,6 +407,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	}
 
 	public function JobComplete($id){
+		dd($id);
+
 
 		//Mark Job as complete
 		$job = Jobs::whereId($id)->first();

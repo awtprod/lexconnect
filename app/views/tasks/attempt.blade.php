@@ -1,17 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
+    <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
+
     <script>
-        $(document).ready(function(){
-            $("#attempt_button").click(function(){
-                $("#served").hide();
-                $("#attempt").show();
+        $(document).ready(function() {
+            $("#served-task").hide();
+            $("#attempt-task").hide();
+
+            $("#attempt_button").click(function () {
+                $("#served-task").hide();
+                $("#attempt-task").show();
             });
-            $("#served_button").click(function(){
-                $("#attempt").hide();
-                $("#served").show();
+            $("#served_button").click(function () {
+                $("#attempt-task").hide();
+                $("#served-task").show();
             });
+
+            $("#serve_type").change(function () {
+
+                if ($("#serve_type").val() == "substitute") {
+
+                    $("#sub-serve-options").show();
+                    $("#relationship-select").show();
+
+                }
+                else if ($("#serve_type").val() == "corporate") {
+                    $("#relationship-select").hide();
+                    $("#sub-serve-options").show();
+
+                }
+                else {
+                    $("#relationship-select").hide();
+                    $("#sub-serve-options").hide();
+                }
+
+            });
+
+            $('#dataModal').modal("show");
+
+            function task_table() {
+
+                $.get("{{ url('api/tasksTable')}}",
+                        function (data) {
+                            $('#taskTable').html(data);
+
+                        });
+            }
+
+
+            var form = $(this);
+
+            $("#attempt-form").validate({
+
+                rules: {
+                    date: "required",
+                    time: "required",
+                    description: "required"
+                },
+                submitHandler: function (form) {
+                    $.ajax({
+                        method: 'POST', // Type of response and matches what we said in the route
+                        url: '/attempts', // This is the url we gave in the route
+                        data: $(form).serialize(), // a JSON object to send back
+                        success: function (response) { // What to do if we succeed
+                            console.log(response);
+                            $('#dataModal').modal("hide");
+                            task_table()
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
+                            console.log(JSON.stringify(jqXHR));
+                            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                            event.preventDefault();
+
+                        }
+                    });
+
+                }
+
+
+            });
+
+
+            $("#served-form").validate({
+
+                rules: {
+                    date: "required",
+                    time: "required",
+                    served_upon: "required",
+                    relationship: "required",
+                    hair: "required",
+                    gender: "required",
+                    height: "required",
+                    weight: "required",
+                    age: "required"
+                },
+                submitHandler: function (form) {
+                    $.ajax({
+                        method: 'POST', // Type of response and matches what we said in the route
+                        url: '/serve', // This is the url we gave in the route
+                        data: $(form).serialize(), // a JSON object to send back
+                        success: function (response) { // What to do if we succeed
+                            console.log(response);
+                            $('#dataModal').modal("hide");
+                            task_table()
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
+                            console.log(JSON.stringify(jqXHR));
+                            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                            event.preventDefault();
+
+                        }
+                    });
+                }
+        });
+
         });
     </script>
     <style>
@@ -28,67 +132,74 @@
 
 </head>
 <body>
-<h1>Enter Service Results:</h1><p>
+<h4 class="modal-title">Service Attempt</h4>
     <button id="attempt_button">Enter Service Attempt</button>
     <button id="served_button">Defendant Served</button>
-<div id ="attempt">
+<div id ="attempt-task">
+    <form id="attempt-form">
 
     <h1>Add Service Attempt</h1>
 
-    {{ Form::open(['route' => 'attempts.store']) }}
-
+        <div>
+            <label>Date:</label>
+            <input id="date_attempt" name="date" type="date">
+        </div>
+        <div>
+            <label>Time:</label>
+            <input id="time_attempt" name="time" type="time">
+        </div>
     <div>
-        {{ Form::label('date', 'Date: ') }}
-        {{ Form::input('date', 'date') }}
-        {{ $errors->first('date') }}
+        <label>Description:</label>
+        <input id="description" name="description" type="text">
     </div>
     <div>
-        {{ Form::label('time', 'Time: ') }}
-        {{ Form::input('time', 'time') }}
-        {{ $errors->first('time') }}
-    </div>
-    <div>
-        {{ Form::label('description', 'Description: ') }}
-        {{ Form::textarea('description') }}
-        {{ $errors->first('description') }}
-    </div>
-    <div>
-        {{ Form::label('non-serve', 'Non-Serve: ') }}
-        {{ Form::checkbox('non-serve', 'yes') }} Note: This will end service for this defendant and generate a Proof of Service.
-        {{ $errors->first('non-serve') }}
+        <label>Non-Serve: </label>
+        <input type="checkbox" id="non_serve" value="yes">Note: This will end service for this defendant and generate a Proof of Service.
     </div>
 
-    {{ Form::hidden('served', 'false') }}
-    {{ Form::hidden('taskId', $taskId) }}
-    {{ Form::hidden('jobId', $job->id) }}
+    <input type="submit">
+    <input id="jobId" type="hidden" value="{{ $job->id }}">
+    <input id="served" type="hidden" value="false">
+    <input id="taskId" type="hidden" value="{{ $taskId }}">
+    <input id="token" type="hidden" value="{{ csrf_token() }}">
 
-    <div>{{ Form::submit('Add Attempt') }}{{ Form::reset('Reset') }}</div>
-    {{ Form::close() }}
+</form>
 </div>
-<div id ="served">
+<div id ="served-task">
+    <form id="served-form">
+
     <h1>Completed Serve</h1>
 
-    {{ Form::open(['route' => 'serve.store']) }}
+    <div>
+        <label>Date:</label>
+        <input id="date_served" type="date">
+    </div>
+    <div>
+        <label>Time:</label>
+        <input id="time_served" type="time">
+    </div>
+        <label>Type:</label>
+        <select id="serve_type">
+            <option value="personal">Personal</option>
+            <option value="substitute">Substitute</option>
+            <option value="corporate">Corporate</option>
+        </select>
 
-    <div>
-        {{ Form::label('date', 'Date: ') }}
-        {{ Form::input('date', 'date') }}
-        {{ $errors->first('date') }}
+    <div id="sub-serve-options" hidden>
+        <label>Served Upon: </label>
+        <input id="served_upon" type="text"><br>
     </div>
-    <div>
-        {{ Form::label('time', 'Time: ') }}
-        {{ Form::input('time', 'time') }}
-        {{ $errors->first('time') }}
+    <div id="relationship-select" hidden>
+        <label>Relationship: </label>
+        <select id="relationship">
+            <option value="">Select</option>
+            <option value="CO-RESIDENT">Co-Resident</option>
+            <option value="PARENT">Parent</option>
+            <option value="SIBLING">Sibling</option>
+            <option value="SPOUSE">Spouse</option>
+            <option value="CHILD">Child</option>
+        </select>
     </div>
-    <div>
-        {{ Form::label('served_upon', 'Served Upon: ') }}
-        {{ Form::text('served_upon') }}
-        {{ $errors->first('served_upon') }}
-    </div>
-{{ Form::label('relationship', 'Relationship: ') }}
-{{ Form::select('relationship', array('DEFENDANT'=>'Defendant','FATHER'=>'Father','MOTHER'=>'Mother','BROTHER'=>'Brother','SISTER'=>'Sister','DAUGHTER'=>'Daugher','SON'=>'Son','CO-RESIDENT'=>'Co-Resident','ROOMMATE'=>'Roommate','REGISTERD AGENT'=>'Registered Agent')) }}
-{{ $errors->first('realationship') }}
-<div>
     <div>
         {{ Form::label('gender', 'Gender: ') }}
         {{ Form::select('gender', array('male'=>'male','female'=>'female')) }}
@@ -111,21 +222,14 @@
         {{ Form::label('moustache', 'Moustache: ') }}
         {{ Form::checkbox('Moustache', 'yes') }}
     </div>
-    <div>
-        {{ Form::label('sub-serve', 'Sub-Served?: ') }}
-        {{ Form::checkbox('sub-serve', 'yes') }}
-        {{ $errors->first('sub-serve') }}
-    </div>
-    {{ Form::hidden('served', 'true') }}
-    {{ Form::hidden('taskId', $taskId) }}
-    {{ Form::hidden('jobId', $job->id) }}
 
-            <!-- submit buttons -->
-    <div>{{ Form::submit('Defendant Served') }}{{ Form::reset('Reset') }}</div>
-
-    {{ Form::close() }}
+    <input type="submit">
+    <input id="jobId" type="hidden" value="{{ $job->id }}">
+    <input id="served" type="hidden" value="true">
+    <input id="taskId" type="hidden" value="{{ $taskId }}">
+    <input id="token" type="hidden" value="{{ csrf_token() }}">
+    </form>
 </div>
     </div>
-<a href="{{ URL::previous() }}">Go Back</a>
 </body>
 </html>

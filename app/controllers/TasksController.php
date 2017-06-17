@@ -48,6 +48,9 @@ class TasksController extends \BaseController {
         //Retrieve task id from URL
        $tasksId = Input::get('id');
 
+		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
+
+
 		//Retrieve task data from db
         $CurrentTask = Tasks::whereId($tasksId)->first();
 
@@ -87,7 +90,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{

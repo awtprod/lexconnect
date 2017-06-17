@@ -6,6 +6,60 @@
 
     <script>
         $(document).ready(function() {
+
+            var ss = jQuery.LiveAddress({
+                key: '5198528973891423290',
+                waitForStreet: true,
+                autocomplete: 0,
+                submitSelector: "#attempt_submit",
+                verifySecondary: true,
+                addresses: [{
+                    street: '#street',
+                    street2: '#street2',
+                    city: '#city',
+                    state: '#state',
+                    zipcode: '#zipcode'
+                }]
+
+            });
+
+            ss.on("AddressAccepted", function (event, data, previousHandler) {
+
+                if (data.response.chosen) {
+
+
+                    $("#verified").append('<input type="hidden" id="county" name="county" value="' + data.response.chosen.metadata.county_name + '">');
+
+                }
+                else {
+
+                    getCounty($("#state").val());
+
+                    $("#non-verified").show();
+
+
+                }
+
+                previousHandler(event, data);
+
+            });
+
+            function getCounty(state){
+                $.get("{{ url('api/getcounties')}}", { option: state },
+                        function(data) {
+                            var numbers = $('#county');
+                            numbers.empty();
+                            numbers .append($("<option></option>")
+                                    .attr("value",'')
+                                    .text('Select County'));
+                            $.each(data, function(key, value) {
+                                numbers .append($("<option></option>")
+                                        .attr("value",key)
+                                        .text(value));
+                            });
+                        });
+            }
+
             $("#served-task").hide();
             $("#attempt-task").hide();
 
@@ -39,6 +93,32 @@
             });
 
             $('#dataModal').modal("show");
+
+            $("#non_serve").change(function () {
+
+                $("#non_serve_data").toggle();
+
+            });
+
+            $("#reason").change(function () {
+
+                    if($("#reason").val()=="MOVED"){
+
+                        $("#new_address").show();
+                        $("#reason_other").hide();
+                    }
+                else if($("#reason").val()=="Other"){
+
+                        $("#new_address").hide();
+                        $("#reason_other").show();
+                    }
+            });
+
+            $("#new_address_given").change(function () {
+
+                $("#new_address_data").toggle();
+
+            });
 
             function task_table() {
 
@@ -154,14 +234,55 @@
     </div>
     <div>
         <label>Non-Serve: </label>
-        <input type="checkbox" id="non_serve" value="yes">Note: This will end service for this defendant and generate a Proof of Service.
+        <input type="checkbox" id="non_serve" name="non_serve" value="yes">Note: This will end service for this defendant and generate a Proof of Service.
     </div>
+    <div id="non_serve_data" hidden>
+        <div id="non_serve_reason">
+            <label>Reason: </label>
+            <select id="reason" name="reason">
+                <option value="">Select</option>
+                <option value="MOVED">Moved</option>
+                <option value="VACANT">Vacant</option>
+                <option value="Other">Other(fill in below)</option>
+            </select>
+        </div>
+        <input id="reason_other" name="reason_other" type="text" hidden>
 
-    <input type="submit">
-    <input id="jobId" type="hidden" value="{{ $job->id }}">
-    <input id="served" type="hidden" value="false">
-    <input id="taskId" type="hidden" value="{{ $taskId }}">
-    <input id="token" type="hidden" value="{{ csrf_token() }}">
+        <div id="new_address" hidden>
+
+                <label>New Address Provided: </label>
+                <select id="new_address_given">
+                    <option value="No" selected>No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+
+                    <div id="new_address_data" hidden>
+                        <div id="defendant-info">
+
+                            <label>Street:</label><input type="text" id="Street" name="Street"> &nbsp;
+                            <label>Apt/Stuite/Unit:</label><input type="text" id="Street2"><br>
+                            <td style="white-space: nowrap">
+                            <label>City:</label><input type="text" id="City" name="City">&nbsp;
+                            <div id="non-verified" hidden>
+                                        <label for="county">County:</label>
+                                        <select id="county" name="county">
+                                        </select>
+                            </div>&nbsp;
+                            {{ Form::label('state', 'State: ') }}
+                            {{ Form::select('state', $states, null, ['id' => 'state']) }}<br>
+                            Zipcode:<input type="text" id="Zipcode" name="Zipcode"><br></td>
+                        </div>
+
+
+                    </div>
+    </div>
+    </div>
+        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
+        <input id="served" name="served" type="hidden" value="false">
+        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
+        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
+    <input id="attemt_submit" type="submit">
+
 
 </form>
 </div>
@@ -172,14 +293,14 @@
 
     <div>
         <label>Date:</label>
-        <input id="date_served" type="date">
+        <input id="date_served" name="date" type="date">
     </div>
     <div>
         <label>Time:</label>
-        <input id="time_served" type="time">
+        <input id="time_served" name="time" type="time">
     </div>
         <label>Type:</label>
-        <select id="serve_type">
+        <select id="serve_type" name="serve_type">
             <option value="personal">Personal</option>
             <option value="substitute">Substitute</option>
             <option value="corporate">Corporate</option>
@@ -187,11 +308,11 @@
 
     <div id="sub-serve-options" hidden>
         <label>Served Upon: </label>
-        <input id="served_upon" type="text"><br>
+        <input id="served_upon" name="served_upon" type="text"><br>
     </div>
     <div id="relationship-select" hidden>
         <label>Relationship: </label>
-        <select id="relationship">
+        <select id="relationship" name="relationship">
             <option value="">Select</option>
             <option value="CO-RESIDENT">Co-Resident</option>
             <option value="PARENT">Parent</option>
@@ -216,18 +337,17 @@
         {{ Form::label('hair', 'Hair: ') }}
         {{ Form::select('hair', array('bald'=>'bald','brown'=>'brown','blonde'=>'blonde','red'=>'red','gray'=>'gray')) }}
         {{ Form::label('beard', 'Beard: ') }}
-        {{ Form::checkbox('beard', 'yes') }}
+        {{ Form::checkbox('beard', 'Beard') }}
         {{ Form::label('glasses', 'Glasses: ') }}
-        {{ Form::checkbox('glasses', 'yes') }}
+        {{ Form::checkbox('glasses', 'Glasses') }}
         {{ Form::label('moustache', 'Moustache: ') }}
-        {{ Form::checkbox('Moustache', 'yes') }}
+        {{ Form::checkbox('Moustache', 'Moustache') }}
     </div>
-
+        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
+        <input id="served" name="served" type="hidden" value="true">
+        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
+        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
     <input type="submit">
-    <input id="jobId" type="hidden" value="{{ $job->id }}">
-    <input id="served" type="hidden" value="true">
-    <input id="taskId" type="hidden" value="{{ $taskId }}">
-    <input id="token" type="hidden" value="{{ csrf_token() }}">
     </form>
 </div>
     </div>

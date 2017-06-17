@@ -18,6 +18,12 @@
       task_table()
     })
   </script>
+  <style>
+    body .modal-dialog {
+    /* new custom width */
+    width: 70%;
+    }
+  </style>
 @section('content')
  <input id="token" type="hidden" value="{{ csrf_token() }}">
 <td>{{ Form::open(['route' => 'search.index']) }}{{ Form::text('search') }}{{ Form::submit('Search') }}{{ Form::close() }}</td>

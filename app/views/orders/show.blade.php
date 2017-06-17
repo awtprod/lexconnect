@@ -254,48 +254,48 @@ Reference: {{ $orders->reference }}<p>
 <script>
     $(document).ready(function(){
 
-        var ss = jQuery.LiveAddress({
-            key: '5198528973891423290',
-            waitForStreet: true,
-            autocomplete: 0,
-            submitSelector: "#AddDefendant",
-            verifySecondary: true,
-            addresses: [{
-                street: '#street',
-                street2: '#street2',
-                city: '#city',
-                state: '#state',
-                zipcode: '#zipcode'
-            }]
+    var ss = jQuery.LiveAddress({
+        key: '5198528973891423290',
+        waitForStreet: true,
+        autocomplete: 0,
+        submitSelector: "#AddDefendant",
+        verifySecondary: true,
+        addresses: [{
+            street: '#street',
+            street2: '#street2',
+            city: '#city',
+            state: '#state',
+            zipcode: '#zipcode'
+        }]
 
-        });
-
-
-        $('#add_defendant').click(function(){
-            $('#dataModal').modal("show");
+    });
 
 
-        });
-        ss.on("AddressAccepted", function (event, data, previousHandler) {
-
-            if (data.response.chosen) {
+    $('#add_defendant').click(function(){
+        $('#dataModal').modal("show");
 
 
-                $("#verified").append('<input type="hidden" id="county" name="county" value="' + data.response.chosen.metadata.county_name + '">');
+    });
+    ss.on("AddressAccepted", function (event, data, previousHandler) {
 
-            }
-            else {
-
-                getCounty($("#state").val());
-
-                $("#non-verified").show();
+        if (data.response.chosen) {
 
 
-            }
+            $("#verified").append('<input type="hidden" id="county" name="county" value="' + data.response.chosen.metadata.county_name + '">');
 
-            previousHandler(event, data);
+        }
+        else {
 
-        });
+            getCounty($("#state").val());
+
+            $("#non-verified").show();
+
+
+        }
+
+        previousHandler(event, data);
+
+    });
     });
 
     function getCounty(state){
@@ -312,7 +312,7 @@ Reference: {{ $orders->reference }}<p>
                                 .text(value));
                     });
                 });
-    };
+    }
 
 </script>
 @stop

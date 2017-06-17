@@ -33,11 +33,6 @@ class ServeController extends \BaseController {
 	{
 		$input = Input::all();
 
-		if ( ! $this->serve->fill($input)->isValid())
-	{
-		return Redirect::back()->withInput()->withErrors($this->serve->errors);	
-	}
-	
 	$task = Tasks::whereId(Input::get('taskId'))->first();
 	$job = Jobs::whereId(Input::get('jobId'))->first();
     $order = Orders::whereId($task->order_id)->first();

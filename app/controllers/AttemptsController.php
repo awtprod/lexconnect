@@ -34,17 +34,14 @@ class AttemptsController extends \BaseController {
 	 */
 	public function store()
 	{
-
-		$input = Input::all();
-
-		dd($input);
+	$input = Input::all();
 //Save attempt
-        Attempts::create([
+      /*  Attempts::create([
             'date' => Input::get('date'),
             'time' => Input::get('time'),
             'description' => Input::get('description'),
             'job' => Input::get('jobId'),
-        ]);	
+        ]); */
 //Update server score
 	$this->tasks->ServerScore(Input::get('taskId'));
 
@@ -65,7 +62,7 @@ class AttemptsController extends \BaseController {
             $this->tasks->TaskComplete(Input::get('taskId'));
 
     	} else {
-
+			
             $this->tasks->TaskForecast(Input::get('taskId'));
 
     	}

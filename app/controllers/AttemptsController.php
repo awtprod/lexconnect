@@ -34,38 +34,94 @@ class AttemptsController extends \BaseController {
 	 */
 	public function store()
 	{
-	$input = Input::all();
+		$input = Input::all();
+		$task = Tasks::whereId(Input::get('taskId'))->first();
+		$order = Orders::whereId($task->order_id)->first();
+		$job = Jobs::whereId(Input::get('jobId'))->first();
+
 //Save attempt
-      /*  Attempts::create([
-            'date' => Input::get('date'),
-            'time' => Input::get('time'),
-            'description' => Input::get('description'),
-            'job' => Input::get('jobId'),
-        ]); */
-//Update server score
-	$this->tasks->ServerScore(Input::get('taskId'));
+		if($input["attempt-result"] == "attempt" OR $input["attempt-result"] == "non-served") {
+			Attempts::create([
+				'date' => Input::get('date'),
+				'time' => Input::get('time'),
+				'description' => Input::get('description'),
+				'job' => Input::get('jobId'),
+			]);
 
-	//Redirect based on service status
-        if (Input::get('non_serve') === 'yes') {
+			//Redirect based on service status
+			if ($input["attempt-result"] == "non-served") {
 
-			//Find job
-			$job = Jobs::whereId(Input::get('jobId'))->first();
+				//Find servee
+				$servee = Servee::whereId($job->servee_id)->first();
+
+				//Mark servee as "non-serve" or set status to "2"
+				$servee->status = '2';
+				$servee->save();
+
+				//Complete task
+				$this->tasks->TaskComplete(Input::get('taskId'));
+
+			} else {
+
+				$this->tasks->TaskForecast(Input::get('taskId'));
+
+			}
+		}
+		elseif($input["attempt-result"] == "served"){
+			$serve = new Serve;
+			$serve->date = Input::get('date');
+			$serve->time = Input::get('time');
+			if (Input::get('sub-serve') === 'yes') {
+				$serve->sub_served = '1';
+			}
+			$serve->served_upon = Input::get('served_upon');
+			$serve->age = Input::get('age');
+			$serve->gender = Input::get('gender');
+			$serve->race = Input::get('race');
+			$serve->height = Input::get('height');
+			$serve->weight = Input::get('weight');
+			$serve->relationship = Input::get('relationship');
+			$serve->hair = Input::get('hair');
+			$serve->glasses = Input::get('glasses');
+			$serve->moustache = Input::get('Moustache');
+			$serve->beard = Input::get('beard');
+			$serve->job_id = $task->job_id;
+			$serve->order_id = $task->order_id;
+			$serve->servee_id = $job->servee_id;
+			$serve->save();
 
 			//Find servee
 			$servee = Servee::whereId($job->servee_id)->first();
 
-			//Mark servee as "non-serve" or set status to "2"
-			$servee->status = '2';
+			//Mark servee as "served" or set status to "1"
+			$servee->status = '1';
 			$servee->save();
 
-			//Complete task
-            $this->tasks->TaskComplete(Input::get('taskId'));
+//Complete Task
+			$this->tasks->TaskComplete(Input::get('taskId'));
 
-    	} else {
-			
-            $this->tasks->TaskForecast(Input::get('taskId'));
+			//Determine if Dec of Mailing is needed
+			if (Input::get('sub-serve') === 'yes') {
+				/*
+                 //Determin state that case is filed in
+                  $state = Orders::whereId($job->order_id)->pluck('state');
 
-    	}
+                  if($this->rules->DecOfMailing($state)){
+
+                  //If Dec of Mailing is needed, launch tasks
+              $send_task = array('jobs_id' => $job->id, 'vendor' => $task->vendor, 'orders_id' => $task->order_id, 'court' =>$order->court, 'process' => $task->process);
+              $this->tasks->DecOfMailing($send_task);
+
+                      //Reforecast all tasks
+
+                      $this->tasks->TaskReproject(Input::get('taskId'));
+
+                      }
+                  */}
+		}
+
+		//Update server score
+		$this->tasks->ServerScore(Input::get('taskId'));
 	}
 
 	/**

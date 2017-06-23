@@ -7,18 +7,21 @@
     <script>
         $(document).ready(function() {
 
-            var ss = jQuery.LiveAddress({
+
+
+            var ss = jQuery("#attempt-form").LiveAddress({
                 key: '5198528973891423290',
                 waitForStreet: true,
                 autocomplete: 0,
-                submitSelector: "#attempt_submit",
+                submitSelector: "#submit",
                 verifySecondary: true,
                 addresses: [{
-                    street: '#street',
-                    street2: '#street2',
-                    city: '#city',
-                    state: '#state',
-                    zipcode: '#zipcode'
+                    id: 'attempt-form',
+                    street: '.street',
+                    street2: '.street2',
+                    city: '.city',
+                    state: '.state',
+                    zipcode: '.zipcode'
                 }]
 
             });
@@ -27,16 +30,16 @@
 
                 if (data.response.chosen) {
 
+                        $("#verified_county").append('<input type="hidden" id="county" name="county" value="' + data.response.chosen.metadata.county_name + '">');
+                        $("#non_verified_county").hide();
 
-                    $("#verified").append('<input type="hidden" id="county" name="county" value="' + data.response.chosen.metadata.county_name + '">');
 
                 }
                 else {
 
                     getCounty($("#state").val());
 
-                    $("#non-verified").show();
-
+                    $("#non_verified_county").show();
 
                 }
 
@@ -44,10 +47,13 @@
 
             });
 
+            ss.deactivate("attempt-form");
+
             function getCounty(state){
                 $.get("{{ url('api/getcounties')}}", { option: state },
                         function(data) {
-                            var numbers = $('#county');
+                            console.log(data);
+                            var numbers = $('.county');
                             numbers.empty();
                             numbers .append($("<option></option>")
                                     .attr("value",'')
@@ -60,16 +66,33 @@
                         });
             }
 
-            $("#served-task").hide();
-            $("#attempt-task").hide();
+            $("#attempt-result").change(function () {
 
-            $("#attempt_button").click(function () {
-                $("#served-task").hide();
-                $("#attempt-task").show();
-            });
-            $("#served_button").click(function () {
-                $("#attempt-task").hide();
-                $("#served-task").show();
+
+                if($("#attempt-result").val()=="non-served") {
+
+                    var form = $(this);
+
+                    $("#non-served").show();
+
+                    ss.deactivate("attempt-form");
+
+                    $("#served").hide();
+                }
+                if($("#attempt-result").val()=="served"){
+
+
+                    $("#non-served").hide();
+                    $("#served").show();
+
+                }
+                else if($("#attempt-result").val()=="attempt"){
+
+                    $("#non-served").hide();
+                    $("#served").hide();
+                    ss.deactivate("attempt-form");
+
+                }
             });
 
             $("#serve_type").change(function () {
@@ -94,11 +117,6 @@
 
             $('#dataModal').modal("show");
 
-            $("#non_serve").change(function () {
-
-                $("#non_serve_data").toggle();
-
-            });
 
             $("#reason").change(function () {
 
@@ -112,11 +130,74 @@
                         $("#new_address").hide();
                         $("#reason_other").show();
                     }
+                else if($("#reason").val()=="VACANT"){
+
+                        $("#new_address").hide();
+                        $("#reason_other").hide();
+                    }
             });
 
             $("#new_address_given").change(function () {
 
                 $("#new_address_data").toggle();
+
+            });
+
+            $("#location").change(function () {
+
+
+                if($("#location").val()=="other") {
+
+                    $("#other_location").show();
+                    ss.activate("attempt-form");
+                }
+                else{
+                    ss.deactivate("attempt-form");
+                    $("#other_location").hide();
+                }
+
+            });
+
+            var form = $(this);
+
+            $("#attempt-form").validate({
+
+                rules: {
+                    date: "required",
+                    time: "required",
+                    description: "required",
+                    reason: "required",
+                    reason_other: "required",
+                    Street: "required",
+                    City: "required",
+                    county: "required",
+                    state: "required",
+                    Zipcode: "required",
+                    served_upon: "required",
+                    relationship: "required",
+                    hair: "required",
+                    gender: "required",
+                    height: "required",
+                    weight: "required",
+                    age: "required"
+                },
+                submitHandler: function (form) {
+                    $.ajax({
+                        method: 'POST', // Type of response and matches what we said in the route
+                        url: '/attempts', // This is the url we gave in the route
+                        data: $(form).serialize(), // a JSON object to send back
+                        success: function (response) { // What to do if we succeed
+                            console.log(response);
+                            task_table()
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
+                            console.log(JSON.stringify(jqXHR));
+                            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                            event.preventDefault();
+
+                        }
+                    });
+                }
 
             });
 
@@ -129,73 +210,6 @@
                         });
             }
 
-
-            var form = $(this);
-
-            $("#attempt-form").validate({
-
-                rules: {
-                    date: "required",
-                    time: "required",
-                    description: "required"
-                },
-                submitHandler: function (form) {
-                    $.ajax({
-                        method: 'POST', // Type of response and matches what we said in the route
-                        url: '/attempts', // This is the url we gave in the route
-                        data: $(form).serialize(), // a JSON object to send back
-                        success: function (response) { // What to do if we succeed
-                            console.log(response);
-                            $('#dataModal').modal("hide");
-                            task_table()
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
-                            console.log(JSON.stringify(jqXHR));
-                            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
-                            event.preventDefault();
-
-                        }
-                    });
-
-                }
-
-
-            });
-
-
-            $("#served-form").validate({
-
-                rules: {
-                    date: "required",
-                    time: "required",
-                    served_upon: "required",
-                    relationship: "required",
-                    hair: "required",
-                    gender: "required",
-                    height: "required",
-                    weight: "required",
-                    age: "required"
-                },
-                submitHandler: function (form) {
-                    $.ajax({
-                        method: 'POST', // Type of response and matches what we said in the route
-                        url: '/serve', // This is the url we gave in the route
-                        data: $(form).serialize(), // a JSON object to send back
-                        success: function (response) { // What to do if we succeed
-                            console.log(response);
-                            $('#dataModal').modal("hide");
-                            task_table()
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
-                            console.log(JSON.stringify(jqXHR));
-                            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
-                            event.preventDefault();
-
-                        }
-                    });
-                }
-        });
-
         });
     </script>
     <style>
@@ -207,15 +221,20 @@
         {
             display:none;
         }
+        .smarty-popup{
+            position: fixed;
+            padding: 2em;
+            left: 50%;
+            top: 65%;
+            transform: translateX(-50%);
+        }
     </style>
 
 
 </head>
 <body>
 <h4 class="modal-title">Service Attempt</h4>
-    <button id="attempt_button">Enter Service Attempt</button>
-    <button id="served_button">Defendant Served</button>
-<div id ="attempt-task">
+
     <form id="attempt-form">
 
     <h1>Add Service Attempt</h1>
@@ -232,11 +251,14 @@
         <label>Description:</label>
         <input id="description" name="description" type="text">
     </div>
-    <div>
-        <label>Non-Serve: </label>
-        <input type="checkbox" id="non_serve" name="non_serve" value="yes">Note: This will end service for this defendant and generate a Proof of Service.
-    </div>
-    <div id="non_serve_data" hidden>
+        <label>Attempt Result: </label>
+        <select id="attempt-result" name="attempt-result">
+            <option value="attempt">More Attempts Needed</option>
+            <option value="served">Defendant Served</option>
+            <option value="non-served">Non-Serve</option>
+        </select>
+
+    <div id="non-served" hidden>
         <div id="non_serve_reason">
             <label>Reason: </label>
             <select id="reason" name="reason">
@@ -257,54 +279,24 @@
                 </select>
 
                     <div id="new_address_data" hidden>
-                        <div id="defendant-info">
-
-                            <label>Street:</label><input type="text" id="Street" name="Street"> &nbsp;
-                            <label>Apt/Stuite/Unit:</label><input type="text" id="Street2"><br>
-                            <td style="white-space: nowrap">
-                            <label>City:</label><input type="text" id="City" name="City">&nbsp;
-                            <div id="non-verified" hidden>
-                                        <label for="county">County:</label>
-                                        <select id="county" name="county">
-                                        </select>
-                            </div>&nbsp;
+                            <label>Street:</label><input type="text" id="New_Street" name="Street"> &nbsp;
+                            <label>Apt/Stuite/Unit:</label><input type="text" id="New_Street2"><br>
+                            <label>City:</label><input type="text" id="New_City" name="City">&nbsp;
                             {{ Form::label('state', 'State: ') }}
-                            {{ Form::select('state', $states, null, ['id' => 'state']) }}<br>
-                            Zipcode:<input type="text" id="Zipcode" name="Zipcode"><br></td>
-                        </div>
-
-
+                            {{ Form::select('state', $states, null, ['id' => 'New_state']) }}
+                            <label>Zipcode:</label><input type="text" id="Zipcode" name="New_Zipcode"><br>
                     </div>
     </div>
     </div>
-        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
-        <input id="served" name="served" type="hidden" value="false">
-        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
-        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
-    <input id="attemt_submit" type="submit">
 
+<div id ="served" hidden>
 
-</form>
-</div>
-<div id ="served-task">
-    <form id="served-form">
-
-    <h1>Completed Serve</h1>
-
-    <div>
-        <label>Date:</label>
-        <input id="date_served" name="date" type="date">
-    </div>
-    <div>
-        <label>Time:</label>
-        <input id="time_served" name="time" type="time">
-    </div>
         <label>Type:</label>
         <select id="serve_type" name="serve_type">
             <option value="personal">Personal</option>
             <option value="substitute">Substitute</option>
             <option value="corporate">Corporate</option>
-        </select>
+        </select><br>
 
     <div id="sub-serve-options" hidden>
         <label>Served Upon: </label>
@@ -321,7 +313,31 @@
             <option value="CHILD">Child</option>
         </select>
     </div>
-    <div>
+        <label>Location: </label>
+        <select id="location" name="location">
+            <option value="{{$job->street}},&nbsp;@if(!empty($job->street2)),&nbsp;@endif
+                            {{$job->city}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}">
+                            {{$job->street}},&nbsp;@if(!empty($job->street2)),&nbsp;@endif
+                            {{$job->city}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}
+            </option>
+            <option value="other">Other (fill in below)</option>
+        </select>
+        <div id="other_location" hidden>
+            <label>Street:</label><input type="text" class="street" name="New_Street"> &nbsp;
+            <label>Apt/Stuite/Unit:</label><input type="text" class="New_Street2"><br>
+            <label>City:</label><input type="text" class="city" name="New_City">&nbsp;
+            {{ Form::label('state', 'State: ') }}
+            {{ Form::select('state', $states, null, ['class' => 'New_state']) }}
+            <label>Zipcode:</label><input type="text" class="zipcode" name="New_Zipcode"><br>
+        </div>
+
+            <div id="non_verified_county" hidden>
+                <label for="county">County:</label>
+                <select class="county" name="county">
+                </select>
+            </div>
+            <div id="verified_county"></div>
+    <div><br>
         {{ Form::label('gender', 'Gender: ') }}
         {{ Form::select('gender', array('male'=>'male','female'=>'female')) }}
         {{ Form::label('age', 'Age: ') }}
@@ -343,13 +359,13 @@
         {{ Form::label('moustache', 'Moustache: ') }}
         {{ Form::checkbox('Moustache', 'Moustache') }}
     </div>
-        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
-        <input id="served" name="served" type="hidden" value="true">
-        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
-        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
-    <input type="submit">
-    </form>
+
 </div>
     </div>
+        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
+        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
+        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
+        <input id="submit" type="submit">
+        </form>
 </body>
 </html>

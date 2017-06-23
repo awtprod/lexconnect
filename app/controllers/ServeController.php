@@ -32,6 +32,7 @@ class ServeController extends \BaseController {
 	public function store()
 	{
 		$input = Input::all();
+		dd($input);
 
 	$task = Tasks::whereId(Input::get('taskId'))->first();
 	$job = Jobs::whereId(Input::get('jobId'))->first();

@@ -30,6 +30,10 @@ Route::get('api/getRate', 'JobsController@getRate');
 Route::get('orders/courts/{id}', 'OrdersController@getCourts');
 Route::group(array('before'=>'auth'), function() {
 Route::get('api/tasksTable', 'TasksController@tasksTable');
+Route::get('states/', [
+		'as' => 'states.index',
+		'uses' => 'StatesController@index'
+	]);
 Route::get('jobs/add', [
 	'as' => 'jobs.add',
 	'uses' => 'JobsController@add'
@@ -297,6 +301,14 @@ Route::post('counties/update', [
 			'as' => 'counties.update',
 			'uses' => 'CountiesController@update'
 	]);
+Route::post('states/load', [
+		'as' => 'states.load',
+		'uses' => 'StatesController@load'
+	]);
+Route::post('states/save', [
+		'as' => 'states.save',
+		'uses' => 'StatesController@save'
+	]);
 Route::post('company/update', [
 		'as' => 'company.save',
 		'uses' => 'CompanyController@save'
@@ -326,6 +338,7 @@ Route::resource('rules', 'RulesController');
 Route::resource('reprojections', 'ReprojectionsController');
 Route::resource('processes', 'ProcessesController');
 Route::resource('dependent', 'DependentController');
+
 
 
 

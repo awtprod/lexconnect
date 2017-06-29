@@ -273,14 +273,14 @@
         <div id="new_address" hidden>
 
                 <label>New Address Provided: </label>
-                <select id="new_address_given">
-                    <option value="No" selected>No</option>
-                    <option value="Yes">Yes</option>
+                <select id="new_address_given" name="new_address_given">
+                    <option value="False" selected>No</option>
+                    <option value="True">Yes</option>
                 </select>
 
                     <div id="new_address_data" hidden>
                             <label>Street:</label><input type="text" id="New_Street" name="Street"> &nbsp;
-                            <label>Apt/Stuite/Unit:</label><input type="text" id="New_Street2"><br>
+                            <label>Apt/Stuite/Unit:</label><input type="text" id="New_Street2" name="Street2"><br>
                             <label>City:</label><input type="text" id="New_City" name="City">&nbsp;
                             {{ Form::label('state', 'State: ') }}
                             {{ Form::select('state', $states, null, ['id' => 'New_state']) }}
@@ -324,7 +324,7 @@
         </select>
         <div id="other_location" hidden>
             <label>Street:</label><input type="text" class="street" name="New_Street"> &nbsp;
-            <label>Apt/Stuite/Unit:</label><input type="text" class="New_Street2"><br>
+            <label>Apt/Stuite/Unit:</label><input type="text" class="New_Street2" name="New_Street2"><br>
             <label>City:</label><input type="text" class="city" name="New_City">&nbsp;
             {{ Form::label('state', 'State: ') }}
             {{ Form::select('state', $states, null, ['class' => 'New_state']) }}

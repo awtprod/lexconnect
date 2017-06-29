@@ -35,6 +35,7 @@ class AttemptsController extends \BaseController {
 	public function store()
 	{
 		$input = Input::all();
+		dd($input);
 		$task = Tasks::whereId(Input::get('taskId'))->first();
 		$order = Orders::whereId($task->order_id)->first();
 		$job = Jobs::whereId(Input::get('jobId'))->first();
@@ -58,20 +59,40 @@ class AttemptsController extends \BaseController {
 				$servee->status = '2';
 				$servee->save();
 
+				//Save reason for non-serve to job
+				if($input["reason"]=="other"){
+						$job->reason = $input["reason_other"];
+				}
+				else{
+						$job->reason = $input["reason"];
+				}
+
+				//If new address is proved, save to job
+				if($input["new_address_give"]=="true"){
+						$job->moved_street = $input["Street"];
+						$job->moved_street2 = $input["Street2"];
+						$job->moved_city = $input["City"];
+						$job->moved_state = $input["State"];
+						$job->moved_zipcode = $input["Zipcode"];
+				}
+						$job->save();
+
 				//Complete task
 				$this->tasks->TaskComplete(Input::get('taskId'));
-
-			} else {
+			}
+			else {
 
 				$this->tasks->TaskForecast(Input::get('taskId'));
-
 			}
 		}
 		elseif($input["attempt-result"] == "served"){
 			$serve = new Serve;
 			$serve->date = Input::get('date');
 			$serve->time = Input::get('time');
-			if (Input::get('sub-serve') === 'yes') {
+			if ($input["serve_type"] == 'personal') {
+				$serve->sub_served = '0';
+			}
+			else{
 				$serve->sub_served = '1';
 			}
 			$serve->served_upon = Input::get('served_upon');
@@ -88,6 +109,24 @@ class AttemptsController extends \BaseController {
 			$serve->job_id = $task->job_id;
 			$serve->order_id = $task->order_id;
 			$serve->servee_id = $job->servee_id;
+
+			if($input["location"]=="other"){
+
+				$serve->street = $input["New_Street"];
+				$serve->street2 = $input["New_Street2"];
+				$serve->city = $input["New_City"];
+				$serve->county = $input["county"];
+				$serve->state = $input["New_State"];
+				$serve->zipcode = $input["New_Zipcode"];
+			}
+			else{
+				$serve->street = $job->street;
+				$serve->street2 = $job->street2;
+				$serve->city = $job->city;
+				$serve->county = $job->county;
+				$serve->state = $job->state;
+				$serve->zipcode = $job->zipcode;
+			}
 			$serve->save();
 
 			//Find servee

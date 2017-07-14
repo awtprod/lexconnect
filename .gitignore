@@ -1,14 +1,23 @@
 bootstrap/compiled.php
 /vendor
-app/config/
-app/storage/service_documents/
-app/storage/proofs/
-app/storage/sessions/
 public/service_documents/
+public/uploads/
+public/declarations
+public/packages
+public/proofs
+public/uploads
+public/xpdfbin-win-3.04
+public/invoices
+backup
+app/storage/cache
+app/storage
+app/storage/views/
+app/config
 node_modules/
 composer.phar
 .env.*.php
 .env.php
 .DS_Store
 Thumbs.db
+
 

@@ -50,8 +50,12 @@ class StatesController extends \BaseController {
 	{
 
 		$input = Input::all();
-		dd($input);
 
+		$state = States::whereId($input["id"])->first();
+
+		File::put(app_path('/views/states/'.$state->name.'_'.$input["type"].'.blade.php'), $input["template_body"]);
+
+		Return Response::json($input);
 	}
 
 

@@ -35,7 +35,6 @@ class AttemptsController extends \BaseController {
 	public function store()
 	{
 		$input = Input::all();
-		dd($input);
 		$task = Tasks::whereId(Input::get('taskId'))->first();
 		$order = Orders::whereId($task->order_id)->first();
 		$job = Jobs::whereId(Input::get('jobId'))->first();

@@ -58,8 +58,14 @@ class TasksController extends \BaseController {
         $job = DB::table('jobs')->where('id', $CurrentTask->job_id)->first();
 
 		//Find servers
-		$servers = User::whereCompanyId($job->vendor)->orderBy('fname')->get();
-		$servers = $servers->lists('FullName', 'id');
+		if(Auth::user()->user_role == 'Admin'){
+			$servers = User::orderBy('fname')->lists('fname', 'id');
+
+		}
+		else {
+
+			$servers = User::whereCompanyId($job->vendor)->orderBy('fname')->lists('fname', 'id');
+		}
 
 		//Find latest proof
 		$proof = Documents::whereJobId($job->id)
@@ -159,9 +165,14 @@ class TasksController extends \BaseController {
 	}
 
 	public function proof(){
-
 		//Get job info
 		$job = Jobs::whereId(Input::get('jobId'))->first();
+
+		View::addLocation(app_path('/views/states/'));
+
+		Return View::make('Alabama_non-serve',['job'=>$job]);
+
+
 
 		//Get task info
 		$taskId = Tasks::whereJobId(Input::get('jobId'))->first();
@@ -183,13 +194,6 @@ class TasksController extends \BaseController {
 
 		//Determine if Serve or Non-Serve
 		$serve = DB::table('serve')->where('job_id', Input::get('jobId'))->first();
-
-		View::share(['order' => $order]);
-		View::share(['serve' => $serve]);
-		View::share(['server'=>$server]);
-		View::share(['court'=>$court]);
-		View::share(['docsServed'=>$docsServed]);
-		View::share(['serverFirm'=>$serverFirm]);
 
 
 		//If Defendant was served, Generate Proof of Service

@@ -6,6 +6,8 @@
   <script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
   <script src="//d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/2.8/jquery.liveaddress.min.js"></script>
   <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.4/summernote.css" rel="stylesheet">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.4/summernote.js"></script>
   <script>
     $(document).ready(function() {
       function task_table() {

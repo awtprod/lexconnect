@@ -188,6 +188,7 @@
                         data: $(form).serialize(), // a JSON object to send back
                         success: function (response) { // What to do if we succeed
                             console.log(response);
+                            $('#dataModal').modal("hide");
                             task_table()
                         },
                         error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail

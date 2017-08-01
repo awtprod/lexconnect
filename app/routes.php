@@ -34,6 +34,10 @@ Route::get('states/', [
 		'as' => 'states.index',
 		'uses' => 'StatesController@index'
 	]);
+Route::get('states/test', [
+		'as' => 'states.test',
+		'uses' => 'StatesController@test'
+	]);
 Route::get('jobs/add', [
 	'as' => 'jobs.add',
 	'uses' => 'JobsController@add'

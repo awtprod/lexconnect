@@ -10,33 +10,42 @@
 </head>
 <body>
 
+<div id="proof" hidden>
 <form id="proof_form"> <textarea id="template_body" name="template_body"></textarea>
-                        <input type="hidden" name="state_id" id="state_id" value="">
+                        <input type="hidden" name="job_id" id="job_id" value="{{ $job->id }}">
                         <input type="hidden" name="type" id="type" value="">
                         <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
                         <input id="submit" value="Save" type="submit">
                     </form>
-
+</div>
 
     <a href="{{ URL::previous() }}">Go Back</a>
     <script>
         $(document).ready(function() {
 
-
-                var id = $(this).attr("id");
-
                 $.ajax({
+
                     method: 'POST', // Type of response and matches what we said in the route
                     url: '/tasks/proof', // This is the url we gave in the route
-                    data: {id: id, _token: $('#token').val(), type: 'proof'},
+                    data: {
+                        jobId: $('#job_id').val(),
+                        _token: $('#token').val(),
+                        server: $('#server').find(":selected").text()
+                    },
                     success: function (response) {
+                        console.log(response);
+                        $('#proof').show();
                         $('#template_body').summernote('code', response);
+
                     },
                     error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
+                        console.log('poop');
+
                         console.log(JSON.stringify(jqXHR));
                         console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
                     }
                 });
+
 
 
             $('#submit').click(function (e) {

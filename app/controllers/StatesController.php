@@ -21,7 +21,11 @@ class StatesController extends \BaseController {
 		Return "Not Authorized!";
 		}
 	}
+	public function test(){
+		View::addLocation(app_path('/views/states/'));
 
+		Return View::make('Alabama_non-serve');
+	}
     public function load(){
 
         $input = Input::all();

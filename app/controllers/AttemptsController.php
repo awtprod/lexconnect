@@ -88,12 +88,7 @@ class AttemptsController extends \BaseController {
 			$serve = new Serve;
 			$serve->date = Input::get('date');
 			$serve->time = Input::get('time');
-			if ($input["serve_type"] == 'personal') {
-				$serve->sub_served = '0';
-			}
-			else{
-				$serve->sub_served = '1';
-			}
+			$serve->serve_type = Input::get('serve_type');
 			$serve->served_upon = Input::get('served_upon');
 			$serve->age = Input::get('age');
 			$serve->gender = Input::get('gender');

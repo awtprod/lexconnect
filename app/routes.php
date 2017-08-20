@@ -42,14 +42,6 @@ Route::get('jobs/add', [
 	'as' => 'jobs.add',
 	'uses' => 'JobsController@add'
 	]);
-Route::get('tasks/filing', [
-			'as' => 'tasks.filing',
-			'uses' => 'TasksController@filing'
-	]);
-Route::get('tasks/', [
-			'as' => 'tasks.index',
-			'uses' => 'TasksController@index'
-	]);
 Route::get('home/', [
 	'as' => 'home.index',
 	'uses' => 'HomeController@index'
@@ -154,6 +146,14 @@ Route::get('home/', [
 		'as' => 'tasks.complete',
 		'uses' => 'TasksController@complete'
 	]);
+	Route::get('tasks/filing', [
+		'as' => 'tasks.filing',
+		'uses' => 'TasksController@filing'
+	]);
+	Route::get('tasks/', [
+		'as' => 'tasks.index',
+		'uses' => 'TasksController@index'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [
@@ -250,7 +250,10 @@ Route::post('tasks/proof', [
 	'as' => 'tasks.proof',
 	'uses' => 'TasksController@proof'
 	]);
-
+Route::post('tasks/generate_proof', [
+		'as' => 'tasks.generate_proof',
+		'uses' => 'TasksController@generate_proof'
+	]);
 Route::post('tasks/upload', [
 			'as' => 'tasks.upload',
 			'uses' => 'TasksController@upload'

@@ -24,7 +24,7 @@ class StatesController extends \BaseController {
 	public function test(){
 		View::addLocation(app_path('/views/states/'));
 
-		Return View::make('Alabama_non-serve');
+		Return View::make('AL_non-serve');
 	}
     public function load(){
 
@@ -33,13 +33,13 @@ class StatesController extends \BaseController {
         $state = States::whereId($input["id"])->first();
 
 
-			if(File::exists(app_path('/views/states/'.$state->name.'_'.$input["type"].'.blade.php'))) {
+			if(File::exists(app_path('/views/states/'.$state->abbrev.'_'.$input["type"].'.blade.php'))) {
 
-				return Response::json(array('body'=> File::get(app_path('/views/states/'.$state->name.'_'.$input["type"].'.blade.php')), 'title'=>$state->name.' '.ucwords($input["type"]).' Template'));
+				return Response::json(array('body'=> File::get(app_path('/views/states/'.$state->abbrev.'_'.$input["type"].'.blade.php')), 'title'=>$state->name.' '.ucwords($input["type"]).' Template'));
 			}
 			else{
 
-				return Response::json(array('body'=> '', 'title'=>$state->name.' '.ucwords($input["type"]).' Template'));
+				return Response::json(array('body'=> '', 'title'=>$state->abbrev.' '.ucwords($input["type"]).' Template'));
 
 			}
 
@@ -57,7 +57,7 @@ class StatesController extends \BaseController {
 
 		$state = States::whereId($input["id"])->first();
 
-		File::put(app_path('/views/states/'.$state->name.'_'.$input["type"].'.blade.php'), $input["template_body"]);
+		File::put(app_path('/views/states/'.$state->abbrev.'_'.$input["type"].'.blade.php'), $input["template_body"]);
 
 		Return Response::json($input);
 	}

@@ -9,7 +9,7 @@ class Serve extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['date', 'time', 'description', 'served_upon', 'job', 'age','gender','race','height','weight','relationship','hair','glasses','moustache','beard','job_id','order_id','servee_id','sub_served','street','street2','city','state','county','zipcode'];
+	protected $fillable = ['date', 'time', 'description', 'served_upon', 'job', 'age','gender','race','height','weight','relationship','hair','glasses','moustache','beard','job_id','order_id','servee_id','serve_type','street','street2','city','state','county','zipcode'];
 	
 	public static $rules = [
 		'date' => 'required|date',

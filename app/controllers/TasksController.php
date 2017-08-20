@@ -165,14 +165,14 @@ class TasksController extends \BaseController {
 	}
 
 	public function proof(){
+
+		if(File::exists(app_path('/views/proofs/'.Input::get('jobId').'.txt'))) {
+
+			return Response::json(File::get(app_path('/views/proofs/'.Input::get('jobId').'.txt')));
+		}
+
 		//Get job info
 		$job = Jobs::whereId(Input::get('jobId'))->first();
-
-		View::addLocation(app_path('/views/states/'));
-
-		Return View::make('Alabama_non-serve',['job'=>$job]);
-
-
 
 		//Get task info
 		$taskId = Tasks::whereJobId(Input::get('jobId'))->first();
@@ -181,7 +181,7 @@ class TasksController extends \BaseController {
 		$order = Orders::whereId($job->order_id)->first();
 
 		//Find server information
-		$server = User::whereId(Input::get('server'))->first();
+		$server = User::whereId(Auth::user()->id)->first();
 
 		//Find server firm
 		$serverFirm = Company::whereId($server->company_id)->first();
@@ -190,11 +190,21 @@ class TasksController extends \BaseController {
 		$court = DB::table('courts')->whereCourt($order->court)->first();
 
 		//Find what documents were served
-		$docsServed = DocumentsServed::whereorderId($order->id)->get();
+		$documents = DocumentsServed::whereorderId($order->id)->get();
+
+		$numItems = count($documents);
+		$docsServed = '';
+		$i = 1;
+
+		foreach($documents as $key=>$value) {
+			$docsServed .= $value.', ';
+			if(++$i === $numItems) {
+				$docsServed .= 'and '.$value;
+			}
+		}
 
 		//Determine if Serve or Non-Serve
 		$serve = DB::table('serve')->where('job_id', Input::get('jobId'))->first();
-
 
 		//If Defendant was served, Generate Proof of Service
 		if(!empty($serve)){
@@ -204,80 +214,59 @@ class TasksController extends \BaseController {
 			$data['date'] = date('jS \d\a\y \of F Y', strtotime($serve->date));
 			$data['time'] = date('h:i A', strtotime($serve->time));
 			$data['served'] = $serve->served_upon;
-			if($serve->sub_served == 0){
-				$data['relationship'] = "NAMED DEFENDANT";
-			}
-			else{
-				$data['relationship'] = $serve->relationship;
-			}
+			$data['relationship'] = $serve->relationship;
 
-			$file = str_random(6);
-			$filename =  $file . '_'. 'proof.pdf';
-			$filepath = storage_path().'/proofs/'. $filename;
 
-			//Determine correct template
-			$state = $job->state . 'proof';
+			View::addLocation(app_path('/views/states/'));
 
-			//Create proof
-			$pdf = PDF::loadView('tasks.'.$state, ['data' => $data], ['job' => $job], ['serve' => $serve])->save($filepath);
-
-			//Update Table
-			$dbDoc = new Documents;
-			$dbDoc->document = 'Unexecuted_Proof';
-			$dbDoc->job_id = Input::get('jobId');
-			$dbDoc->order_id = $job->order_id;
-			$dbDoc->filename = $filename;
-			$dbDoc->filepath = 'proofs';
-			$dbDoc->save();
-
-			return $pdf->download($filename);
+			Return View::make($order->state."_proof",['job'=>$job,'data'=>$data,'order'=>$order,'server'=>$server,'court'=>$court,'docsServed'=>$docsServed,'serve'=>$serve]);
 		}
 
 		//If defendant was NOT served
 		else{
 			$attempts = DB::table('attempts')->OrderBy('date', 'asc')->where('job', Input::get('jobId'))->get();
-			$a = array();
+			$data = array();
 			foreach( $attempts as $attempt){
 
-				$a[$attempt->job]['date'] = date("m/d/y", strtotime($attempt->date));
-				$a[$attempt->job]['time'] = date('h:i A', strtotime($attempt->time));
-				$a[$attempt->job]['description'] = $attempt->description;
+				$data[$attempt->job]['date'] = date("m/d/y", strtotime($attempt->date));
+				$data[$attempt->job]['time'] = date('h:i A', strtotime($attempt->time));
+				$data[$attempt->job]['description'] = $attempt->description;
 			}
-			$file = str_random(6);
-			$filename =  $file . '_'. 'proof.pdf';
-			$filepath = storage_path().'/proofs/'. $filename;
 
-			//Determine correct template
-			$state = $job->state . 'non';
+			View::addLocation(app_path('/views/states/'));
 
-			//Create proof
-			$pdf = PDF::loadView('tasks.'.$state, ['a' => $a], ['job' => $job], ['serve' => $serve])->save($filepath);
-
-			//Update Table
-			$dbDoc = new Documents;
-			$dbDoc->document = 'Unexecuted_Proof';
-			$dbDoc->job_id = Input::get('jobId');
-			$dbDoc->order_id = $job->order_id;
-			$dbDoc->filename = $filename;
-			$dbDoc->filepath = 'proofs';
-			$dbDoc->save();
-
-			return $pdf->download($filename);
+			Return View::make($order->state.'_non-serve',['job'=>$job,'data'=>$data,'order'=>$order,'server'=>$server,'court'=>$court,'docsServed'=>$docsServed]);
 		}
+	}
+	public function generate_proof(){
+		$input = Input::all();
+
+		if($input["button"]=="save"){
+			$this->save_proof($input);
+		}
+		else{
+			$this->save_proof($input);
+			$pdf = PDF::loadHTML($input["template_body"]);
+			return $pdf->download();
+
+		}
+
+	}
+
+	public function save_proof($input){
+
+		File::put(app_path('/views/proofs/'.$input["id"].'.txt'), $input["template_body"]);
+
 	}
 
 	public function upload(){
 
 		$input = Input::all();
 
+		dd($input);
+
 		//Find job data
 		$job = Jobs::whereId(Input::get('jobId'))->first();
-
-		//Validate File
-		if ( ! $this->tasks->fill($input)->ValidProof())
-		{
-			return Redirect::back()->withInput()->withErrors($this->tasks->errors);
-		}
 
 		//If valid file, move to service documents dir
 		$destinationPath = storage_path().'/proofs';

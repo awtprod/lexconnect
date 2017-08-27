@@ -263,18 +263,27 @@ class TasksController extends \BaseController {
 
 		$input = Input::all();
 
-		dd($input);
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$type = finfo_file($finfo, $input["executed_proof"]);
 
-		//Find job data
-		$job = Jobs::whereId(Input::get('jobId'))->first();
 
-		//If valid file, move to service documents dir
-		$destinationPath = storage_path().'/proofs';
-		$file = str_random(6);
-		$filename =  $file . '_'. 'proof.pdf';
+		if(!empty($input["executed_proof"]) AND ($type == "application/pdf")) {
 
-		Input::file('proof')->move($destinationPath, $filename);
+			return "file uploaded";
+			//Find job data
+			$job = Jobs::whereId(Input::get('jobId'))->first();
 
+			//If valid file, move to service documents dir
+			$destinationPath = storage_path() . '/proofs';
+			$file = str_random(6);
+			$filename = $file . '_' . 'proof.pdf';
+
+			Input::file('executed_proof')->move($destinationPath, $filename);
+		}
+		else{
+			return "file not uploaded";
+		}
+/*
 		//Update Table
 		$document = new Documents;
 		$document->document = 'Executed_Proof';
@@ -286,8 +295,7 @@ class TasksController extends \BaseController {
 
 		//Complete task
 		$this->tasks->TaskComplete(Input::get('taskId'));
-
-		Return Redirect::route('jobs.show', $job->id);
+*/
 
 	}
 

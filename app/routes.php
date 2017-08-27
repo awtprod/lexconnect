@@ -154,6 +154,10 @@ Route::get('home/', [
 		'as' => 'tasks.index',
 		'uses' => 'TasksController@index'
 	]);
+	Route::get('states/update', [
+		'as' => 'states.update',
+		'uses' => 'StatesController@update'
+	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 	Route::post('vendorrates/store', [
@@ -316,6 +320,7 @@ Route::post('states/save', [
 		'as' => 'states.save',
 		'uses' => 'StatesController@save'
 	]);
+
 Route::post('company/update', [
 		'as' => 'company.save',
 		'uses' => 'CompanyController@save'

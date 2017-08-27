@@ -44,6 +44,21 @@ class StatesController extends \BaseController {
 			}
 
     }
+	public function update(){
+		$input = Input::all();
+
+		$affected = DB::table('states')->where('mailing', '=', 1)->update(array('mailing' => 0));
+
+		if(!empty($input["mailing"])) {
+
+		foreach ($input["mailing"] as $state){
+				$update = States::whereId($state)->first();
+				$update->mailing = '1';
+				$update->save();
+
+			}
+		}
+	}
 	/**
 	 * Update the specified resource in storage.
 	 *

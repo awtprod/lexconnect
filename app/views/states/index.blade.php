@@ -1,18 +1,20 @@
 @extends('layouts.default')
 @section('head')
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.4/summernote.css" rel="stylesheet">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.4/summernote.js"></script>
 @section('content')
 
+    <form id="update_form" >
+        <input type="submit" value="Save" class="btn btn-info btn-xs update_submit"/>
 
     <table>
         <tr>
             <th>State</th>
             <th>Abbrevation</th>
+            <th>Mailing Required</th>
             <th>Proof Template</th>
             <th>Non-Serve Template</th>
             <th>Mailing Template</th>
@@ -27,13 +29,22 @@
                     {{ $state->abbrev }}
                 </div>
                 </td>
-                <td><input type="button" name="view" value="View" id={{ $state->id }} class="btn btn-info btn-xs proof_template" /></td>
+            @if($state->mailing)
+                <td><input type="checkbox" name='mailing[{{$state->id}}]' value="{{ $state->id }}" checked/></td>
+            @else
+                <td><input type="checkbox" name='mailing[{{$state->id}}]' value="{{ $state->id }}"/></td>
+            @endif
+            <td><input type="button" name="view" value="View" id={{ $state->id }} class="btn btn-info btn-xs proof_template" /></td>
                 <td><input type="button" name="view" value="View" id={{ $state->id }} class="btn btn-info btn-xs non_serve_template" /></td>
                 <td><input type="button" name="view" value="View" id={{ $state->id }} class="btn btn-info btn-xs mailing_template" /></td>
                 </tr>
 
         @endforeach
     </table>
+        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
+        <input type="submit" value="Save" class="btn btn-info btn-xs update_submit"/>
+    </form>
+
     <div id="dataModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -59,7 +70,27 @@
 <script>
     $(document).ready(function() {
 
+        $(".update_submit").click(function(e){
+            e.preventDefault();
 
+            var formData = $("#update_form").serialize();
+            console.log(formData);
+
+
+            $.ajax({
+
+                url: '/states/update',
+                type: 'GET',
+                data: formData,
+                success: function (data) {
+                    console.log(data)
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+
+        });
 
         $('.proof_template').click(function () {
 

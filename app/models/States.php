@@ -9,8 +9,7 @@ use Carbon\Carbon;
 class States extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
-	public $timestamps = true;
-	protected $fillable = ['name', 'process', 'status', 'sortOrder','RoutineOrigDueDate','RushOrigDueDate','SameDayOrigDueDate','RoutineNewDueDate','RushNewDueDate','SameDayNewDueDate','window','group'];
+	protected $fillable = ['name', 'abbrev', 'mailing'];
 	
 	public static $rules = [
 		'defendant' => 'required',
@@ -19,6 +18,7 @@ class States extends Eloquent implements UserInterface, RemindableInterface {
 		'state' => 'required',
 		'zipcode' => 'required|min:5|max:5'
 	];
+	public $timestamps = false;
 
 	public $errors;
 

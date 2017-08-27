@@ -21,9 +21,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 	];
 	
 	public static $file_rules = [
-		'date' => 'required',
-		'case' => 'required',
-		'documents' => 'required|mimes:pdf|max:10000'
+		'executed_proof' => 'required|mimes:pdf'
 		];
 	public static $rec_rules = [
 		'date' => 'required',

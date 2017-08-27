@@ -31,8 +31,8 @@
 </form>
 </div>
 <div id="upload" hidden>
-    <form id="upload_form">
-        <input type="file" name="executed_proof" id="executed_proof"/>
+    <form id="upload_form" method="post" enctype="multipart/form-data">
+        <input type="file" name="executed_proof" id="executed_proof" accept="application/pdf"/>
         <input type="hidden" name="job_id" id="job_id" value="{{ $job->id }}">
         <input type="hidden" name="task_id" id="task_id" value="{{ $taskId }}">
         <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
@@ -50,38 +50,37 @@
             $("#upload_form").validate({
                 rules: {
                     executed_proof: {
-                        required:true,
+                        required: true,
                         accept: "application/pdf"
                     }
                 },
                 messages: {
                     executed_proof: {
+                        required: "Please upload an executed proof!",
                         accept: "Document must be a pdf!"
                     }
-                },
-submitHandler: function (form) {
+                }
+            });
+
+                $("#upload_form").submit(function () {
+
+
+    var formData = new FormData(this);
 
 
     $.ajax({
-        method: 'POST', // Type of response and matches what we said in the route
-        url: '/tasks/upload', // This is the url we gave in the route
-        data: {
-            proof: $("#executed_proof").val(),
-            jobId: $("#job_id").val(),
-            taskId: $("#task_id").val(),
-            _token: $("#token").val()
-        }, // a JSON object to send back
-        success: function (response) {
-            $("#dataModal").hide();
-            $('.modal-backdrop').hide();
-            console.log(response);
+        url: '/tasks/upload',
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+            alert(data)
         },
-        error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
-            console.log(JSON.stringify(jqXHR));
-            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
-        }
-    })
-            },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+
+    return false;
         });
 
 

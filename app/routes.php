@@ -154,6 +154,10 @@ Route::get('home/', [
 		'as' => 'tasks.index',
 		'uses' => 'TasksController@index'
 	]);
+	Route::get('tasks/service_documents/{id}', [
+		'as' => 'tasks.service_documents',
+		'uses' => 'TasksController@service_documents'
+	]);
 	Route::get('states/update', [
 		'as' => 'states.update',
 		'uses' => 'StatesController@update'
@@ -258,9 +262,21 @@ Route::post('tasks/generate_proof', [
 		'as' => 'tasks.generate_proof',
 		'uses' => 'TasksController@generate_proof'
 	]);
-Route::post('tasks/upload', [
-			'as' => 'tasks.upload',
-			'uses' => 'TasksController@upload'
+Route::post('tasks/upload_proof', [
+			'as' => 'tasks.upload_proof',
+			'uses' => 'TasksController@upload_proof'
+	]);
+Route::post('tasks/mailing', [
+		'as' => 'tasks.mailing',
+		'uses' => 'TasksController@mailing'
+	]);
+Route::post('tasks/generate_mailing', [
+		'as' => 'tasks.generate_mailing',
+		'uses' => 'TasksController@generate_mailing'
+	]);
+Route::post('tasks/upload_mailing', [
+		'as' => 'tasks.upload_mailing',
+		'uses' => 'TasksController@upload_mailing'
 	]);
 
     Route::post('tasks/proofFiled', [

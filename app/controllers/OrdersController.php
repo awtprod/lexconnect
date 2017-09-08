@@ -276,7 +276,7 @@ class OrdersController extends \BaseController {
 				$serveeId = $this->Servee->createServee(['defendant' => $servee["name"], 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
 
 				//Create job for servee
-				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'zip' => $servees["zipcode"]]);
+				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'county' => $servees["county"], 'zip' => $servees["zipcode"]]);
 
 				//Load task into db
                 $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);

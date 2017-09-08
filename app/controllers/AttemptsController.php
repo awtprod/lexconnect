@@ -134,23 +134,22 @@ class AttemptsController extends \BaseController {
 			$this->tasks->TaskComplete(Input::get('taskId'));
 
 			//Determine if Dec of Mailing is needed
-			if (Input::get('sub-serve') === 'yes') {
-				/*
+			if (Input::get('serve_type') != 'Personal') {
+
+
                  //Determin state that case is filed in
                   $state = Orders::whereId($job->order_id)->pluck('state');
 
-                  if($this->rules->DecOfMailing($state)){
+
+                  if(States::whereAbbrev($state)->pluck('mailing')){
+
+					  $county = Orders::whereId($task->order_id)->first();
 
                   //If Dec of Mailing is needed, launch tasks
-              $send_task = array('jobs_id' => $job->id, 'vendor' => $task->vendor, 'orders_id' => $task->order_id, 'court' =>$order->court, 'process' => $task->process);
-              $this->tasks->DecOfMailing($send_task);
-
-                      //Reforecast all tasks
-
-                      $this->tasks->TaskReproject(Input::get('taskId'));
+					$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $task->order_id, 'county' => $county, 'process' => 'mailing', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $state]);
 
                       }
-                  */}
+                  }
 		}
 
 		//Update server score

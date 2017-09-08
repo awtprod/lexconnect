@@ -81,6 +81,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$job->priority = $data["priority"];
 		$job->status = $data["status"];
 		$job->street = $data["street"];
+		$job->city = $data["city"];
+		$job->county = $data["county"];
 		$job->state = $data["state"];
 		$job->zipcode = $data["zip"];
 		$job->save();

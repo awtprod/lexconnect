@@ -77,6 +77,9 @@ class TasksController extends \BaseController {
 		//Find documents to be served
 		$docs_served = DocumentsServed::whereOrderId($order->id)->get();
 
+		//Get serve information
+		$serve = Serve::whereJobId($job->id)->first();
+
         //Find current task due
         /*$LatestTask = Tasks::OrderBy('sort_order', 'asc')
             ->where('job_id', $CurrentTask->job_id)
@@ -96,7 +99,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -259,7 +262,7 @@ class TasksController extends \BaseController {
 
 	}
 
-	public function upload(){
+	public function upload_proof(){
 
 		$input = Input::all();
 
@@ -297,6 +300,129 @@ class TasksController extends \BaseController {
 		$this->tasks->TaskComplete(Input::get('taskId'));
 */
 
+	}
+	public function mailing(){
+
+		if(File::exists(app_path('/views/mailing/'.Input::get('jobId').'.txt'))) {
+
+			return Response::json(File::get(app_path('/views/mailing/'.Input::get('jobId').'.txt')));
+		}
+
+		//Get job info
+		$job = Jobs::whereId(Input::get('jobId'))->first();
+
+		//Get task info
+		$taskId = Tasks::whereJobId(Input::get('jobId'))->first();
+
+		//Get order info
+		$order = Orders::whereId($job->order_id)->first();
+
+		//Find server information
+		$server = User::whereId(Auth::user()->id)->first();
+
+		//Find server firm
+		$serverFirm = Company::whereId($server->company_id)->first();
+
+		//Find court information
+		$court = DB::table('courts')->whereCourt($order->court)->first();
+
+		//Find what documents were served
+		$documents = DocumentsServed::whereorderId($order->id)->get();
+
+		$numItems = count($documents);
+		$docsServed = '';
+		$i = 1;
+
+		foreach($documents as $key=>$value) {
+			$docsServed .= $value.', ';
+			if(++$i === $numItems) {
+				$docsServed .= 'and '.$value;
+			}
+		}
+
+		//Determine if Serve or Non-Serve
+		$serve = DB::table('serve')->where('job_id', Input::get('jobId'))->first();
+
+
+
+			$date = date('jS \d\a\y \of F Y', strtotime(Carbon::now()));
+
+
+			View::addLocation(app_path('/views/states/'));
+
+			Return View::make($order->state."_mailing",['job'=>$job,'date'=>$date,'order'=>$order,'server'=>$server,'court'=>$court,'docsServed'=>$docsServed,'serve'=>$serve]);
+
+	}
+	public function generate_mailing(){
+		$input = Input::all();
+
+		if($input["button"]=="save"){
+			$this->save_mailing($input);
+		}
+		else{
+			$this->save_mailing($input);
+			$pdf = PDF::loadHTML($input["template_body"]);
+			return $pdf->download();
+
+		}
+
+	}
+
+	public function save_mailing($input){
+
+		File::put(app_path('/views/mailing/'.$input["id"].'.txt'), $input["template_body"]);
+
+	}
+
+	public function upload_mailing(){
+
+		$input = Input::all();
+
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$type = finfo_file($finfo, $input["executed_proof"]);
+
+
+		if(!empty($input["executed_proof"]) AND ($type == "application/pdf")) {
+
+			return "file uploaded";
+			//Find job data
+			$job = Jobs::whereId(Input::get('jobId'))->first();
+
+			//If valid file, move to service documents dir
+			$destinationPath = storage_path() . '/proofs';
+			$file = str_random(6);
+			$filename = $file . '_' . 'proof.pdf';
+
+			Input::file('executed_proof')->move($destinationPath, $filename);
+		}
+		else{
+			return "file not uploaded";
+		}
+		/*
+                //Update Table
+                $document = new Documents;
+                $document->document = 'Executed_Proof';
+                $document->job_id = Input::get('jobId');
+                $document->order_id = $job->order_id;
+                $document->filename = $filename;
+                $document->filepath = 'proofs';
+                $document->save();
+
+                //Complete task
+                $this->tasks->TaskComplete(Input::get('taskId'));
+        */
+
+	}
+	public function service_documents($id){
+
+		$job = Jobs::whereId($id)->first();
+		
+		if(Auth::user()->company_id == $job->vendor) {
+
+			$path = storage_path('proofs/SijwEb_proof.pdf');
+
+			return Response::download($path);
+		}
 	}
 
 	public function filed(){

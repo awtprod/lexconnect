@@ -340,11 +340,11 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 	{
 
 		//Find default process for county
-		$default = Counties::whereState($sendTask['state'])->whereCounty($sendTask['county'])->pluck($sendTask['process']);
+		//$default = Counties::whereState($sendTask['state'])->whereCounty($sendTask['county'])->pluck($sendTask['process']);
 
         //Find process is still active
-		$process = Processes::whereName($default)->first();
-
+		$process = Processes::whereName($sendTask['process'])->first();
+/*
 		//If process is not active, find first active process for service type
 		if(empty($process)){
 
@@ -354,7 +354,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 			$process = Processes::whereName(str_replace('_', ' ', $sendTask['process']))->orderBy('id', 'asc')->first();
 		}
-
+*/
 		//Find steps
         $steps = Template::whereProcess($process->id)->where('judicial','Both')->orWhere('judicial',$sendTask['judicial'])->orderBy('sort_order', 'asc')->get();
 

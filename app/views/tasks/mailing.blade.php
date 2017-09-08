@@ -15,8 +15,13 @@
     </script>
 </head>
 <body>
+Mail To: {{$job->defendant}}<br>
+         {{$serve->street}}<b>
+         {{$serve->city}},&nbsp;{{$serve->state}}&nbsp;{{$serve->zipcode}}<p>
+    {{link_to("/tasks/service_documents/{$job->id}","Download")}}<p>
 
-<div id="select_task">
+
+    <div id="select_task">
 <input type="button"  value="Generate Proof" class="btn btn-info btn-xs generate_select"/>&nbsp;
 <input type="button"  value="Upload Executed Proof" class="btn btn-info btn-xs upload_select"/>
 </div>
@@ -26,16 +31,15 @@
                         <input type="hidden" name="job_id" id="job_id" value="{{ $job->id }}">
                         <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
                         <input type="button" name="save" value="Save Only" id="save" class="btn btn-info btn-xs save" data-dismiss="modal"/>&nbsp;
-                        <input type="button" name="generate" value="Save and Generate Proof" id="generate" class="btn btn-info btn-xs save" data-dismiss="modal"/>
+                        <input type="button" name="generate" value="Save and Generate Declaration of Mailing" id="generate" class="btn btn-info btn-xs save" data-dismiss="modal"/>
 
 </form>
 </div>
 <div id="upload" hidden>
     <form id="upload_form" method="post" enctype="multipart/form-data">
-        <input type="file" name="executed_proof" id="executed_proof" accept="application/pdf"/>
+        <input type="file" name="executed_mailing" id="executed_mailing" accept="application/pdf"/>
         <input type="hidden" name="job_id" id="job_id" value="{{ $job->id }}">
         <input type="hidden" name="task_id" id="task_id" value="{{ $taskId }}">
-        <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
         <input type="submit"  class="btn btn-info btn-xs" />
 
     </form>
@@ -44,6 +48,23 @@
     <script>
         $(document).ready(function() {
 
+
+            $('.download-docs').click(function () {
+                var job_id = $(this).attr("id");
+                var token = $('#token').val();
+                $.ajax({
+                    method: 'POST', // Type of response and matches what we said in the route
+                    url: '/tasks/service_documents', // This is the url we gave in the route
+                    data: {id: job_id, _token: token },
+                    success: function(response) {
+                            console.log(response);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                        console.log(JSON.stringify(jqXHR));
+                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                    }
+                });
+            });
 
             //Validate Data
 
@@ -69,7 +90,7 @@
 
 
     $.ajax({
-        url: '/tasks/upload_proof',
+        url: '/tasks/upload_mailing',
         type: 'POST',
         data: formData,
         success: function (data) {
@@ -102,11 +123,10 @@
             $.ajax({
 
                 method: 'POST', // Type of response and matches what we said in the route
-                url: '/tasks/proof', // This is the url we gave in the route
+                url: '/tasks/mailing', // This is the url we gave in the route
                 data: {
                     jobId: $('#job_id').val(),
                     _token: $('#token').val(),
-                    server: $('#server').find(":selected").text()
                 },
                 success: function (response) {
                     $('#template_body').summernote('code', response);
@@ -165,7 +185,7 @@
                 var form = $(this);
                 $.ajax({
                     method: 'POST', // Type of response and matches what we said in the route
-                    url: '/tasks/generate_proof', // This is the url we gave in the route
+                    url: '/tasks/generate_mailing', // This is the url we gave in the route
                     data: {button: $(this).attr("id"), id: $("#job_id").val(), template_body: $("#template_body").val(), _token: $("#token").val()},
                     success: function (response) {
                         console.log(response);

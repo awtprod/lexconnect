@@ -5,7 +5,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="http://cdn.jsdelivr.net/jquery.validation/1.15.0/jquery.validate.js"></script>
   <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
-  <script src="//d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/2.8/jquery.liveaddress.min.js"></script>
+  <script src="https://d79i1fxsrar4t.cloudfront.net/jquery.liveaddress/3.4/jquery.liveaddress.min.js"></script>
   <script>
     $(document).ready(function() {
       function task_table() {

@@ -80,6 +80,28 @@ class TasksController extends \BaseController {
 		//Get serve information
 		$serve = Serve::whereJobId($job->id)->first();
 
+		//Get invoice information
+		$invoice = Invoices::whereJobId($job->id)->first();
+
+		//Get servee information
+		$servee = Servee::whereOrderId($order->id)->first();
+
+		//Find number of pages served
+		$pages = 0;
+
+		foreach ($docs_served as $doc_served){
+			$pages += Documents::whereDocument($doc_served->document)->orderBy('created_at', 'desc')->pluck('pages');
+		}
+
+		if($servee->summons != 'NULL'){
+			$pages += Documents::whereId($servee->summons)->orderBy('created_at', 'desc')->first();
+		}
+
+		//Calculate page rate for service
+		$total_pages_billed = $pages - $invoice->free_pgs;
+
+		$pg_rate = $total_pages_billed*$invoice->pg_rate;
+
         //Find current task due
         /*$LatestTask = Tasks::OrderBy('sort_order', 'asc')
             ->where('job_id', $CurrentTask->job_id)
@@ -99,7 +121,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with('pages', $pages)->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -279,14 +301,14 @@ class TasksController extends \BaseController {
 			//If valid file, move to service documents dir
 			$destinationPath = storage_path() . '/proofs';
 			$file = str_random(6);
-			$filename = $file . '_' . 'proof.pdf';
+			$filename = $file . '_' . $job->id . '_' . 'proof.pdf';
 
 			Input::file('executed_proof')->move($destinationPath, $filename);
 		}
 		else{
 			return "file not uploaded";
 		}
-/*
+
 		//Update Table
 		$document = new Documents;
 		$document->document = 'Executed_Proof';
@@ -298,7 +320,7 @@ class TasksController extends \BaseController {
 
 		//Complete task
 		$this->tasks->TaskComplete(Input::get('taskId'));
-*/
+
 
 	}
 	public function mailing(){
@@ -379,10 +401,10 @@ class TasksController extends \BaseController {
 		$input = Input::all();
 
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$type = finfo_file($finfo, $input["executed_proof"]);
+		$type = finfo_file($finfo, $input["executed_mailing"]);
 
 
-		if(!empty($input["executed_proof"]) AND ($type == "application/pdf")) {
+		if(!empty($input["executed_mailing"]) AND ($type == "application/pdf")) {
 
 			return "file uploaded";
 			//Find job data
@@ -391,17 +413,17 @@ class TasksController extends \BaseController {
 			//If valid file, move to service documents dir
 			$destinationPath = storage_path() . '/proofs';
 			$file = str_random(6);
-			$filename = $file . '_' . 'proof.pdf';
+			$filename = $file . '_' . $job->id . '_' . 'mailing.pdf';
 
-			Input::file('executed_proof')->move($destinationPath, $filename);
+			Input::file('executed_mailing')->move($destinationPath, $filename);
 		}
 		else{
 			return "file not uploaded";
 		}
-		/*
+
                 //Update Table
                 $document = new Documents;
-                $document->document = 'Executed_Proof';
+                $document->document = 'Executed_Mailing';
                 $document->job_id = Input::get('jobId');
                 $document->order_id = $job->order_id;
                 $document->filename = $filename;
@@ -410,9 +432,46 @@ class TasksController extends \BaseController {
 
                 //Complete task
                 $this->tasks->TaskComplete(Input::get('taskId'));
-        */
+
 
 	}
+
+	public function invoice(){
+		
+		$input = Input::all();
+
+		//Load invoice information
+		$invoice = Invoices::whereJobId($input["jobId"])->first();
+
+		//Load job informaiton
+		$job = Jobs::whereId($input["jobId"])->first();
+
+		//Load client information
+		$client = Company::whereId($job->client)->first();
+
+		//Load serve information
+		$serve = Serve::whereJobId($job->id)->first();
+
+		$date = date('m/j/y', strtotime(Carbon::now()));
+
+
+		//Create Invoice
+		$file = $input["jobId"].str_random(6);
+		$filename =  $file . '_'. 'invoice.pdf';
+		$filepath = public_path('invoices/' . $filename);
+		$pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice, 'job'=>$job, 'client'=>$client, 'serve'=>$serve, 'date',$date])->save($filepath);
+
+		//Update Invoice
+		$invoice->client_amt = $input["client_amt"];
+		$invoice->vendor_amt = $input["vendor_amt"];
+		$invoice->doc_id = $file;
+		$invoice->save();
+
+		//Complete task
+		$this->tasks->TaskComplete(Input::get('taskId'));
+
+	}
+	
 	public function service_documents($id){
 
 		$job = Jobs::whereId($id)->first();

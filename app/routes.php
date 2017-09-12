@@ -253,7 +253,10 @@ Route::post('tasks/documents', [
 	'as' => 'tasks.documents',
 	'uses' => 'TasksController@documents'
 	]);
-
+Route::post('tasks/invoice', [
+		'as' => 'tasks.invoice',
+		'uses' => 'TasksController@invoice'
+	]);
 Route::post('tasks/proof', [
 	'as' => 'tasks.proof',
 	'uses' => 'TasksController@proof'

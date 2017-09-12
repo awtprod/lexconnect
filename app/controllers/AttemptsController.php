@@ -51,6 +51,11 @@ class AttemptsController extends \BaseController {
 			//Redirect based on service status
 			if ($input["attempt-result"] == "non-served") {
 
+
+				//Create task to invoice job
+				$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $order->id, 'county' => $order->county, 'process' => 'invoice', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
+
+
 				//Find servee
 				$servee = Servee::whereId($job->servee_id)->first();
 
@@ -85,6 +90,10 @@ class AttemptsController extends \BaseController {
 			}
 		}
 		elseif($input["attempt-result"] == "served"){
+
+			//Create task to invoice job
+			$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $order->id, 'county' => $order->county, 'process' => 'invoice', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
+			
 			$serve = new Serve;
 			$serve->date = Input::get('date');
 			$serve->time = Input::get('time');
@@ -137,16 +146,12 @@ class AttemptsController extends \BaseController {
 			if (Input::get('serve_type') != 'Personal') {
 
 
-                 //Determin state that case is filed in
-                  $state = Orders::whereId($job->order_id)->pluck('state');
-
-
-                  if(States::whereAbbrev($state)->pluck('mailing')){
+                  if(States::whereAbbrev($order->state)->pluck('mailing')){
 
 					  $county = Orders::whereId($task->order_id)->first();
 
                   //If Dec of Mailing is needed, launch tasks
-					$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $task->order_id, 'county' => $county, 'process' => 'mailing', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $state]);
+					$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $task->order_id, 'county' => $county, 'process' => 'mailing', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
 
                       }
                   }

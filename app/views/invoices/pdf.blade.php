@@ -42,7 +42,9 @@ Job #{{ $job->id }}<p>
 <table>
   <tr>
     <th>Service</th>
-    <th>Service Date</th>	
+    @if(!empty($serve->data))
+    <th>Service Date</th>
+    @endif
     <th>Servee</th>
     <th>Location</th>
     <th>Amount Due</th>
@@ -51,7 +53,9 @@ Job #{{ $job->id }}<p>
 
   <tr>
       <td>{{ $job->service }}</td>
+      @if(!empty($serve->data))
       <td>{{ $serve->date }}&nbsp;{{ $serve->time }}</td>
+      @endif
       <td>{{ $job->defendant }}</td>
       <td>{{ $job->street }},&nbsp;{{ $job->city }},&nbsp;{{ $job->state }}&nbsp;{{ $job->zipcode }}</td>
       <td>${{ $invoice->client_amt }}.00</td>

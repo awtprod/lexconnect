@@ -257,6 +257,10 @@ Route::post('tasks/invoice', [
 		'as' => 'tasks.invoice',
 		'uses' => 'TasksController@invoice'
 	]);
+Route::post('tasks/locate', [
+		'as' => 'tasks.locate',
+		'uses' => 'TasksController@locate'
+	]);
 Route::post('tasks/proof', [
 	'as' => 'tasks.proof',
 	'uses' => 'TasksController@proof'

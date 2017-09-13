@@ -57,6 +57,9 @@ class TasksController extends \BaseController {
         //Get zip code of serve address
         $job = DB::table('jobs')->where('id', $CurrentTask->job_id)->first();
 
+		//Find all jobs for this order
+		$jobs = Jobs::whereOrderId($job->order_id)->get();
+
 		//Find servers
 		if(Auth::user()->user_role == 'Admin'){
 			$servers = User::orderBy('fname')->lists('fname', 'id');
@@ -85,6 +88,9 @@ class TasksController extends \BaseController {
 
 		//Get servee information
 		$servee = Servee::whereOrderId($order->id)->first();
+
+		//Get servees waiting to be located
+		$servees = Servee::whereOrderId($order->id)->whereStatus(2)->get();
 
 		//Find number of pages served
 		$pages = 0;
@@ -121,7 +127,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with('pages', $pages)->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -470,6 +476,49 @@ class TasksController extends \BaseController {
 		//Complete task
 		$this->tasks->TaskComplete(Input::get('taskId'));
 
+	}
+
+	public function locate(){
+
+		$input = Input::all();
+
+		$servee = Servee::whereId($input["serveeId"])->first();
+
+		$order = Orders::whereId($servee->order_id)->first();
+
+		if($input["locate"]=="0"){
+
+			//Find Servee and update status to "0"
+			$servee->status = 0;
+			$servee->save();
+
+			//Create job for new serve
+			//Create job for servee
+			$job = $this->jobs->createJob(['server' => '1', 'defendant' => $servee->defendant, 'servee' => '', 'notes' => '', 'serveeId'=> $servee->id, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'county' => $servees["county"], 'zip' => $servees["zipcode"]]);
+
+			//Load task into db
+			$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+
+			//Check for dependent jobs
+
+			if (!$this->jobs->depProcess($process, $orders_id)) {
+
+				$job->status = 1;
+
+			} else {
+
+				$job->status = 2;
+
+			}
+
+			//Update job with process
+			$job->process = $process;
+			$job->save();
+
+
+			//Create Invoice
+			$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'service', 'personal' => '', 'personalRate' => '', 'rate' => '0', 'numPgs' => '0', 'freePgs' => '0', 'pageRate' => '0']);
+		}
 	}
 	
 	public function service_documents($id){

@@ -55,6 +55,8 @@ class AttemptsController extends \BaseController {
 				//Create task to invoice job
 				$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $order->id, 'county' => $order->county, 'process' => 'invoice', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
 
+				//Create task to locate new address
+				$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $order->id, 'county' => $order->county, 'process' => 'locate', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
 
 				//Find servee
 				$servee = Servee::whereId($job->servee_id)->first();
@@ -93,7 +95,7 @@ class AttemptsController extends \BaseController {
 
 			//Create task to invoice job
 			$this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $order->id, 'county' => $order->county, 'process' => 'invoice', 'priority' => 'Routine', 'client' => 'Admin', 'state' => $order->state]);
-			
+
 			$serve = new Serve;
 			$serve->date = Input::get('date');
 			$serve->time = Input::get('time');

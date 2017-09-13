@@ -62,7 +62,7 @@
                 }
             });
 
-                $("#upload_form").submit(function () {
+    $("#upload_form").submit(function () {
 
 
     var formData = new FormData(this);

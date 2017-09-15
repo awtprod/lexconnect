@@ -26,8 +26,7 @@
                 });
         </script>
 </head>
-</html>
-
+<body>
 <div>
 
     Defendant: {{$job->defendant}}<br>
@@ -50,14 +49,8 @@
     <form id="locate-task">
 
         <div id="new" hidden>
-
-            <select id="add_servee" name="add_servee">
-                <option value="">Add Additional Servee</option>
-                @foreach($servees as $additional_servee)
-                <option value="{{$additional_servee->id}}">{{$additional_servee->defendant}}</option>
-                @endforeach
-            </select>
-            
+            <input type="checkbox" name="personal" id="personal">Personal Service Required<br>
+            <input type="checkbox" name="additional" id="additional">Additional Servee<br>
             <label>Street:</label><input type="text" id="Street" name="Street"> &nbsp;
             <label>Apt/Stuite/Unit:</label><input type="text" id="Street2" name="Street2"><br>
             <label>City:</label><input type="text" id="City" name="City">&nbsp;
@@ -101,6 +94,7 @@
 
         });
 
+
         $('#dataModal').modal("show");
 
         function task_table() {
@@ -134,3 +128,5 @@
         });
     });
 </script>
+</body>
+</html>

@@ -50,6 +50,8 @@ class TasksController extends \BaseController {
 
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
+		//Find all active servers
+		$servers = ['Auto' => 'Auto Assign']+Company::whereVC('vendor')->whereStatus(1)->orderBy('name','asc')->lists('id','name');
 
 		//Retrieve task data from db
         $CurrentTask = Tasks::whereId($tasksId)->first();
@@ -127,7 +129,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -488,6 +490,12 @@ class TasksController extends \BaseController {
 
 		if($input["locate"]=="0"){
 
+			//Check to see if personal service is required
+			if($input["personal"]){
+				$servee->personal = 1;
+				$servee->save();
+			}
+
 			//Find Servee and update status to "0"
 			$servee->status = 0;
 			$servee->save();
@@ -509,6 +517,12 @@ class TasksController extends \BaseController {
 
 				$job->status = 2;
 
+			}
+
+			//Check to see if this an additional servee at the same address
+			if($input["add_servee"]){
+				$job->add_servee = 1;
+				$job->save();
 			}
 
 			//Update job with process

@@ -9,7 +9,7 @@ class Servee extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['date'];
+	protected $fillable = ['date','personal'];
 	
 	public static $rules = [
 		'date' => 'required|date',

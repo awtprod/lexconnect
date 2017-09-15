@@ -10,7 +10,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['service','priority','defendant','personal','street','street2','city','state','county','zipcode','moved_street','moved_street2','moved_city','moved_state','moved_zipcode','order_id','notes'];
+	protected $fillable = ['service','priority','defendant','personal','add_servee','street','street2','city','state','county','zipcode','moved_street','moved_street2','moved_city','moved_state','moved_zipcode','order_id','notes'];
 	
 	public static $rules = [
 		'defendant' => 'required',

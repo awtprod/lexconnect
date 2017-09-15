@@ -1,5 +1,9 @@
 <div>
+    Defendant: {{$servee->defendant}}<br>
+    Address: {{$job->street}},&nbsp;{{$job->city}},&nbsp;{{$job->county}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}<p>
 
+    Estimated Fee: {{$invoice->vendor_amt}}<p>
+    
     <form id="accept-task">
         <select id="accept">
             <option value="Accept">Accept</option>

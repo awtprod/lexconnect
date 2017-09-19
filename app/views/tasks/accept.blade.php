@@ -3,13 +3,14 @@
     Address: {{$job->street}},&nbsp;{{$job->city}},&nbsp;{{$job->county}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}<p>
 
     Estimated Fee: {{$invoice->vendor_amt}}<p>
-    
+
     <form id="accept-task">
         <select id="accept">
             <option value="Accept">Accept</option>
             <option value="Deny">Deny</option>
         </select>
         <input type="submit">
+        <input id="serveeId" type="hidden" value="{{ $servee->id }}">
         <input id="taskId" type="hidden" value="{{ $taskId }}">
         <input id="token" type="hidden" value="{{ csrf_token() }}">
 

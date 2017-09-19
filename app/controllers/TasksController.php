@@ -154,30 +154,95 @@ class TasksController extends \BaseController {
 
 		$job = Jobs::whereId($task->job_id)->first();
 
+
 		//if server accepted job, mark task as complete
 
 		if(Input::get('accept') == 'Accept'){
 
 			$this->tasks->TaskComplete(Input::get('taskId'));
 
-
 		}
 		else{
 			return Response::json($job);
 
+			$numPgs = $this->Documents->numPgs($input["serveeId"]);
+
 			//Find new server
-			$serverData = array('zipcode' => $job->zipcode, 'jobId' => $job->id);
+			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs);
 			$server = $this->jobs->SelectServer($serverData);
 
 			//Reassign server
-			$newServerData = array('vendor' => $server, 'orderId' => $job->order_id, 'jobId' => $job->id);
+			$newServerData = array('vendor' => $server["server"], 'orderId' => $job->order_id, 'jobId' => $job->id);
 			$newServer = $this->jobs->ReAssignServer($newServerData);
 
 		}
 	}
 
-	public function verify(){
+	public function assign(){
 
+		$input = Input::all();
+		
+		$numPgs = $this->Documents->numPgs($input["serveeId"]);
+
+		$job = Jobs::whereId($input["jobId"])->first();
+
+		//Check if auto assign or vendor selected
+		if($input["Assign"]=="Auto"){
+
+			//Find new server
+			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs, 'priority'=>$job->priority, 'add_servee'=>$job->add_servee);
+			$server = $this->jobs->SelectServer($serverData);
+
+			//Reassign server
+			$newServerData = array('vendor' => $server["server"], 'orderId' => $job->order_id, 'jobId' => $job->id);
+			$newServer = $this->jobs->ReAssignServer($newServerData);
+
+			//Update Invoice
+			$invoice = Invoices::whereJobId($job->id)->first();
+			$invoice->vendor_amt = $server["rate"];
+			$invoice->free_pgs = $server["free_pgs"];
+			$invoice->pg_rate = $server["pg_rate"];
+			$invoice->save();
+
+		}
+		else{
+
+			//Find rates
+			$rates = VendorRates::whereVendor($input["server"])->whereState($job->state)->whereCounty($job->county)->first();
+
+			$company = Company::whereId($input["server"])->first();
+
+			//Reassign server
+			$newServerData = array('vendor' => $input["Server"], 'orderId' => $job->order_id, 'jobId' => $job->id);
+			$newServer = $this->jobs->ReAssignServer($newServerData);
+
+			$service_type = $job->service;
+
+			if($rates->$service_type.'Flat'!="0"){
+				$rate = $rates->$service_type.'Flat';
+			}
+			else{
+
+				$req = "http://api.geosvc.com/rest/usa/$job->zipcode/distance?apikey=60e6b26c492541e0946cc43f57f33489&p=$company->city|$company->zip_code&r=$company->state&c=usa&format=json";
+				$result = (array) json_decode(file_get_contents($req), true);
+
+				$distance = $result["Value"];
+
+				$rate = $rates->$service_type.'Base';
+				$rate += ($rates->$service_type.'Mileage')*$distance;
+			}
+
+			if($job->priority =="Rush" OR $job->priority =="Same Day"){
+				$rate += $rates->$service_type.$job->priority;
+			}
+
+			//Update Invoice
+			$invoice = Invoices::whereJobId($job->id)->first();
+			$invoice->vendor_amt = $rate;
+			$invoice->free_pgs = $rates->free_pgs;
+			$invoice->pg_rate = $rates->pg_rate;
+			$invoice->save();
+		}
 	}
 
 	public function attempt(){

@@ -52,6 +52,33 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
         return false;
     }
 
+	public function numPgs($serveeId){
+
+		$servee = Servee::whereId($serveeId)->first();
+
+		//Check if summons is served
+		if(!empty($servee->summons)){
+
+			$numPgs = Documents::whereId($servee->summons)->pluck('pages');
+
+		}
+		else{
+			$numPgs = 0;
+		}
+
+		//Find documents served for order
+		$docsServed = DocumentsServed::whereOrderId($servee->order_id)->get();
+
+		//Find page count for each document
+		foreach ($docsServed as $docServed){
+
+			$numPgs += Documents::whereDocument($docServed->document)->whereOrderId($servee->order_id)->orderBy('created_at','desc')->pluck('pages');
+		}
+
+		return $numPgs;
+
+	}
+
 	public function pageCount($input){
 
 		//$cmd = "/path/to/pdfinfo";           // Linux

@@ -250,6 +250,14 @@ class OrdersController extends \BaseController {
 				//Determine # of servees at address
 				$numServees = count($servees["servee"]);
 
+				if($numServees > 1){
+
+					$add_servee = true;
+				}
+				else{
+					$add_servee = false;
+				}
+
 				//Determine # of personal serves at address
 				$numPersonal = 0;
 
@@ -264,7 +272,7 @@ class OrdersController extends \BaseController {
 
 				//Select Server
 
-				$server = $this->jobs->SelectServer(['zipcode' => $servees["zipcode"], 'state' => $servees["state"], 'county' => $servees["county"], 'jobId' => 'Null', 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'numServees' => $numServees, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
+				$server = $this->jobs->SelectServer(['zipcode' => $servees["zipcode"], 'state' => $servees["state"], 'county' => $servees["county"], 'jobId' => 'Null', 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'add_servee' => $add_servee, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
 
 				$firstServee = true;
 
@@ -293,21 +301,24 @@ class OrdersController extends \BaseController {
 
 					}
 
-				//Update job with process
-                $job->process = $process;
-                $job->save();
-
 				//if first servee, set regular rate
 				if($firstServee == true){
 
-					$rate = $server["rate"];
+						$job->add_servee = 0;
+						$rate = $server["rate"];
 
 				}
 				//otherwise set rate for additional servee
 				else{
-
-					$rate = $server["addServeeRate"];
+						$job->add_servee = 1;
+						$rate = $server["addServeeRate"];
 				}
+
+				//Update job with process
+                $job->process = $process;
+                $job->save();
+
+
 
 				//Create Invoice
 				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => $server["personalRate"], 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => $server["freePgs"], 'pageRate' => $server["pageRate"]]);

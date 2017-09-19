@@ -257,7 +257,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			//if multiple servees at same address, add to rate
 			$vendor["addServeeRate"][$select["UserData"]] = 0;
 
-			if($serverData["numServees"] > 1){
+			if($serverData["add_servee"] == "true"){
 
 			//Find additional servee rate
 			$vendor["addServeeRate"][$select["UserData"]] = $rates->add_servee;
@@ -270,7 +270,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 				}
 
 			//Determine cost for additional servees
-			$vendor["rate"][$select["UserData"]] += ($vendor["addServeeRate"][$select["UserData"]] * ($serverData["numServees"] - 1)) + (($serverData["numServees"] - 1) * $pageRate);
+			//$vendor["rate"][$select["UserData"]] += ($vendor["addServeeRate"][$select["UserData"]] * ($serverData["numServees"] - 1)) + (($serverData["numServees"] - 1) * $pageRate);
 
 			}
 
@@ -357,15 +357,34 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		//Find previous server
 		$previousServer = Tasks::whereJobId($newServer['jobId'])->OrderBy('sort_order', 'asc')->first();
 
+		//Find process is still active
+		$process = Processes::whereName('Accept Job')->first();
+
+		//Find steps
+		$step = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->first();
+
+		//Determine if Assign step has already been created
+		$task = Tasks::whereJobId($newServer['jobId'])->whereSortOrder($step->sort_order)->first();
+
+		if(!empty($task)){
+
+			$task->vendor = $newServer['vendor'];
+			$task->status = 1;
+			$task->deadline = Carbon::now()->addDays($previousServer->days);
+			$task->completion = "";
+			$task->completed_by = "";
+			$task->save();
+		}
+
 		//Create task for new server
 		$newTask = new Tasks;
 		$newTask->job_id = $newServer['jobId'];
 		$newTask->order_id = $newServer['orderId'];
 		$newTask->group = $newServer['vendor'];
-		$newTask->process = $previousServer->process;
-		$newTask->sort_order = $previousServer->sort_order;
-		$newTask->days = $previousServer->days;
-		$newTask->window = $previousServer->window;
+		$newTask->process = $process->id;
+		$newTask->sort_order = $step->sort_order;
+		$newTask->days = $step->RoutineOrigDueDate;
+		$newTask->window = $step->window;
 		$newTask->status = 1;
 		$newTask->deadline = Carbon::now()->addDays($previousServer->days);
 		$newTask->save();

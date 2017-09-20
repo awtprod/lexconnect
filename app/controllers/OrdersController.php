@@ -144,7 +144,7 @@ class OrdersController extends \BaseController {
 				}
 
                     //Set job to verify that docs are uploaded
-                    $job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'Verify Documents', 'priority' => 'Routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'zip' => '']);
+                    $job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'Verify Documents', 'priority' => 'Routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'county' =>'','zip' => '']);
 
                     //Load task into db
                     $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => $input["company"], 'state' => 'Null']);
@@ -157,11 +157,11 @@ class OrdersController extends \BaseController {
 				if (!empty($input["run_docs"])) {
 
 					//Create job for filing
-					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
+					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
 
 					//Select Server
 
-					$server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"]]);
+					//$server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"]]);
 
 					//Load task into db
 					$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
@@ -179,12 +179,12 @@ class OrdersController extends \BaseController {
 					}
 
 					//Update job with process
-					$job->vendor = $server["server"];
+					$job->vendor = 1;
 					$job->process = $process;
 					$job->save();
 
 					//Create Invoice
-					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'court run', 'personal' => '', 'personalRate' => $server["data"]["personalRate"], 'rate' => $server["data"]["rate"], 'numPgs' => $numPages, 'freePgs' => $server["data"]["freePgs"], 'pageRate' => $server["data"]["pageRate"]]);
+					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'court run', 'personal' => '', 'personalRate' => '95', 'rate' =>'95', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
 
 					$input["filing"] = '';
 					
@@ -209,7 +209,7 @@ class OrdersController extends \BaseController {
                     }
 
                         //Create job for filing
-						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'zip' => $court->zip]);
+						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
 
                         //Load task into db
 						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
@@ -272,7 +272,7 @@ class OrdersController extends \BaseController {
 
 				//Select Server
 
-				$server = $this->jobs->SelectServer(['zipcode' => $servees["zipcode"], 'state' => $servees["state"], 'county' => $servees["county"], 'jobId' => 'Null', 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'add_servee' => $add_servee, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
+				//$server = $this->jobs->SelectServer(['zipcode' => $servees["zipcode"], 'state' => $servees["state"], 'county' => $servees["county"], 'jobId' => 'Null', 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'orderId' => $orders_id, 'add_servee' => $add_servee, 'numPersonal' => $numPersonal, 'numPgs' => $numPages]);
 
 				$firstServee = true;
 
@@ -284,10 +284,10 @@ class OrdersController extends \BaseController {
 				$serveeId = $this->Servee->createServee(['defendant' => $servee["name"], 'company' => $input["company"], 'orders_id' => $orders_id, 'status' => '1']);
 
 				//Create job for servee
-				$job = $this->jobs->createJob(['server' => $server["server"], 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'county' => $servees["county"], 'zip' => $servees["zipcode"]]);
+				$job = $this->jobs->createJob(['server' => '1', 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'county' => $servees["county"], 'zip' => $servees["zipcode"]]);
 
 				//Load task into db
-                $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+                $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
 					//Check for dependent jobs
 
@@ -305,13 +305,13 @@ class OrdersController extends \BaseController {
 				if($firstServee == true){
 
 						$job->add_servee = 0;
-						$rate = $server["rate"];
+						$rate = '95';
 
 				}
 				//otherwise set rate for additional servee
 				else{
 						$job->add_servee = 1;
-						$rate = $server["addServeeRate"];
+						$rate = '95';
 				}
 
 				//Update job with process
@@ -321,7 +321,7 @@ class OrdersController extends \BaseController {
 
 
 				//Create Invoice
-				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => $server["personalRate"], 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => $server["freePgs"], 'pageRate' => $server["pageRate"]]);
+				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => $servees["type"], 'personal' => $servee, 'personalRate' => '95', 'rate' => $rate, 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
 
 				$firstServee = false;
 				}

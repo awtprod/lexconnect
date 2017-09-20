@@ -159,6 +159,96 @@ class TasksController extends \BaseController {
 
 		if(Input::get('accept') == 'Accept'){
 
+			//Check if vendor or admin prints documents
+			$vendor_prints = Company::whereId($job->vendor)->pluck('vendor_prints');
+
+			//Create task for admin to print
+			if($vendor_prints){
+
+				//Find process is still active
+				$process = Processes::whereName('Vendor Prints')->first();
+
+				//Find steps
+				$step = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->first();
+
+				//Determine if Assign step has already been created
+				$task = Tasks::whereJobId($job->id)->whereSortOrder($step->sort_order)->first();
+
+				if(!empty($task)){
+					$task->group = $job->vendor;
+					$task->status = 1;
+					$task->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+					$task->completion = "";
+					$task->completed_by = "";
+					$task->save();
+				}
+				else {
+					//Create task for new server
+					$newTask = new Tasks;
+					$newTask->job_id = $job->id;
+					$newTask->order_id = $job->order_id;
+					$newTask->group = $job->vendor;
+					$newTask->process = $process->id;
+					$newTask->sort_order = $step->sort_order;
+					$newTask->days = $step->RoutineOrigDueDate;
+					$newTask->window = $step->window;
+					$newTask->status = 1;
+					$newTask->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+					$newTask->save();
+					
+				}
+			}
+			//Create task for admin to print
+			else{
+
+				//Find process is still active
+				$process = Processes::whereName('Admin Prints')->first();
+
+				//Find steps
+				$steps = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->first();
+
+				foreach ($steps as $step) {
+
+					//Determine if Assign step has already been created
+					$task = Tasks::whereJobId($job->id)->whereSortOrder($step->sort_order)->first();
+
+					if (!empty($task)) {
+
+						if($step->group == 'Vendor') {
+							$task->group = $job->vendor;
+						}
+						else{
+							$task->group = 1;
+						}
+						$task->status = $step->status;
+						$task->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+						$task->completion = "";
+						$task->completed_by = "";
+						$task->save();
+					} else {
+						//Create task for new server
+						$newTask = new Tasks;
+						$newTask->job_id = $job->id;
+						$newTask->order_id = $job->order_id;
+						if($step->group == 'Vendor') {
+							$task->group = $job->vendor;
+						}
+						else{
+							$task->group = 1;
+						}
+						$newTask->process = $process->id;
+						$newTask->sort_order = $step->sort_order;
+						$newTask->days = $step->RoutineOrigDueDate;
+						$newTask->window = $step->window;
+						$newTask->status = $step->status;
+						$newTask->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+						$newTask->save();
+
+					}
+				}
+			}
+
+			//Complete Task
 			$this->tasks->TaskComplete(Input::get('taskId'));
 
 		}
@@ -168,7 +258,7 @@ class TasksController extends \BaseController {
 			$numPgs = $this->Documents->numPgs($input["serveeId"]);
 
 			//Find new server
-			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs);
+			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs, 'priority'=>$job->priority, 'add_servee'=>$job->add_servee);
 			$server = $this->jobs->SelectServer($serverData);
 
 			//Reassign server

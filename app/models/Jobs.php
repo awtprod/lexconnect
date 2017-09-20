@@ -64,7 +64,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 	}
 
 	public function createJob ($data){
-
+		
 		$job = new Jobs;
 
 		if(!empty($data["serveeId"])){
@@ -368,27 +368,27 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		if(!empty($task)){
 
-			$task->vendor = $newServer['vendor'];
+			$task->group = $newServer['vendor'];
 			$task->status = 1;
 			$task->deadline = Carbon::now()->addDays($previousServer->days);
 			$task->completion = "";
 			$task->completed_by = "";
 			$task->save();
 		}
-
-		//Create task for new server
-		$newTask = new Tasks;
-		$newTask->job_id = $newServer['jobId'];
-		$newTask->order_id = $newServer['orderId'];
-		$newTask->group = $newServer['vendor'];
-		$newTask->process = $process->id;
-		$newTask->sort_order = $step->sort_order;
-		$newTask->days = $step->RoutineOrigDueDate;
-		$newTask->window = $step->window;
-		$newTask->status = 1;
-		$newTask->deadline = Carbon::now()->addDays($previousServer->days);
-		$newTask->save();
-
+		else {
+			//Create task for new server
+			$newTask = new Tasks;
+			$newTask->job_id = $newServer['jobId'];
+			$newTask->order_id = $newServer['orderId'];
+			$newTask->group = $newServer['vendor'];
+			$newTask->process = $process->id;
+			$newTask->sort_order = $step->sort_order;
+			$newTask->days = $step->RoutineOrigDueDate;
+			$newTask->window = $step->window;
+			$newTask->status = 1;
+			$newTask->deadline = Carbon::now()->addDays($previousServer->days);
+			$newTask->save();
+		}
 		//Assign Job to new server
 		$assignJob = Jobs::whereId($newServer['jobId'])->first();
 

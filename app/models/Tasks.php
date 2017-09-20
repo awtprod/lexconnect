@@ -343,7 +343,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 		//$default = Counties::whereState($sendTask['state'])->whereCounty($sendTask['county'])->pluck($sendTask['process']);
 
         //Find process is still active
-		$process = Processes::whereName($sendTask['process'])->first();
+		$process = Processes::whereName(str_replace('_', ' ', $sendTask['process']))->first();
 /*
 		//If process is not active, find first active process for service type
 		if(empty($process)){

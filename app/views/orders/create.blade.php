@@ -495,9 +495,9 @@
 	<div id="service-type">
 		{{ Form::label('type', 'Service Type: ') }}
 		{{ Form::label('type', 'Process Service') }}
-		<input type="radio" name="type" id="service" value="Process Service" checked>
+		<input type="radio" name="type" id="service" value="service" checked>
 		{{ Form::label('type', 'Property Posting') }}
-		<input type="radio" name="type" id="post" value="Property Posting">
+		<input type="radio" name="type" id="post" value="posting">
 		{{ Form::label('priority', 'Priority: ') }}
 		{{ Form::select('priority', array('Routine' => 'Routine', 'Rush' => 'Rush', 'SameDay' => 'Same Day')) }}<p>
 	</div>

@@ -261,6 +261,10 @@ Route::post('tasks/assign', [
 		'as' => 'tasks.assign',
 		'uses' => 'TasksController@assign'
 	]);
+Route::post('tasks/vendor_print', [
+		'as' => 'tasks.vendor_print',
+		'uses' => 'TasksController@vendor_print'
+	]);
 Route::post('tasks/locate', [
 		'as' => 'tasks.locate',
 		'uses' => 'TasksController@locate'

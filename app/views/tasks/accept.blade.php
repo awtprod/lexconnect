@@ -37,6 +37,7 @@
 
         $("#accept-task").submit(function(event){
             event.preventDefault();
+            var serveeId = $('#serveeId').val();
             var taskId = $('#taskId').val();
             var accept = $('#accept').val();
             var token = $('#token').val();
@@ -44,7 +45,7 @@
             $.ajax({
                 method: 'POST', // Type of response and matches what we said in the route
                 url: '/tasks/accept', // This is the url we gave in the route
-                data: {taskId: taskId, accept: accept, _token: token }, // a JSON object to send back
+                data: {taskId: taskId, serveeId: serveeId, accept: accept, _token: token }, // a JSON object to send back
                 success: function(response){ // What to do if we succeed
                     console.log(response);
                     $('#dataModal').modal("hide");

@@ -8,7 +8,9 @@
 		"fabpot/goutte": "*",
 		"barryvdh/laravel-dompdf": "*",
 		"stripe/stripe-php": "~3.9",
-		"guzzlehttp/guzzle": "~4.0"
+		"guzzlehttp/guzzle": "~4.0",
+		"clegginabox/pdf-merger": "dev-master",
+		"itbz/fpdi": "dev-master"
 	},
 	"autoload": {
 		"classmap": [

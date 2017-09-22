@@ -3,7 +3,9 @@
 @section('content')
 <h1>Job #{{ $jobs->id }}</h1><p>
 
-    {{ link_to("/documents/view/?jobId={$jobs->id}&_token={$token}", 'View Documents') }}<br>
+    {{ link_to("/documents/view/?jobId={$jobs->id}&_token={$token}", 'View Documents') }}&nbsp;  {{link_to("/tasks/service_documents/{$jobs->id}","Download Service Documents")}}<p>
+    <br>
+
 
 
 <table>

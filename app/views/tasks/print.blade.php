@@ -1,14 +1,12 @@
 <div>
     {{link_to("/tasks/service_documents/{$job->id}","Download Service Documents")}}<p>
 
-    Send documents to:
-    {{$server->name}}<br>
-    {{$server->address}}<br>
-    {{$server->city}}, {{$server->state}} {{$server->zip_code}}<p>
+    <bold>Are service documents complete and acceptable?</bold>
 
     <form id="print-task">
         <select id="print">
             <option value="Accept">Accept</option>
+            <option value="Deny">Deny</option>
         </select>
         <input type="submit">
         <input id="taskId" type="hidden" value="{{ $taskId }}">

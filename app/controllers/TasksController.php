@@ -72,6 +72,8 @@ class TasksController extends \BaseController {
 			$servers = User::whereCompanyId($job->vendor)->orderBy('fname')->lists('fname', 'id');
 		}
 
+		$server = Company::whereId($job->vendor)->first();
+
 		//Find latest proof
 		$proof = Documents::whereJobId($job->id)
 							->where('document', 'Unexecuted_Proof')->orderBy('created_at', 'desc')->first();
@@ -129,7 +131,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['server'=>$server])->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -333,6 +335,38 @@ class TasksController extends \BaseController {
 			$invoice->pg_rate = $rates->pg_rate;
 			$invoice->save();
 		}
+	}
+	
+	public function vendor_print(){
+
+		$input = Input::all();
+
+		if($input["print"]=="Deny"){
+
+			$task = Tasks::whereId(Input::get('taskId'))->first();
+
+			//Find process is still active
+			$process = Processes::whereName('Check Document')->first();
+
+			//Find steps
+			$step = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->first();
+
+				$newTask = new Tasks;
+				$newTask->job_id = $task->job_id;
+				$newTask->order_id = $task->order_id;
+				$newTask->group = 1;
+				$newTask->process = $process->id;
+				$newTask->sort_order = $step->sort_order;
+				$newTask->days = $step->RoutineOrigDueDate;
+				$newTask->window = $step->window;
+				$newTask->status = 1;
+				$newTask->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
+				$newTask->save();
+
+
+		}
+		//Complete Task
+		$this->tasks->TaskComplete(Input::get('taskId'));
 	}
 
 	public function attempt(){
@@ -692,13 +726,42 @@ class TasksController extends \BaseController {
 	
 	public function service_documents($id){
 
+
 		$job = Jobs::whereId($id)->first();
 		
-		if(Auth::user()->company_id == $job->vendor) {
+		if(Auth::user()->company_id == $job->vendor OR Auth::user()->user_role == "Admin") {
 
-			$path = storage_path('proofs/SijwEb_proof.pdf');
+			$pdf = new \Clegginabox\PDFMerger\PDFMerger;
 
-			return Response::download($path);
+			//Load coversheet
+
+			$coversheet = str_random(8).'.pdf';
+
+			PDF::loadView('tasks.coversheet')->save(storage_path().'/temp/'.$coversheet);
+
+			$pdf->addPDF(storage_path('temp/'.$coversheet), 'all');
+
+			//Find document id for summons
+			$summons = Servee::whereId($job->servee_id)->pluck('summons');
+
+			if(!empty($summons)){
+
+				$pdf->addPDF(storage_path('service_documents/'.$summons.'.pdf'), 'all');
+
+			}
+
+			//Find documents to be served
+			$docsServed = DocumentsServed::whereOrderId($job->order_id)->get();
+
+			foreach ($docsServed as $docServed){
+
+				$document = Documents::whereDocument($docServed->document)->whereOrderId($job->order_id)->orderBy('created_at','desc')->first();
+
+				$pdf->addPDF(storage_path($document->filepath.'/'.$document->filename), 'all');
+
+			}
+
+			$pdf->merge('browser');
 		}
 	}
 

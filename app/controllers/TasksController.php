@@ -728,8 +728,11 @@ class TasksController extends \BaseController {
 
 
 		$job = Jobs::whereId($id)->first();
+
+		//Find documents to be served
+		$docsServed = DocumentsServed::whereOrderId($job->order_id)->get();
 		
-		if(Auth::user()->company_id == $job->vendor OR Auth::user()->user_role == "Admin") {
+		if((Auth::user()->company_id == $job->vendor OR Auth::user()->user_role == "Admin")AND(!empty($docsServed))) {
 
 			$pdf = new \Clegginabox\PDFMerger\PDFMerger;
 
@@ -750,8 +753,6 @@ class TasksController extends \BaseController {
 
 			}
 
-			//Find documents to be served
-			$docsServed = DocumentsServed::whereOrderId($job->order_id)->get();
 
 			foreach ($docsServed as $docServed){
 
@@ -762,6 +763,9 @@ class TasksController extends \BaseController {
 			}
 
 			$pdf->merge('browser');
+		}
+		else{
+			echo "No Documents Uploaded!";
 		}
 	}
 
@@ -876,6 +880,35 @@ class TasksController extends \BaseController {
 			}
 
 			Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+		}
+
+	}
+
+	public function jobsTable($id){
+
+		$job = Jobs::whereId($id)->first();
+
+		if(Auth::user()->user_role=='Admin' OR (Auth::user()->user_role=='Vendor' AND (Auth::user()->company_id==$job->vendor))) {
+			//Find current tasks
+
+			$tasks = Tasks::wherejobId($id)->orderBy('deadline', 'asc')->get();
+
+			$tableData = array();
+
+			foreach ($tasks as $task){
+
+				if($task->group == "1") {
+
+					$tableData[$task->id]["group"] = "Admin";
+				}
+				else{
+					$tableData[$task->id]["group"] = "Vendor";
+
+				}
+			}
+
+			Return View::make('tasks.job')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+
 		}
 
 	}

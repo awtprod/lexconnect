@@ -83,7 +83,7 @@ class OrdersController extends \BaseController {
 	{
 
 		$input = Input::all();
-		
+
 		$docCount = 0;
 
 		//delete after test
@@ -110,23 +110,19 @@ class OrdersController extends \BaseController {
                 $orders_id =  $orders->id;
 
                 //If docs are uploaded, save them
-                if(!empty($input["documents"])){
+				foreach ($input["documents"] as $document) {
 
-                    foreach ($input["documents"] as $document) {
+					if (!empty($document["type"])) {
 
-                        if(!empty($document["file"])) {
+						//If valid file, save document
+						$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents']);
 
-                            //If valid file, save document
-                            $this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents']);
+						$docCount++;
 
-                            $docCount++;
-                        }
-
-                        //Save service types
-                        $this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
-                    }
-
-                }
+						//Save service types
+						$this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
+					}
+				}
 
 				//Find uploaded docs for order
 				$allDocs = Documents::whereOrderId($orders_id)->get();

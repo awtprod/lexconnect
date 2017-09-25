@@ -30,6 +30,7 @@ Route::get('api/getRate', 'JobsController@getRate');
 Route::get('orders/courts/{id}', 'OrdersController@getCourts');
 Route::group(array('before'=>'auth'), function() {
 Route::get('api/tasksTable', 'TasksController@tasksTable');
+Route::get('api/jobsTable/{id}', 'TasksController@jobsTable');
 Route::get('states/', [
 		'as' => 'states.index',
 		'uses' => 'StatesController@index'

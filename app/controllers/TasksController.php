@@ -51,7 +51,7 @@ class TasksController extends \BaseController {
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		//Find all active servers
-		$servers = ['Auto' => 'Auto Assign']+Company::whereVC('vendor')->whereStatus(1)->orderBy('name','asc')->lists('id','name');
+		$vendors = ['Auto' => 'Auto Assign']+['1' => 'Admin']+Company::whereVC('vendor')->whereStatus(1)->orderBy('name','asc')->lists('name','id');
 
 		//Retrieve task data from db
         $CurrentTask = Tasks::whereId($tasksId)->first();
@@ -131,7 +131,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['server'=>$server])->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['vendors'=>$vendors])->with(['server'=>$server])->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -884,14 +884,16 @@ class TasksController extends \BaseController {
 
 	}
 
-	public function jobsTable($id){
+	public function jobsTable(){
 
-		$job = Jobs::whereId($id)->first();
+		$input = Input::all();
+
+		$jobs = Jobs::whereId($input["id"])->first();
 
 		if(Auth::user()->user_role=='Admin' OR (Auth::user()->user_role=='Vendor' AND (Auth::user()->company_id==$job->vendor))) {
 			//Find current tasks
 
-			$tasks = Tasks::wherejobId($id)->orderBy('deadline', 'asc')->get();
+			$tasks = Tasks::wherejobId($input["id"])->orderBy('deadline', 'asc')->get();
 
 			$tableData = array();
 
@@ -907,7 +909,7 @@ class TasksController extends \BaseController {
 				}
 			}
 
-			Return View::make('tasks.job')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+			Return View::make('tasks.job')->with(['tasks' => $tasks, 'tableData' => $tableData, 'jobs' => $jobs]);
 
 		}
 

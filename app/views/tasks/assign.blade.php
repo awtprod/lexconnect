@@ -13,7 +13,7 @@
 
     <form id="assign-task">
         {{ Form::label('Assign', 'Assign Server: ') }}
-        {{ Form::select('Assign', $servers, null, ['id' => 'Server']) }}<br>
+        {{ Form::select('Assign', $vendors, null, ['id' => 'Server']) }}<br>
         <input type="submit">
         <input id="serveeId" type="hidden" value="{{ $servee->id }}">
         <input id="jobId" type="hidden" value="{{ $job->id }}">

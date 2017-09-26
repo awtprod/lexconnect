@@ -17,7 +17,7 @@
             <th>Task</th>
             <th>Deadline</th>
             <th>Group</th>
-            <th>Action</th>
+            <th>Completed</th>
         </tr>
         @foreach ($tasks as $task)
             <tr>
@@ -25,39 +25,29 @@
                 <td>{{ date("n/j/y", strtotime($task->deadline))}}</td>
                 <td>{{ $tableData[$task->id]["group"] }}</td>
 
-                @if($task->status == 1)
-                    
+                @if($task->status == 1 AND $task->completion == NULL)
+
                     @if((Auth::user()->user_role=="Admin" AND $tableData[$task->id]["group"]=="Admin"))
                     <td><input type="button" name="view" value="Complete Task" id={{ $task->id }} class="btn btn-info btn-xs view_data" /></td>
-                    @elseif(Auth::user()->user_role=="Admin" OR Auth::user()->user_role=="Vendor")
+                    @elseif(Auth::user()->user_role=="Admin" OR (Auth::user()->user_role=="Vendor" AND Auth::user()->company_id == $task->group))
                     <td><input type="button" name="view" value="Complete Task" id={{ $task->id }} class="btn btn-info btn-xs view_data" /></td>
                     @else
 
                 <td></td>
 
                 @endif
+                @elseif($task->completion != NULL)
+                    <td>{{ date("n/j/y", strtotime($task->completion))}}</td>
+                @else
+                <td></td>
                 @endif
                 @endforeach
+        </tr>
+                </table>
                 @else
                     <h2>No tasks to display!</h2>
                 @endif
 
-                <div id="taskTable"></div>
-                <div id="dataModal" class="modal fade">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title">Complete Task</h4>
-                            </div>
-                            <div class="modal-body" id="complete_task">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <script>
                     $(document).ready(function() {

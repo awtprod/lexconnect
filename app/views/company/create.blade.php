@@ -14,6 +14,8 @@
 	{{ Form::select('v_c', array('Vendor' => 'Vendor', 'Client' => 'Client')); }}
 	{{ $errors->first('v_c') }}
 	</div>
+{{ Form::label('vendor_prints', 'Prints Documents: ') }}
+{{ Form::checkbox('vendor_prints','1')}}
 	<div>
 	{{ Form::label('pay_method', 'Payment Method: ') }}
 	{{ Form::select('pay_method', array('Check' => 'Check', 'ACH Debit/Credit' => 'ACH Debit/Credit')); }}

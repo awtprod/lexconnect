@@ -105,10 +105,6 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 			return "On Hold";
 		}
-		elseif($job->status == 1){
-
-			return $task->process;
-		}
 		elseif($job->status == 2){
 
 			return "Pending Completion of Job";
@@ -117,15 +113,19 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 
 			return "Job Canceled";
 		}
-		elseif($job->completed AND ($servee->status == 1  OR $servee->status == 2)){
+		elseif($servee->status == 0){
 
-			return "Completed";
+			return "In Progress";
 		}
 		elseif($servee->status == 1){
 
 			return "Served";
 		}
 		elseif($servee->status == 2){
+
+			return "Locating New Address";
+		}
+		elseif($servee->status == 3){
 
 			return "Non Served";
 		}

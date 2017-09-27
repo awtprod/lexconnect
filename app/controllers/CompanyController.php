@@ -43,7 +43,20 @@ class CompanyController extends \BaseController {
 			}
 
 		//Create new company
-		$new = Company::create($input)->id;
+		$new = new Company;
+		$new->name = $input["name"];
+		$new->address = $input["address"];
+		$new->city = $input["city"];
+		$new->state = $input["state"];
+		$new->zip_code = $input["zip_code"];
+		$new->v_c = $input["v_c"];
+		if(!empty($input["vendor_prints"])) {
+			$new->vendor_prints = 1;
+		}
+		$new->pay_method = $input["pay_method"];
+		$new->phone = $input["phone"];
+		$new->email = $input["email"];
+		$new->save();
 
 		$address = array (
 			"Type" => "UserDefined",
@@ -54,7 +67,7 @@ class CompanyController extends \BaseController {
 			"PostalCode" => $input["zip_code"],
 			"Country" => "US",
 			"Category" => $input["v_c"],
-			"UserData" => $new
+			"UserData" => $new->id
 		);
 
 
@@ -114,6 +127,12 @@ class CompanyController extends \BaseController {
 
 		$update->name = Input::get('name');
 		$update->v_c = Input::get('v_c');
+		if(!empty($input["vendor_prints"])){
+			$update->vendor_prints = 1;
+		}
+		else{
+			$update->vendor_prints = 0;
+		}
 		$update->pay_method = Input::get('pay_method');
 		$update->address = Input::get('address');
 		$update->city = Input::get('city');

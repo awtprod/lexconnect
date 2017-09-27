@@ -17,6 +17,14 @@
     </div>
     @endif
 
+    @if($company->vendor_prints)
+        {{ Form::label('vendor_prints', 'Prints Documents: ') }}
+        {{ Form::checkbox('vendor_prints','1', true)}}
+    @else
+        {{ Form::label('vendor_prints', 'Prints Documents: ') }}
+        {{ Form::checkbox('vendor_prints')}}
+    @endif
+
     @if(Auth::user()->user_role == 'Admin')
         <div>
             {{ Form::label('pay_method', 'Payment Method: ') }}

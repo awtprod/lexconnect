@@ -9,7 +9,7 @@ class Company extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	
-	protected $fillable = ['pay_method','address','name','city','state','zip_code','phone','email', 'v_c'];
+	protected $fillable = ['pay_method','address','name','city','state','zip_code','phone','email', 'v_c', 'vendor_prints'];
 	
 	public static $rules = [
 		'name' => 'required',

@@ -163,6 +163,36 @@ class AttemptsController extends \BaseController {
 		$this->tasks->ServerScore(Input::get('taskId'));
 	}
 
+	public function view(){
+
+		$input = Input::all();
+
+		$servee = Servee::whereId($input["serveeId"])->first();
+
+		if(Auth::user()->user_role == 'Admin' OR (Auth::user()->user_role == 'Client' AND Auth::user()->company_id == $servee->client)){
+
+			//Find all jobs
+			$jobs = Jobs::whereServeeId($servee->id)->orderBy('created_at','desc')->get();
+
+			$service_attempts = array();
+
+			//Find attempts for each job
+			foreach ($jobs as $job){
+
+				$attempts = Attempts::whereJob($job->id)->orderBy('created_at','desc')->get();
+
+				$service_attempts[$job->id] = $attempts;
+
+				foreach ($attempts as $attempt){
+
+					$service_attempts[$job->id][$attempt->id] = $attempt;
+				}
+			}
+
+			Return View::make('attempts.view', ['jobs'=>$jobs,'service_attempts'=>$service_attempts]);
+		}
+	}
+
 	/**
 	 * Display the specified resource.
 	 *

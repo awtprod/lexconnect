@@ -166,7 +166,7 @@ class AttemptsController extends \BaseController {
 	public function view(){
 
 		$input = Input::all();
-
+		$attempt_count = 1;
 		$servee = Servee::whereId($input["serveeId"])->first();
 
 		if(Auth::user()->user_role == 'Admin' OR (Auth::user()->user_role == 'Client' AND Auth::user()->company_id == $servee->client)){
@@ -178,18 +178,23 @@ class AttemptsController extends \BaseController {
 
 			//Find attempts for each job
 			foreach ($jobs as $job){
-
 				$attempts = Attempts::whereJob($job->id)->orderBy('created_at','desc')->get();
 
-				$service_attempts[$job->id] = $attempts;
+				if(!empty($attempts)) {
+					$service_attempts[$job->id]["attempt_count"] = $attempt_count;
 
-				foreach ($attempts as $attempt){
+					$service_attempts[$job->id]["attempts"] = $attempts;
 
-					$service_attempts[$job->id][$attempt->id] = $attempt;
+					foreach ($attempts as $attempt) {
+
+						$service_attempts[$job->id][$attempt->id]["attempt"] = $attempt;
+					}
+					$attempt_count++;
+
 				}
 			}
 
-			Return View::make('attempts.view', ['jobs'=>$jobs,'service_attempts'=>$service_attempts]);
+			Return View::make('attempts.view', ['jobs'=>$jobs,'service_attempts'=>$service_attempts,'servee'=>$servee]);
 		}
 	}
 

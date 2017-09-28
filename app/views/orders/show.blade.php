@@ -51,7 +51,21 @@
     </style>
 @stop
 @section('content')
-
+    <div id="attemptModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">View Attempts</h4>
+                </div>
+                <div class="modal-body" id="attempts">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 <td>{{ Form::open(['route' => 'search.index']) }}{{ Form::text('search') }}{{ Form::submit('Search') }}{{ Form::close() }}</td>
 
 {{ link_to('/orders/create', 'New Order') }}&nbsp;{{ link_to("/orders/edit/{$orders->id}", 'Edit Order') }}
@@ -159,7 +173,7 @@ Reference: {{ $orders->reference }}<p>
                     <td></td>
 
                 @endif
-                <td></td>
+                <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /></td>
                 <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
             </tr>
 
@@ -251,8 +265,27 @@ Reference: {{ $orders->reference }}<p>
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function(){
+        $('.view_data').click(function () {
+            var serveeId = $(this).attr("id");
+            $.ajax({
+                method: 'GET', // Type of response and matches what we said in the route
+                url: '/attempts/view', // This is the url we gave in the route
+                data: {serveeId: serveeId},
+                success: function(response) {
+
+                        console.log(response);
+                        $('#attempts').html(response);
+                        $('#attemptModal').modal("show");
+                },
+                error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        });
 
     var ss = jQuery.LiveAddress({
         key: '5198528973891423290',

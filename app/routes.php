@@ -31,6 +31,10 @@ Route::get('orders/courts/{id}', 'OrdersController@getCourts');
 Route::group(array('before'=>'auth'), function() {
 Route::get('api/tasksTable', 'TasksController@tasksTable');
 Route::get('api/jobsTable', 'TasksController@jobsTable');
+Route::get('attempts/view', [
+		'as' => 'attempts.view',
+		'uses' => 'AttemptsController@view'
+	]);
 Route::get('states/', [
 		'as' => 'states.index',
 		'uses' => 'StatesController@index'

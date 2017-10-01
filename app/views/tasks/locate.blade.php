@@ -67,6 +67,7 @@
         <input type="submit">
         <input id="serveeId" type="hidden" value="{{$servee->id}}">
         <input id="taskId" type="hidden" value="{{ $taskId }}">
+        <input id="jobId" type="hidden" value="{{ $job->id }}">
         <input id="token" type="hidden" value="{{ csrf_token() }}">
 
     </form>

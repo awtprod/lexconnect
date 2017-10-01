@@ -722,6 +722,40 @@ class TasksController extends \BaseController {
 			//Create Invoice
 			$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'service', 'personal' => '', 'personalRate' => '', 'rate' => '0', 'numPgs' => '0', 'freePgs' => '0', 'pageRate' => '0']);
 		}
+		else{
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$type = finfo_file($finfo, $input["executed_due_diligence"]);
+
+
+			if(!empty($input["executed_due_diligence"]) AND ($type == "application/pdf")) {
+
+				//Find job data
+				$job = Jobs::whereId(Input::get('jobId'))->first();
+
+				//If valid file, move to service documents dir
+				$destinationPath = storage_path() . '/proofs';
+				$file = str_random(6);
+				$filename = $file . '_' . $job->id . '_' . 'due_diligence.pdf';
+
+				Input::file('executed_due_diligence')->move($destinationPath, $filename);
+			}
+			else{
+				return "file not uploaded";
+			}
+
+			//Update Table
+			$document = new Documents;
+			$document->document = 'Due Diligence';
+			$document->order_id = $job->order_id;
+			$document->servee_id = $servee->id;
+			$document->filename = $filename;
+			$document->filepath = 'proofs';
+			$document->save();
+
+			//Complete task
+			$this->tasks->TaskComplete(Input::get('taskId'));
+
+		}
 	}
 	
 	public function service_documents($id){

@@ -84,14 +84,81 @@ Reference: {{ $orders->reference }}<p>
 <input type="button" name="view" value="Add Defendants" id="add_defendant" class="btn btn-info btn-xs" /> <div>
 
      {{ link_to("/documents/upload/{$orders->id}", 'Upload Documents') }}<br>
-     {{ link_to("/documents/view/?orderId={$orders->id}", 'View Documents') }}<br>
+     {{ link_to("/documents/view/?orderId={$orders->id}", 'View Documents') }}<p>
 
   </div>
 
 <div>
 
 {{ Form::open(['route' => 'jobs.actions']) }}
+    @if(!empty($servees))
+<h3>Defendants Served:</h3><br>
+        @foreach($servees as $servee)
+            <table>
+                <tr>
+                    <th>Servee</th>
+                    <th>Date Served</th>
+                    <th>Time Served</th>
+                    <th>Manner Served</th>
+                    <th>Served Upon</th>
+                    <th>Relationship</th>
+                    <th>Service Address</th>
+                    <th>Proof</th>
+                </tr>
+                @if(!empty($served[$servee->id]))
+                    <td>{{$servee->defendant}}</td>
+                    <td>{{date("n/j/y", strtotime($served[$servee->id]["serve"]->date))}}</td>
+                    <td>{{date('g:i A', strtotime($served[$servee->id]["serve"]->time))}}</td>
+                    <td>{{$served[$servee->id]["serve"]->serve_type}}</td>
+                    <td>{{$served[$servee->id]["serve"]->served_upon}}</td>
+                    <td>{{$served[$servee->id]["serve"]->realtionship}}</td>
+                    <td>{{$served[$servee->id]["serve"]->street}},&nbsp;{{$served[$servee->id]["serve"]->city}},&nbsp;{{$served[$servee->id]["serve"]->state}}&nbsp;{{$served[$servee->id]["serve"]->zipcode}}</td>
 
+                    @if(!empty($served[$servee->id]["proof"]))
+                        <td> {{link_to("/documents/show/{$served[$servee->id]["proof"]}", "View Proof",["target"=>"_blank"])}}
+                        </td>
+                    @else
+                        <td></td>
+                    @endif
+                @endif
+
+                @endforeach
+</table><br>
+                @foreach($servees as $servee)
+
+                    <h3>Serves In Progress:</h3><br>
+                    <table>
+                        <tr>
+                            <th>Servee</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>History</th>
+                            <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
+                        </tr>
+
+                        @if(empty($served[$servee->id]))
+                            <tr>
+
+                                <td>{{ $servee->defendant }}</td>
+
+                                <td> {{ $defendants[$servee->id]["status"] }} </td>
+
+                                @if(!empty($defendants[$servee->id]["due"]))
+                                    <td>{{ date("M/D/Y", strtotime($defendants[$servee->id]["due"])) }} </td>
+
+                                @else
+
+                                    <td></td>
+
+                                @endif
+                                <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /></td>
+                                <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
+                            </tr>
+                        @endif
+                        @endforeach
+                    </table>
+
+                    @endif
     <table>
         <tr>
             <th>Servee</th>
@@ -153,34 +220,9 @@ Reference: {{ $orders->reference }}<p>
             </tr>
 
 @endif
-
-@if(!empty($defendants))
-
-@foreach($servees as $servee)
+</table>
 
 
-            <tr>
-
-                <td>{{ $servee->defendant }}</td>
-
-                <td> {{ $defendants[$servee->id]["status"] }} </td>
-
-                @if(!empty($defendants[$servee->id]["due"]))
-                    <td>{{ date("m/d/y", strtotime($defendants[$servee->id]["due"])) }} </td>
-
-                @else
-
-                    <td></td>
-
-                @endif
-                <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /></td>
-                <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
-            </tr>
-
-@endforeach
-
-@endif
-    </table>
 <br>
 
 {{ Form::select('action', $actions) }}

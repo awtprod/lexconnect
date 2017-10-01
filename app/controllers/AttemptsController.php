@@ -169,6 +169,14 @@ class AttemptsController extends \BaseController {
 		$attempt_count = 1;
 		$servee = Servee::whereId($input["serveeId"])->first();
 
+		//If unable to locate, pull up due diligence affidavit
+		if($servee->status == '3') {
+			$due_diligence = Documents::whereServeeId($servee->id)->whereDocument('Due Diligence')->orderBy('created_at','desc')->first();
+			}
+		else{
+			$due_diligence = NULL;
+		}
+
 		if(Auth::user()->user_role == 'Admin' OR (Auth::user()->user_role == 'Client' AND Auth::user()->company_id == $servee->client)){
 
 			//Find all jobs
@@ -176,8 +184,13 @@ class AttemptsController extends \BaseController {
 
 			$service_attempts = array();
 
-			//Find attempts for each job
+
 			foreach ($jobs as $job){
+
+				//Find proof for job
+				$service_attempts[$job->id]["proof"]  = Documents::whereJobId($job->id)->whereDocument('Executed_Proof')->orderBy('created_at','desc')->first();
+
+				//Find attempts for each job
 				$attempts = Attempts::whereJob($job->id)->orderBy('created_at','desc')->get();
 
 				if(!empty($attempts)) {
@@ -194,7 +207,7 @@ class AttemptsController extends \BaseController {
 				}
 			}
 
-			Return View::make('attempts.view', ['jobs'=>$jobs,'service_attempts'=>$service_attempts,'servee'=>$servee]);
+			Return View::make('attempts.view', ['jobs'=>$jobs,'due_diligence'=>$due_diligence,'service_attempts'=>$service_attempts,'servee'=>$servee]);
 		}
 	}
 

@@ -411,23 +411,35 @@ class OrdersController extends \BaseController {
 
 		$defendants = array();
 
+		$served = array();
+
 		//Find status for defendants
 		if(!empty($viewservees)) {
 			foreach ($viewservees as $viewservee) {
 
-				//Find current job
-				$defendants[$viewservee->id]["jobId"] = Jobs::whereserveeId($viewservee->id)
+				//Determine if defendant has been served
+				if($viewservee->status == '1'){
+
+					$job = Jobs::whereserveeId($viewservee->id)->orderBy('created_at','desc')->first();
+
+					$served[$viewservee->id]["serve"] = Serve::whereServeeId($viewservee->id)->first();
+					$served[$viewservee->id]["proof"] = Documents::whereJobId($job->id)->whereOrderId($job->order_id)->whereDocument('Executed_Proof')->orderBy('created_at','desc')->pluck('id');
+
+				}
+				else {
+					//Find current job
+					$defendants[$viewservee->id]["jobId"] = Jobs::whereserveeId($viewservee->id)
 						->whereNull('completed')->pluck('id');
 
 
-				//Find current task
-				$defendants[$viewservee->id]["due"] = Tasks::wherejobId($defendants[$viewservee->id]["jobId"])
+					//Find current task
+					$defendants[$viewservee->id]["due"] = Tasks::wherejobId($defendants[$viewservee->id]["jobId"])
 						->whereStatus(1)->pluck('deadline');
 
 
-				//Find current status
-				$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["jobId"]);
-
+					//Find current status
+					$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["jobId"]);
+				}
 
 			}
 		}
@@ -437,7 +449,7 @@ class OrdersController extends \BaseController {
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $order)->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions])->with(['states'=>$states]);
+		return View::make('orders.show')->with('orders', $order)->with(['served'=>$served])->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions])->with(['states'=>$states]);
 		}
 		else{
 		Return Redirect::to('login');

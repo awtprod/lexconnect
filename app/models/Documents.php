@@ -9,7 +9,7 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
-	protected $fillable = ['fileDate','courtcase','document', 'filename', 'filepath', 'job_id', 'order_id'];
+	protected $fillable = ['fileDate','courtcase','document', 'filename', 'filepath', 'servee_id','job_id', 'order_id'];
 
     public static $fileRules = [
         'Summons' => 'mimes:pdf|max:10000',

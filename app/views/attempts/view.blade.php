@@ -5,11 +5,23 @@
 </head>
 <body>
 Defendant: {{$servee->defendant}}<br>
+
+@if(!empty($due_diligence))
+{{link_to("/documents/show/{$due_diligence->id}", str_replace('_', ' ', $due_diligence->document),"Affidavit of Due Diligence",["target"=>"_blank"])}}
+@endif
+
 @foreach($jobs as $job)
 
 
         Attempt #{{$service_attempts[$job->id]["attempt_count"]}}<br>
-    {{$job->street}}, &nbsp;{{$job->city}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}<p>
+     <div align="left">
+    {{$job->street}}, &nbsp;{{$job->city}},&nbsp;{{$job->state}}&nbsp;{{$job->zipcode}}
+     </div>
+        @if(!empty($service_attempts[$job->id]["proof"]))
+        <div align="right">
+            {{link_to("/documents/show/{$service_attempts[$job->id]["proof"]->id}", "View Proof",["target"=>"_blank"])}}
+        </div>
+        @endif
         @if (count($service_attempts[$job->id]["attempts"])>0)
 
             <table>

@@ -127,7 +127,7 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 		}
 		elseif($servee->status == 3){
 
-			return "Non Served";
+			return "Non Served/Not Found";
 		}
 
 	}

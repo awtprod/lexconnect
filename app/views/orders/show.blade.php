@@ -91,7 +91,7 @@ Reference: {{ $orders->reference }}<p>
 <div>
 
 {{ Form::open(['route' => 'jobs.actions']) }}
-    @if(count($servees)>0)
+    @if(count($served)>0)
 <h3>Defendants Served:</h3><br>
         @foreach($servees as &$servee)
             <table>
@@ -124,7 +124,7 @@ Reference: {{ $orders->reference }}<p>
 
                 @endforeach
 </table><br>
-
+@if(count($defendants)>0)
                     <h3>Serves In Progress:</h3><br>
                     <table>
                         <tr>
@@ -160,6 +160,8 @@ Reference: {{ $orders->reference }}<p>
                     </table>
 
                     @endif
+        @endif
+
     <table>
         <tr>
             <th>Servee</th>

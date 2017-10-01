@@ -91,9 +91,9 @@ Reference: {{ $orders->reference }}<p>
 <div>
 
 {{ Form::open(['route' => 'jobs.actions']) }}
-    @if(!empty($servees))
+    @if(count($servees)>0)
 <h3>Defendants Served:</h3><br>
-        @foreach($servees as $servee)
+        @foreach($servees as &$servee)
             <table>
                 <tr>
                     <th>Servee</th>
@@ -124,7 +124,6 @@ Reference: {{ $orders->reference }}<p>
 
                 @endforeach
 </table><br>
-                @foreach($servees as $servee)
 
                     <h3>Serves In Progress:</h3><br>
                     <table>
@@ -137,6 +136,7 @@ Reference: {{ $orders->reference }}<p>
                         </tr>
 
                         @if(empty($served[$servee->id]))
+                            @foreach($servees as $servee)
                             <tr>
 
                                 <td>{{ $servee->defendant }}</td>
@@ -154,8 +154,9 @@ Reference: {{ $orders->reference }}<p>
                                 <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /></td>
                                 <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
                             </tr>
-                        @endif
                         @endforeach
+                        @endif
+
                     </table>
 
                     @endif

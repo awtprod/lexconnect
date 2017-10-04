@@ -7,25 +7,24 @@
     <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
     <script>
         $(document).ready(function() {
-            function task_table() {
-                var jobId = $('#jobId').val();
+            function task_table(id) {
 
                 $.ajax({
-                    method: 'GET', // Type of response and matches what we said in the route
-                    url: '/api/jobsTable', // This is the url we gave in the route
-                    data: {id: jobId}, // a JSON object to send back
-                    success: function (response) { // What to do if we succeed
-                        console.log(response);
-                        $('#taskTable').html(response);
+                    url: 'api/tasksTable',
+                    type: 'GET',
+                    data: {id: id},
+                    success: function (data) {
+                        console.log(data);
+                        $('#taskTable').html(data);
                     },
-                    error: function (jqXHR, textStatus, errorThrown) { // What to do if we fail
-                        console.log(JSON.stringify(jqXHR));
-                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
-                    }
+                    cache: false,
+                    contentType: false,
+                    processData: false
                 });
+
             }
 
-            task_table()
+            task_table($('#jobId').val())
         })
     </script>
     <style>

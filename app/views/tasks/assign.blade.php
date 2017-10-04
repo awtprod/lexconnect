@@ -1,7 +1,6 @@
 <html>
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 </head>
 <body>
 
@@ -15,10 +14,10 @@
         {{ Form::label('Assign', 'Assign Server: ') }}
         {{ Form::select('Assign', $vendors, null, ['id' => 'Server']) }}<br>
         <input type="submit">
-        <input id="serveeId" type="hidden" value="{{ $servee->id }}">
-        <input id="jobId" type="hidden" value="{{ $job->id }}">
-        <input id="taskId" type="hidden" value="{{ $taskId }}">
-        <input id="token" type="hidden" value="{{ csrf_token() }}">
+        <input id="serveeId" name="serveeId" type="hidden" value="{{ $servee->id }}">
+        <input id="jobId" name="jobId" type="hidden" value="{{ $job->id }}">
+        <input id="taskId" name="taskId" type="hidden" value="{{ $taskId }}">
+        <input id="_token" name="_token" type="hidden" value="{{ csrf_token() }}">
 
     </form>
 
@@ -30,13 +29,21 @@
 
         $('#dataModal').modal("show");
 
-        function task_table() {
+        function task_table(id) {
 
-            $.get("{{ url('api/tasksTable')}}",
-                    function (data) {
-                        $('#taskTable').html(data);
+            $.ajax({
+                url: 'api/tasksTable',
+                type: 'GET',
+                data: {id: id},
+                success: function (data) {
+                    console.log(data);
+                    $('#taskTable').html(data);
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
 
-                    });
         }
 
         $("#assign-task").submit(function () {
@@ -50,7 +57,9 @@
                 type: 'POST',
                 data: formData,
                 success: function (data) {
-                    alert(data)
+                    console.log(data);
+                    $('#dataModal').modal("hide");
+                    task_table($('#jobId').val())
                 },
                 cache: false,
                 contentType: false,

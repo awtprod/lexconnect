@@ -273,16 +273,15 @@ class TasksController extends \BaseController {
 	public function assign(){
 
 		$input = Input::all();
-		
+
 		$numPgs = $this->Documents->numPgs($input["serveeId"]);
 
 		$job = Jobs::whereId($input["jobId"])->first();
 
 		//Check if auto assign or vendor selected
 		if($input["Assign"]=="Auto"){
-
 			//Find new server
-			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs, 'priority'=>$job->priority, 'add_servee'=>$job->add_servee);
+			$serverData = array('zipcode' => $job->zipcode,'state' => $job->state, 'county' => $job->county, 'jobId' => $job->id, 'numPgs'=>$numPgs, 'priority'=>$job->priority, 'add_servee'=>$job->add_servee, 'process'=>'service', 'client'=>$job->client);
 			$server = $this->jobs->SelectServer($serverData);
 
 			//Reassign server
@@ -292,26 +291,26 @@ class TasksController extends \BaseController {
 			//Update Invoice
 			$invoice = Invoices::whereJobId($job->id)->first();
 			$invoice->vendor_amt = $server["rate"];
-			$invoice->free_pgs = $server["free_pgs"];
-			$invoice->pg_rate = $server["pg_rate"];
+			$invoice->free_pgs = $server["freePgs"];
+			$invoice->pg_rate = $server["pageRate"];
 			$invoice->save();
 
 		}
 		else{
-
 			//Find rates
-			$rates = VendorRates::whereVendor($input["server"])->whereState($job->state)->whereCounty($job->county)->first();
+			$rates = VendorRates::whereVendor(11)->whereState('WA')->whereCounty('Adams')->first();
 
-			$company = Company::whereId($input["server"])->first();
+			$company = Company::whereId($input["Assign"])->first();
 
 			//Reassign server
-			$newServerData = array('vendor' => $input["Server"], 'orderId' => $job->order_id, 'jobId' => $job->id);
+			$newServerData = array('vendor' => $input["Assign"], 'orderId' => $job->order_id, 'jobId' => $job->id);
 			$newServer = $this->jobs->ReAssignServer($newServerData);
 
 			$service_type = $job->service;
 
-			if($rates->$service_type.'Flat'!="0"){
-				$rate = $rates->$service_type.'Flat';
+			if($rates->serviceFlat !="0"){
+				$rate = $rates->serviceFlat;
+
 			}
 			else{
 
@@ -335,6 +334,9 @@ class TasksController extends \BaseController {
 			$invoice->pg_rate = $rates->pg_rate;
 			$invoice->save();
 		}
+
+		$this->tasks->TaskComplete(Input::get('taskId'));
+
 	}
 	
 	public function vendor_print(){
@@ -887,64 +889,64 @@ class TasksController extends \BaseController {
 
 	public function tasksTable(){
 
-		if(Auth::user()->user_role=='Admin') {
-			//Find current tasks
-
-			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
-
-			$tableData = array();
-
-			foreach ($tasks as $task){
-
-				$tableData[$task->id]["vendor"] = $this->company->taskVendor($task->group);
-			}
-
-			Return View::make('tasks.admin')->with(['tasks' => $tasks, 'tableData' => $tableData]);
-
-		}
-		elseif(Auth::user()->user_role=='Vendor') {
-
-			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
-
-			$tableData = array();
-
-			foreach ($tasks as $task){
-
-				$tableData[$task->id]["defendant"] = Jobs::whereId($task->job_id)->pluck('defendant');
-			}
-
-			Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
-		}
-
-	}
-
-	public function jobsTable(){
 
 		$input = Input::all();
 
+		//Check if a job id is sent, if blank, create task table
+		if(!empty($input["id"])){
+
 		$jobs = Jobs::whereId($input["id"])->first();
 
-		if(Auth::user()->user_role=='Admin' OR (Auth::user()->user_role=='Vendor' AND (Auth::user()->company_id==$job->vendor))) {
+		if(Auth::user()->user_role=='Admin' OR (Auth::user()->user_role=='Vendor' AND (Auth::user()->company_id==$jobs->vendor))) {
 			//Find current tasks
 
-			$tasks = Tasks::wherejobId($input["id"])->orderBy('deadline', 'asc')->get();
+			$tasks = Tasks::wherejobId($input["id"])->orderBy('sort_order', 'asc')->get();
 
 			$tableData = array();
 
-			foreach ($tasks as $task){
+			foreach ($tasks as $task) {
 
-				if($task->group == "1") {
+				if ($task->group == "1") {
 
 					$tableData[$task->id]["group"] = "Admin";
-				}
-				else{
+				} else {
 					$tableData[$task->id]["group"] = "Vendor";
 
 				}
 			}
 
 			Return View::make('tasks.job')->with(['tasks' => $tasks, 'tableData' => $tableData, 'jobs' => $jobs]);
+		}
+		}
+		else{
+			if(Auth::user()->user_role=='Admin') {
+				//Find current tasks
 
+				$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
+
+				$tableData = array();
+
+				foreach ($tasks as $task){
+
+					$tableData[$task->id]["vendor"] = $this->company->taskVendor($task->group);
+				}
+
+				Return View::make('tasks.admin')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+
+			}
+			elseif(Auth::user()->user_role=='Vendor') {
+
+				$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
+
+				$tableData = array();
+
+				foreach ($tasks as $task){
+
+					$tableData[$task->id]["defendant"] = Jobs::whereId($task->job_id)->pluck('defendant');
+				}
+
+				Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+			}
 		}
 
 	}

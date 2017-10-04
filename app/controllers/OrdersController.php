@@ -410,7 +410,7 @@ class OrdersController extends \BaseController {
 
 
 		$defendants = array();
-
+		$not_found = array();
 		$served = array();
 
 		//Find status for defendants
@@ -424,6 +424,12 @@ class OrdersController extends \BaseController {
 
 					$served[$viewservee->id]["serve"] = Serve::whereServeeId($viewservee->id)->first();
 					$served[$viewservee->id]["proof"] = Documents::whereJobId($job->id)->whereOrderId($job->order_id)->whereDocument('Executed_Proof')->orderBy('created_at','desc')->pluck('id');
+
+				}
+				elseif ($viewservee->status == '3'){
+					$job = Jobs::whereserveeId($viewservee->id)->orderBy('created_at','desc')->first();
+
+					$not_found[$viewservee->id]["due_diligence"] = Documents::whereJobId($job->id)->whereOrderId($job->order_id)->whereDocument('Due_Diligence')->orderBy('created_at','desc')->pluck('id');
 
 				}
 				else {
@@ -449,7 +455,7 @@ class OrdersController extends \BaseController {
         $token = Session::token();
 
 		//Return Order View	
-		return View::make('orders.show')->with('orders', $order)->with(['served'=>$served])->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions])->with(['states'=>$states]);
+		return View::make('orders.show')->with('orders', $order)->with(['not_found'=>$not_found])->with(['served'=>$served])->with('servees', $viewservees)->with(['verify'=>$verifyTask])->with(['recording'=>$recording])->with(['filing'=>$filing])->with(['defendants'=>$defendants])->with('token', $token)->with(['actions'=>$actions])->with(['states'=>$states]);
 		}
 		else{
 		Return Redirect::to('login');

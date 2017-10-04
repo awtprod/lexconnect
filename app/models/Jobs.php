@@ -275,14 +275,13 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			}
 
 			//Add cost of service requiring personal service
-			$vendor["personalRate"][$select["UserData"]] = $rates->personal;
+			//$vendor["personalRate"][$select["UserData"]] = $rates->personal;
 
-			if(!empty($serverData["numPersonal"])){
+			//if(!empty($serverData["numPersonal"])){
 
-				$vendor["rate"][$select["UserData"]] += $vendor["personalRate"][$select["UserData"]] * $serverData["numPersonal"];
+			//	$vendor["rate"][$select["UserData"]] += $vendor["personalRate"][$select["UserData"]] * $serverData["numPersonal"];
 
-			}
-
+			//}
 
 			//Find client
 			$client = Company::whereId($serverData['client'])->first();
@@ -371,9 +370,11 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			$task->group = $newServer['vendor'];
 			$task->status = 1;
 			$task->deadline = Carbon::now()->addDays($previousServer->days);
-			$task->completion = "";
+			$task->completion = NULL;
 			$task->completed_by = "";
 			$task->save();
+
+			$serverTask = $task->id;
 		}
 		else {
 			//Create task for new server
@@ -381,14 +382,18 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 			$newTask->job_id = $newServer['jobId'];
 			$newTask->order_id = $newServer['orderId'];
 			$newTask->group = $newServer['vendor'];
-			$newTask->process = $process->id;
+			$newTask->process = $step->name;
 			$newTask->sort_order = $step->sort_order;
 			$newTask->days = $step->RoutineOrigDueDate;
 			$newTask->window = $step->window;
 			$newTask->status = 1;
 			$newTask->deadline = Carbon::now()->addDays($previousServer->days);
 			$newTask->save();
+
+			$serverTask = $newTask->id;
+
 		}
+
 		//Assign Job to new server
 		$assignJob = Jobs::whereId($newServer['jobId'])->first();
 
@@ -396,18 +401,36 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 		$assignJob->save();
 
 		//Find upcoming tasks
-		$futureTasks = Tasks::whereJobId($newServer['jobId'])->whereGroup($previousServer->group)->whereNULL('completion')->get();
+		if($newServer['vendor'] == '1') {
+			$futureTasks = Tasks::whereJobId($newServer['jobId'])->whereNULL('completion')->get();
 
-		//Loop through all tasks
-		foreach($futureTasks as $futureTask) {
+			//Loop through all tasks
+			foreach($futureTasks as $futureTask) {
 
-			$task = Tasks::whereId($futureTask->id)->first();
-			$task->group = $newServer['vendor'];
-			$task->save();
+				$task = Tasks::whereId($futureTask->id)->first();
+				$task->group = $newServer['vendor'];
+				$task->save();
 
+			}
 		}
+		else {
+			//Find service type from task
+			$current_process = Processes::whereName($previousServer->service)->first();
 
-		return $newTask->id;
+			//Find tasks for vendor
+			$vendor_tasks = Template::whereProcess($current_process->id)->whereGroup('vendor')->get();
+			$jobId = $newServer['jobId'];
+
+			//Loop through all tasks
+			foreach ($vendor_tasks as $vendor_task) {
+
+				$task = Tasks::whereProcess($vendor_task->name)->whereJobId($jobId)->first();
+				$task->group = $newServer['vendor'];
+				$task->save();
+
+			}
+		}
+		return $serverTask;
 
 	}
 

@@ -124,6 +124,29 @@ Reference: {{ $orders->reference }}<p>
 
                 @endforeach
 </table><br>
+            @if(count($not_found)>0)
+                <h3>Defendants Not Found/Not Served:</h3><br>
+                <table>
+                    <tr>
+                        <th>Servee</th>
+                        <th>History</th>
+                    </tr>
+
+                    @if(empty($served[$servee->id]))
+                        @foreach($servees as $servee)
+                            <tr>
+
+                                <td>{{ $servee->defendant }}</td>
+                                <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /> &nbsp;
+                                    {{link_to("/documents/show/{$not_found[$servee->id]["due_diligence"]}", "View Due Diligence Affidavit",["target"=>"_blank"])}}
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+
+                </table>
+
+            @endif
 @if(count($defendants)>0)
                     <h3>Serves In Progress:</h3><br>
                     <table>
@@ -162,30 +185,33 @@ Reference: {{ $orders->reference }}<p>
                     @endif
         @endif
 
-    <table>
-        <tr>
-            <th>Servee</th>
-            <th>Status</th>
-            <th>Due Date</th>
-            <th>History</th>
-            <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
-        </tr>
+
 
 @if(!empty($verify))
 
+    <h3>Verify Documents:</h3><br>
+                <table>
+                    <tr>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
             <tr>
-                <td>Verify Documents</td>
                 <td>{{ $verify->process }}</td>
                 <td>{{ date("m/d/y", strtotime($verify->deadline)) }} </td>
-                <td></td>
-                <td>{{ Form::checkbox('jobId[]', $verify->job_id) }}</td>
             </tr>
-
+</table>
 @endif
 
 @if(!empty($recording))
+
+    <h3>Recording Status: </h3><br>
+                <table>
+                    <tr>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
+                    </tr>
             <tr>
-                <td>{{ $recording->defendant }}</td>
 
                 <td> {{ $recordingStatus }} </td>
 
@@ -197,13 +223,19 @@ Reference: {{ $orders->reference }}<p>
                 <td></td>
 
                 @endif
-                <td></td>
                 <td>{{ Form::checkbox('jobId[]', $recording->id) }}</td>
             </tr>
+                    </table>
 @endif
 
 @if(!empty($filing))
-
+<h3>Filing Status: </h3><br>
+                <table>
+                    <tr>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
+                    </tr>
             <tr>
 
                 <td>{{ $filing->defendant }}</td>
@@ -218,12 +250,11 @@ Reference: {{ $orders->reference }}<p>
                     <td></td>
 
                 @endif
-                <td></td>
                 <td>{{ Form::checkbox('jobId[]', $filing->id) }}</td>
             </tr>
+                </table>
 
 @endif
-</table>
 
 
 <br>

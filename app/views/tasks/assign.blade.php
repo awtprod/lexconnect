@@ -1,6 +1,5 @@
 <html>
 <head>
-
 </head>
 <body>
 
@@ -27,26 +26,10 @@
 <script>
     $(document).ready(function () {
 
-        $('#dataModal').modal("show");
 
-        function task_table(id) {
+        $("#assign-task").submit(function (e) {
 
-            $.ajax({
-                url: 'api/tasksTable',
-                type: 'GET',
-                data: {id: id},
-                success: function (data) {
-                    console.log(data);
-                    $('#taskTable').html(data);
-                },
-                cache: false,
-                contentType: false,
-                processData: false
-            });
-
-        }
-
-        $("#assign-task").submit(function () {
+            e.preventDefault();
 
 
             var formData = new FormData(this);
@@ -59,14 +42,14 @@
                 success: function (data) {
                     console.log(data);
                     $('#dataModal').modal("hide");
-                    task_table($('#jobId').val())
+
+
                 },
                 cache: false,
                 contentType: false,
                 processData: false
             });
 
-            return false;
         });
     });
 </script>

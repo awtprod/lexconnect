@@ -433,6 +433,7 @@ class OrdersController extends \BaseController {
 
 				}
 				else {
+
 					//Find current job
 					$defendants[$viewservee->id]["jobId"] = Jobs::whereserveeId($viewservee->id)
 						->whereNull('completed')->pluck('id');
@@ -449,7 +450,6 @@ class OrdersController extends \BaseController {
 
 			}
 		}
-
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
         $token = Session::token();

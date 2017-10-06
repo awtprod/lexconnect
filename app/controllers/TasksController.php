@@ -47,7 +47,6 @@ class TasksController extends \BaseController {
     {
         //Retrieve task id from URL
        $tasksId = Input::get('id');
-
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		//Find all active servers
@@ -889,6 +888,38 @@ class TasksController extends \BaseController {
 
 	public function tasksTable(){
 
+		if(Auth::user()->user_role=='Admin') {
+			//Find current tasks
+
+			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
+
+			$tableData = array();
+
+			foreach ($tasks as $task){
+
+				$tableData[$task->id]["vendor"] = $this->company->taskVendor($task->group);
+			}
+
+			Return View::make('tasks.admin')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+
+		}
+		elseif(Auth::user()->user_role=='Vendor') {
+
+			$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
+
+			$tableData = array();
+
+			foreach ($tasks as $task){
+
+				$tableData[$task->id]["defendant"] = Jobs::whereId($task->job_id)->pluck('defendant');
+			}
+
+			Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
+		}
+
+	}
+
+	public function jobsTable(){
 
 		$input = Input::all();
 
@@ -917,36 +948,6 @@ class TasksController extends \BaseController {
 
 			Return View::make('tasks.job')->with(['tasks' => $tasks, 'tableData' => $tableData, 'jobs' => $jobs]);
 		}
-		}
-		else{
-			if(Auth::user()->user_role=='Admin') {
-				//Find current tasks
-
-				$tasks = Tasks::whereNULL('completion')->whereStatus(1)->take(10)->orderBy('deadline', 'desc')->get();
-
-				$tableData = array();
-
-				foreach ($tasks as $task){
-
-					$tableData[$task->id]["vendor"] = $this->company->taskVendor($task->group);
-				}
-
-				Return View::make('tasks.admin')->with(['tasks' => $tasks, 'tableData' => $tableData]);
-
-			}
-			elseif(Auth::user()->user_role=='Vendor') {
-
-				$tasks = Tasks::whereNULL('completion')->whereStatus(1)->whereGroup(Auth::user()->company_id)->take(10)->orderBy('deadline', 'desc')->get();
-
-				$tableData = array();
-
-				foreach ($tasks as $task){
-
-					$tableData[$task->id]["defendant"] = Jobs::whereId($task->job_id)->pluck('defendant');
-				}
-
-				Return View::make('tasks.vendor')->with(['tasks' => $tasks, 'tableData' => $tableData]);
-			}
 		}
 
 	}

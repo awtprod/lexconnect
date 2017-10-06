@@ -73,7 +73,6 @@
 @if (!empty($orders))
 <h2>Order # {{ $orders->id }}</h2><p>
 
-
 {{ $orders->court }}<p>
 {{ $orders->plaintiff }}v.{{ $orders->defendant }}<p>
 Case: {{ $orders->courtcase }}<p>
@@ -91,6 +90,7 @@ Reference: {{ $orders->reference }}<p>
 <div>
 
 {{ Form::open(['route' => 'jobs.actions']) }}
+
     @if(count($served)>0)
 <h3>Defendants Served:</h3><br>
         @foreach($servees as &$servee)
@@ -124,6 +124,7 @@ Reference: {{ $orders->reference }}<p>
 
                 @endforeach
 </table><br>
+        @endif
             @if(count($not_found)>0)
                 <h3>Defendants Not Found/Not Served:</h3><br>
                 <table>
@@ -147,7 +148,9 @@ Reference: {{ $orders->reference }}<p>
                 </table>
 
             @endif
-@if(count($defendants)>0)
+
+@if(!empty($defendants))
+
                     <h3>Serves In Progress:</h3><br>
                     <table>
                         <tr>
@@ -158,7 +161,6 @@ Reference: {{ $orders->reference }}<p>
                             <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
                         </tr>
 
-                        @if(empty($served[$servee->id]))
                             @foreach($servees as $servee)
                             <tr>
 
@@ -167,7 +169,7 @@ Reference: {{ $orders->reference }}<p>
                                 <td> {{ $defendants[$servee->id]["status"] }} </td>
 
                                 @if(!empty($defendants[$servee->id]["due"]))
-                                    <td>{{ date("M/D/Y", strtotime($defendants[$servee->id]["due"])) }} </td>
+                                    <td>{{ date("n/j/y", strtotime($defendants[$servee->id]["due"])) }} </td>
 
                                 @else
 
@@ -178,13 +180,10 @@ Reference: {{ $orders->reference }}<p>
                                 <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
                             </tr>
                         @endforeach
-                        @endif
 
                     </table>
 
                     @endif
-        @endif
-
 
 
 @if(!empty($verify))

@@ -7,24 +7,7 @@
     <script src="http://cdn.jsdelivr.net/jquery.validation/1.13.1/additional-methods.js"></script>
     <script>
         $(document).ready(function() {
-            function task_table(id) {
 
-                $.ajax({
-                    url: 'api/tasksTable',
-                    type: 'GET',
-                    data: {id: id},
-                    success: function (data) {
-                        console.log(data);
-                        $('#taskTable').html(data);
-                    },
-                    cache: false,
-                    contentType: false,
-                    processData: false
-                });
-
-            }
-
-            task_table($('#jobId').val())
         })
     </script>
     <style>
@@ -59,7 +42,10 @@
 
 </head>
 <body>
-<input type="hidden" id="jobId" value="{{$jobs->id}}">
+<form>
+<input id="_token" name="_token" type="hidden" value="{{ csrf_token() }}">
+<input type="hidden" name="jobId" id="jobId" value="{{$jobs->id}}">
+</form>
 <h1>Job #{{ $jobs->id }}</h1><p>
     Defendant: {{$jobs->defendant}}<br>
                 {{$jobs->street}} @if(!empty($jobs->street2)),&nbsp;{{$jobs->street2}}@endif<br>
@@ -89,6 +75,17 @@
 <script>
     $(document).ready(function() {
 
+        function task_table() {
+            var id = $("#jobId").val();
+
+            $.get("{{ url('api/jobsTable')}}",{id:id},
+                    function (data) {
+                        $('#taskTable').html(data);
+                    });
+        }
+
+        task_table();
+
         $('.view_data').click(function () {
             var task_id = $(this).attr("id");
             $.get("{{ url('tasks/test')}}", { id: task_id },
@@ -98,6 +95,11 @@
                         $('#dataModal').modal("show");
                     });
         });
+        //Should fire but doesn't
+        $('#dataModal').on('hidden.bs.modal', function (e) {
+            task_table();
+        });
+
     });
 </script>
 </body>

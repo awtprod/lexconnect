@@ -163,6 +163,7 @@ class TasksController extends \BaseController {
 			//Check if vendor or admin prints documents
 			$vendor_prints = Company::whereId($job->vendor)->pluck('vendor_prints');
 
+
 			//Create task for admin to print
 			if($vendor_prints){
 
@@ -177,7 +178,12 @@ class TasksController extends \BaseController {
 
 				if(!empty($task)){
 					$task->group = $job->vendor;
-					$task->status = 1;
+
+					//Check if job is on hold
+					if($job->status == 1){
+						$task->status = 1;
+					}
+					$task->status = 0;
 					$task->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
 					$task->completion = "";
 					$task->completed_by = "";
@@ -189,11 +195,17 @@ class TasksController extends \BaseController {
 					$newTask->job_id = $job->id;
 					$newTask->order_id = $job->order_id;
 					$newTask->group = $job->vendor;
-					$newTask->process = $process->id;
+					$newTask->process = $step->name;
 					$newTask->sort_order = $step->sort_order;
 					$newTask->days = $step->RoutineOrigDueDate;
 					$newTask->window = $step->window;
-					$newTask->status = 1;
+					//Check if job is on hold
+					if($job->status == 1) {
+						$newTask->status = 1;
+					}
+					else{
+						$newTask->status = 0;
+					}
 					$newTask->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
 					$newTask->save();
 					
@@ -206,7 +218,7 @@ class TasksController extends \BaseController {
 				$process = Processes::whereName('Admin Prints')->first();
 
 				//Find steps
-				$steps = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->first();
+				$steps = Template::whereProcess($process->id)->where('judicial','Both')->orderBy('sort_order', 'asc')->get();
 
 				foreach ($steps as $step) {
 
@@ -221,9 +233,15 @@ class TasksController extends \BaseController {
 						else{
 							$task->group = 1;
 						}
-						$task->status = $step->status;
+						//Check if job is on hold
+						if($job->status == 1){
+							$task->status = $step->status;
+						}
+						else{
+							$task->status = 0;
+						}
 						$task->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
-						$task->completion = "";
+						$task->completion = NULL;
 						$task->completed_by = "";
 						$task->save();
 					} else {
@@ -231,21 +249,30 @@ class TasksController extends \BaseController {
 						$newTask = new Tasks;
 						$newTask->job_id = $job->id;
 						$newTask->order_id = $job->order_id;
+
 						if($step->group == 'Vendor') {
-							$task->group = $job->vendor;
+							$newTask->group = $job->vendor;
 						}
 						else{
-							$task->group = 1;
+							$newTask->group = 1;
 						}
-						$newTask->process = $process->id;
+
+						$newTask->process = $step->name;
 						$newTask->sort_order = $step->sort_order;
 						$newTask->days = $step->RoutineOrigDueDate;
 						$newTask->window = $step->window;
-						$newTask->status = $step->status;
+						//Check if job is on hold
+						if($job->status == 1){
+							$newTask->status = $step->status;
+						}
+						else{
+							$newTask->status = 0;
+						}
 						$newTask->deadline = Carbon::now()->addDays($step->RoutineOrigDueDate);
 						$newTask->save();
 
 					}
+
 				}
 			}
 
@@ -288,7 +315,7 @@ class TasksController extends \BaseController {
 			$newServer = $this->jobs->ReAssignServer($newServerData);
 
 			//Update Invoice
-			$invoice = Invoices::whereJobId($job->id)->first();
+			$invoice = Invoices::whereJobId($job->id)->whereNull('client')->first();
 			$invoice->vendor_amt = $server["rate"];
 			$invoice->free_pgs = $server["freePgs"];
 			$invoice->pg_rate = $server["pageRate"];
@@ -327,7 +354,7 @@ class TasksController extends \BaseController {
 			}
 
 			//Update Invoice
-			$invoice = Invoices::whereJobId($job->id)->first();
+			$invoice = Invoices::whereJobId($job->id)->whereNull('client')->first();
 			$invoice->vendor_amt = $rate;
 			$invoice->free_pgs = $rates->free_pgs;
 			$invoice->pg_rate = $rates->pg_rate;
@@ -341,8 +368,7 @@ class TasksController extends \BaseController {
 	public function vendor_print(){
 
 		$input = Input::all();
-
-		if($input["print"]=="Deny"){
+		if($input["print_docs"]=="Deny"){
 
 			$task = Tasks::whereId(Input::get('taskId'))->first();
 
@@ -356,7 +382,7 @@ class TasksController extends \BaseController {
 				$newTask->job_id = $task->job_id;
 				$newTask->order_id = $task->order_id;
 				$newTask->group = 1;
-				$newTask->process = $process->id;
+				$newTask->process = $step->name;
 				$newTask->sort_order = $step->sort_order;
 				$newTask->days = $step->RoutineOrigDueDate;
 				$newTask->window = $step->window;
@@ -366,6 +392,7 @@ class TasksController extends \BaseController {
 
 
 		}
+
 		//Complete Task
 		$this->tasks->TaskComplete(Input::get('taskId'));
 	}
@@ -767,7 +794,7 @@ class TasksController extends \BaseController {
 		//Find documents to be served
 		$docsServed = DocumentsServed::whereOrderId($job->order_id)->get();
 		
-		if((Auth::user()->company_id == $job->vendor OR Auth::user()->user_role == "Admin")AND(!empty($docsServed))) {
+		if((Auth::user()->company_id == $job->vendor OR Auth::user()->user_role == "Admin")AND(count($docsServed)>0)) {
 
 			$pdf = new \Clegginabox\PDFMerger\PDFMerger;
 
@@ -1003,6 +1030,22 @@ class TasksController extends \BaseController {
 
         Return Redirect::route('jobs.show', $jobId);
     }
+	public function clear()
+	{
+		if (Auth::user()->user_role == "Admin") {
+
+			$input = Input::all();
+			foreach ($input["clear"] as $id){
+
+				$task = Tasks::whereId($id)->first();
+				$task->completion = NULL;
+				$task->save();
+			}
+			if(!empty($id)) {
+				$this->tasks->TaskForecast($id);
+			}
+		}
+	}
 
 	public function create()
 	{
@@ -1063,9 +1106,11 @@ class TasksController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy($id)
+	public function destroy()
 	{
-		//
+
+		Tasks::destroy(Input::get('id'));
+
 	}
 
 

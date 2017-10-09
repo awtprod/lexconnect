@@ -15,7 +15,11 @@
                   $('#taskTable').html(data);
                 });
       }
-      task_table()
+      task_table();
+
+      $('#dataModal').on('hidden.bs.modal', function (e) {
+        task_table();
+      });
     })
   </script>
   <style>

@@ -1,5 +1,5 @@
 <div>
-    {{link_to("/tasks/service_documents/{$job->id}","Download Service Documents")}}<p>
+    {{link_to("/tasks/service_documents/{$job->id}","Download Service Documents",["target"=>"_blank"])}}<p>
 
     <bold>Are service documents complete and acceptable?</bold>
 

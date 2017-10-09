@@ -147,9 +147,18 @@ Route::get('home/', [
 		'as' => 'user.delete',
 		'uses' => 'UsersController@delete'
 	]);
+	Route::post('tasks/destroy', [
+		'as' => 'tasks.destroy',
+		'uses' => 'TasksController@destroy'
+	]);
+
 	Route::post('tasks/complete', [
 		'as' => 'tasks.complete',
 		'uses' => 'TasksController@complete'
+	]);
+	Route::post('tasks/clear', [
+		'as' => 'tasks.clear',
+		'uses' => 'TasksController@clear'
 	]);
 	Route::get('tasks/filing', [
 		'as' => 'tasks.filing',
@@ -248,6 +257,10 @@ Route::post('tasks/attempt', [
 Route::post('tasks/declaration', [
 	'as' => 'tasks.declaration',
 	'uses' => 'TasksController@declaration'
+	]);
+Route::post('tasks/delete', [
+		'as' => 'tasks.delete',
+		'uses' => 'TasksController@delete'
 	]);
 Route::post('tasks/create_dec', [
 	'as' => 'tasks.create_dec',

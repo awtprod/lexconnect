@@ -175,7 +175,7 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
      //Find status of server
      $suspended =  DB::table('company')
                                       ->where('id', $select["UserData"])
-                                      ->where('status', 1)->pluck('status');
+                                      ->where('status', 0)->pluck('status');
 
 	//Find job
 		$job = Jobs::whereId($serverData['jobId'])->first();
@@ -193,10 +193,12 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 										->where('state', $serverData['state'])
 										->where('county', $serverData['county'])->first();
 
-	//If server does not serve area, remove
+
+		//If server does not serve area, remove
 		if(empty($rates)){
 
 			unset($result[$key]);
+
 
 		}
 		else {
@@ -341,8 +343,8 @@ class Jobs extends Eloquent implements UserInterface, RemindableInterface {
 
 		$data["server"] = $servers;
 		$data["rate"] = $vendor["vendorCost"][$servers];
-		$data["addServeeRate"] = $vendor["addServeeRate"][$servers];
-		$data["personalRate"] = $vendor["personalRate"][$servers];
+		$data["addServeeRate"] = 0;
+		$data["personalRate"] = 0;
 		$data["freePgs"] = $vendor["freePgs"][$servers];
 		$data["pageRate"] = $vendor["pageRate"][$servers];
 

@@ -4,9 +4,14 @@ use Illuminate\Auth\UserTrait;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableTrait;
 use Illuminate\Auth\Reminders\RemindableInterface;
+use Illuminate\Database\Eloquent\SoftDeletingTrait;
 use Carbon\Carbon;
 
 class Tasks extends Eloquent implements UserInterface, RemindableInterface {
+
+	use SoftDeletingTrait;
+
+	protected $dates = ['deleted_at'];
 
 	use UserTrait, RemindableTrait;
 	public $timestamps = true;
@@ -200,8 +205,11 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 		if ($job->status != 1) {
 
+			$this->TaskForecast($tasksFirst->id);
+
 			return false;
-		} else {
+		}
+		else {
 			//Save date to cache to update the deadlines of upcoming tasks
 			Cache::put('days', Carbon::now(), 5);
 			Cache::increment('step');
@@ -210,7 +218,6 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 			$nextTask = Tasks::whereJobId($tasksFirst->job_id)
 				->whereNull('completion')
 				->orderBy('sort_order', 'asc')->first();
-
 
 			//If it is last task, return back to controller
 			if (empty($nextTask)) {

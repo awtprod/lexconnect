@@ -86,16 +86,6 @@
 
         task_table();
 
-        $('.view_data').click(function () {
-            var task_id = $(this).attr("id");
-            $.get("{{ url('tasks/test')}}", { id: task_id },
-                    function(data) {
-                        console.log(data);
-                        $('#complete_task').html(data);
-                        $('#dataModal').modal("show");
-                    });
-        });
-        //Should fire but doesn't
         $('#dataModal').on('hidden.bs.modal', function (e) {
             task_table();
         });

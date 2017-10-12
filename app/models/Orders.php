@@ -48,6 +48,11 @@ class Orders extends Eloquent implements UserInterface, RemindableInterface {
 	 */
 	protected $hidden = array('password', 'remember_token');
 
+	public function getFullNameAttribute()
+	{
+		return $this->attributes['fname'] .' '. $this->attributes['lname'];
+	}
+
 	public function isValid()
 	{
 		

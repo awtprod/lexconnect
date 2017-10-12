@@ -36,6 +36,10 @@ class OrdersController extends \BaseController {
 
 		$courts = DB::table('courts')->orderBy('court', 'asc')->lists('court', 'court');
 
+		$users = User::whereCompanyId(Auth::user()->company_id)->orderBy('fname','asc')->get();
+
+		$users = $users->lists('FullName','id');
+
 		if(Auth::user()->user_role=='Admin'){
 			$company = DB::table('company')->where('v_c', 'Client')->orderBy('name', 'asc')->lists('name', 'id');
 		}
@@ -45,8 +49,11 @@ class OrdersController extends \BaseController {
 
         $documents = array(['Notice of Trustee Sale', 'Notice of Trustee Sale'],['AmendedSummons','Amended Summons'],['Summons','Summons'], ['AmendedComplaint','Amended Complaint'],['Complaint','Complaint'], ['NoticeOfPendency', 'Notice of Pendency'], ['LisPendens','Lis Pendens'], ['DeclarationOfMilitarySearch','Declaration of Military Search'], ['CaseHearingSchedule','Case Hearing Schedule']);
 
-		if(Auth::user()->user_role=='Admin' OR Auth::user()->user_role=='Client'){
-		Return View::make('orders.create', array('states' => $states, 'courts' => $courts, 'company' => $company, 'documents' => $documents));
+		if(Auth::user()->user_role=='Admin'){
+		Return View::make('orders.admin', array('states' => $states, 'courts' => $courts, 'company' => $company, 'documents' => $documents));
+		}
+		elseif(Auth::user()->user_role=='Client'){
+			Return View::make('orders.client', array('states' => $states, 'courts' => $courts, 'company' => $company, 'documents' => $documents, 'users'=>$users));
 		}
 		else{
 		Return Redirect::to('login');
@@ -87,40 +94,51 @@ class OrdersController extends \BaseController {
 		$docCount = 0;
 
 		//delete after test
-		//$orders_id = '9999';
+		$orders_id = '9999';
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
-
+/*
                 $orders = new Orders;
-                $orders->plaintiff = Input::get('plaintiff');
-                $orders->reference = Input::get('reference');
-                $orders->courtcase = Input::get('case');
-                $orders->state = Input::get('caseSt');
-                $orders->judicial = $input["judicial"];
 
+				if(!empty($input["plaintiff"])) {
+					$orders->plaintiff = Input::get('plaintiff');
+				}
+                $orders->reference = Input::get('reference');
+
+				if(!empty($input["case"])) {
+
+					$orders->courtcase = Input::get('case');
+				}
+				if(!empty($input["caseSt"])) {
+
+					$orders->state = Input::get('caseSt');
+				}
                 if(!empty($court)) {
                     $orders->county = $court->county;
                     $orders->court = $court->court;
                 }
 
-                $orders->user = Auth::user()->id;
+                $orders->user = Input::get('requester');
                 $orders->company = Input::get('company');
                 $orders->save();
                 $orders_id =  $orders->id;
-
+*/
                 //If docs are uploaded, save them
 				foreach ($input["documents"] as $document) {
 
-					if (!empty($document["type"])) {
+					if (!empty($document["file"])) {
 
 						//If valid file, save document
-						$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents']);
+						$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents', 'jobId' => '']);
 
 						$docCount++;
 
-						//Save service types
-						$this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
+						if (!empty($document["type"])) {
+
+							//Save service types
+							$this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
+						}
 					}
 				}
 
@@ -143,24 +161,24 @@ class OrdersController extends \BaseController {
                     $job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'Verify Documents', 'priority' => 'Routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'county' =>'','zip' => '']);
 
                     //Load task into db
-                    $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => $input["company"], 'state' => 'Null']);
+                    $process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => 'Null', 'process' => 'Verify_Documents', 'priority' => 'Routine', 'client' => $input["company"], 'state' => 'Null']);
 
                     //Update job with process
                     $job->process = $process;
                     $job->save();
 
 				//create court run tasks
-				if (!empty($input["run_docs"])) {
+				if (!empty($input["run_notes"])) {
 
 					//Create job for filing
-					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
+					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> $input["run_notes"], 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
 
 					//Select Server
 
 					//$server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"]]);
 
 					//Load task into db
-					$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => $server["server"], 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+					$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
 					//Check for dependent jobs
 
@@ -181,6 +199,15 @@ class OrdersController extends \BaseController {
 
 					//Create Invoice
 					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'court run', 'personal' => '', 'personalRate' => '95', 'rate' =>'95', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
+
+					//Uploaded docs
+					if(!empty($input["run_docs"])) {
+
+						foreach ($input["run_docs"] as $document) {
+
+							$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents', 'jobId'=>$job->id]);
+						}
+					}
 
 					$input["filing"] = '';
 					
@@ -205,10 +232,16 @@ class OrdersController extends \BaseController {
                     }
 
                         //Create job for filing
-						$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
+						$job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'servee' => '', 'notes' => '', 'serveeId'=> '', 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $service, 'priority' => $input[$service], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => '', 'zip' => '']);
 
+						if(!empty($input["caseSt"])){
+							$caseSt = $input["caseSt"];
+						}
+						else{
+							$caseSt = '';
+						}
                         //Load task into db
-						$process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+						$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => '', 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $caseSt]);
 
                         //Check for dependent jobs
 
@@ -238,7 +271,7 @@ class OrdersController extends \BaseController {
 		//If defendant was added, validate data
 		if (!empty($input["defendant"])) {
 
-
+dd($input["defendant"]);
 			//loop through all addresses
 			foreach ($input["defendant"] as $servees) {
 
@@ -283,7 +316,7 @@ class OrdersController extends \BaseController {
 				$job = $this->jobs->createJob(['server' => '1', 'defendant' => $servee["name"], 'servee' => $servee, 'notes' => $servees["notes"], 'serveeId'=> $serveeId, 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => $servees["type"], 'priority' => $servees["priority"], 'status' => '0', 'street' => $servees["street"], 'city' => $servees["city"], 'state' => $servees["state"], 'county' => $servees["county"], 'zip' => $servees["zipcode"]]);
 
 				//Load task into db
-                $process = $this->tasks->CreateTasks(['judicial' => $input["judicial"], 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+                $process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => $servees["type"], 'priority' => $servees["priority"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
 
 					//Check for dependent jobs
 

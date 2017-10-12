@@ -114,10 +114,16 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
 			$destinationPath = storage_path() . '/' . $input["folder"];
 			$file = str_random(6);
 
-			if ($input["document"]["type"] == "other") {
-				$filename = $input["orders_id"] . $file . '_' . $input["document"]["other"] . '.pdf';
-			} else {
-				$filename = $input["orders_id"] . $file . '_' . $input["document"]["type"] . '.pdf';
+			if(empty($input["document"]["type"])){
+
+				$filename = $input["orders_id"] . $file . '_' . 'service_documents' . '.pdf';
+			}
+			else {
+				if ($input["document"]["type"] == "other") {
+					$filename = $input["orders_id"] . $file . '_' . $input["document"]["other"] . '.pdf';
+				} else {
+					$filename = $input["orders_id"] . $file . '_' . $input["document"]["type"] . '.pdf';
+				}
 			}
 			//$filepath = public_path('service_documents/' . $filename);
 			$input["document"]["file"]->move($destinationPath, $filename);
@@ -127,15 +133,24 @@ class Documents extends Eloquent implements UserInterface, RemindableInterface {
 
 			$document = new Documents;
 
-			if ($input["document"]["type"] == "other") {
-				$document->document = $input["document"]["other"];
-			} else {
-				$document->document = $input["document"]["type"];
+			if(empty($input["document"]["type"])){
+
+				$document->document = "Service Documents";
+			}
+			else {
+				if ($input["document"]["type"] == "other") {
+					$document->document = $input["document"]["other"];
+				} else {
+					$document->document = $input["document"]["type"];
+				}
 			}
 			$document->order_id = $input["orders_id"];
 			$document->filename = $filename;
 			$document->filepath = $input["folder"];
 			$document->pages = $pagecount;
+			if(!empty($input["jobId"])){
+				$document->job_id = $input["jobId"];
+			}
 			$document->save();
 		}
 	}

@@ -47,6 +47,7 @@ class TasksController extends \BaseController {
     {
         //Retrieve task id from URL
        $tasksId = Input::get('id');
+
 		$states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
 		//Find all active servers
@@ -80,9 +81,14 @@ class TasksController extends \BaseController {
 		//Get order data
         $order = Orders::whereId($CurrentTask->order_id)->first();
 
+		//Find requester information
+		$requester = User::whereId($order->user)->first();
+
 		//Find documents to be served
 		$docs_served = DocumentsServed::whereOrderId($order->id)->get();
 
+		//Find documents with task
+		$documents = Documents::whereOrderId($order->id)->whereDocument($CurrentTask->service)->get();
 		//Get serve information
 		$serve = Serve::whereJobId($job->id)->first();
 
@@ -102,8 +108,10 @@ class TasksController extends \BaseController {
 			$pages += Documents::whereDocument($doc_served->document)->orderBy('created_at', 'desc')->pluck('pages');
 		}
 
-		if($servee->summons != 'NULL'){
-			$pages += Documents::whereId($servee->summons)->orderBy('created_at', 'desc')->first();
+		if(!empty($servee)) {
+			if ($servee->summons != 'NULL') {
+				$pages += Documents::whereId($servee->summons)->orderBy('created_at', 'desc')->first();
+			}
 		}
 
 		//Calculate page rate for service
@@ -130,7 +138,7 @@ class TasksController extends \BaseController {
 			if(!empty($CurrentTask->window)){
 
 
-				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['vendors'=>$vendors])->with(['server'=>$server])->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
+				Return Response::json(array('body' => View::make($CurrentTask->window)->with('taskId', $tasksId)->with(['requester'=>$requester])->with(['documents'=>$documents])->with(['vendors'=>$vendors])->with(['server'=>$server])->with(['docs_served'=>$docs_served])->with(['job'=>$job])->with(['order'=>$order])->with(['servers'=>$servers])->with(['states'=>$states])->with(['serve'=>$serve])->with(['invoice'=>$invoice])->with('pg_rate', $pg_rate)->with(['job'=>$job])->with(['jobs'=>$jobs])->with('pages', $pages)->with(['servee'=>$servee])->with(['servees'=>$servees])->with(['servers'=>$servers])->with('proof', $proof)->render(), 'title' => 'test'));
 			}
             //If vendor accepts serve, complete step and proceed with serve
             else{
@@ -360,6 +368,12 @@ class TasksController extends \BaseController {
 			$invoice->pg_rate = $rates->pg_rate;
 			$invoice->save();
 		}
+
+		$this->tasks->TaskComplete(Input::get('taskId'));
+
+	}
+
+	public function finish(){
 
 		$this->tasks->TaskComplete(Input::get('taskId'));
 
@@ -665,8 +679,8 @@ class TasksController extends \BaseController {
 		
 		$input = Input::all();
 
-		//Load invoice information
-		$invoice = Invoices::whereJobId($input["jobId"])->first();
+		//Load client invoice information
+		$invoice = Invoices::whereJobId($input["jobId"])->whereNull('vendor')->first();
 
 		//Load job informaiton
 		$job = Jobs::whereId($input["jobId"])->first();
@@ -688,9 +702,16 @@ class TasksController extends \BaseController {
 
 		//Update Invoice
 		$invoice->client_amt = $input["client_amt"];
-		$invoice->vendor_amt = $input["vendor_amt"];
+		$invoice->status = 1;
 		$invoice->doc_id = $file;
 		$invoice->save();
+
+		//Load vendor invoice information
+		$vendor_invoice = Invoices::whereJobId($input["jobId"])->whereNull('client')->first();
+
+		$vendor_invoice->vendor_amt = $input["vendor_amt"];
+		$vendor_invoice->status = 1;
+		$vendor_invoice->save();
 
 		//Complete task
 		$this->tasks->TaskComplete(Input::get('taskId'));

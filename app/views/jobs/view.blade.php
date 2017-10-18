@@ -47,9 +47,15 @@
 <input type="hidden" name="jobId" id="jobId" value="{{$jobs->id}}">
 </form>
 <h1>Job #{{ $jobs->id }}</h1><p>
+    Service: {{$jobs->service}}<br>
+    Priority: {{$jobs->priority}}<br>
     Defendant: {{$jobs->defendant}}<br>
                 {{$jobs->street}} @if(!empty($jobs->street2)),&nbsp;{{$jobs->street2}}@endif<br>
                 {{$jobs->city}}, &nbsp; {{$jobs->state}}&nbsp; {{$jobs->zipcode}}<p>
+    @if(Auth::user()->user_role == 'Admin')
+    <td><input type="button" name="view" value="Edit Job" id={{ $jobs->id }} class="btn btn-info btn-xs edit_data" /></td><br>
+
+    @endif
 
     {{ link_to("/documents/view/?jobId={$jobs->id}&_token={$token}", 'View Documents') }}&nbsp;  {{link_to("/tasks/service_documents/{$jobs->id}","Download Service Documents",["target"=>"_blank"])}}<p>
     <br>
@@ -70,7 +76,21 @@
         </div>
     </div>
 </div>
-
+<div id="editModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Edit Job</h4>
+            </div>
+            <div class="modal-body" id="edit_job">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     $(document).ready(function() {
@@ -88,6 +108,29 @@
 
         $('#dataModal').on('hidden.bs.modal', function (e) {
             task_table();
+        });
+
+        $('.edit_data').click(function () {
+            var job_id = $(this).attr("id");
+            var token = $('#_token').val();
+            $.ajax({
+                method: 'POST', // Type of response and matches what we said in the route
+                url: '/jobs/edit', // This is the url we gave in the route
+                data: {jobId: job_id, _token: token },
+                success: function(response) {
+                        console.log(response);
+                        $('#edit_job').html(response);
+                        $('#editModal').modal("show");
+                },
+                error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        });
+
+        $('#editModal').on('hidden.bs.modal', function (e) {
+            window.location.reload(true);
         });
 
     });

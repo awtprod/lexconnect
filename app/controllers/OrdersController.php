@@ -94,11 +94,11 @@ class OrdersController extends \BaseController {
 		$docCount = 0;
 
 		//delete after test
-		$orders_id = '9999';
+		//$orders_id = '9999';
 
 		$court = DB::table('courts')->where('court', Input::get('court'))->first();
 
-/*
+
                 $orders = new Orders;
 
 				if(!empty($input["plaintiff"])) {
@@ -123,11 +123,12 @@ class OrdersController extends \BaseController {
                 $orders->company = Input::get('company');
                 $orders->save();
                 $orders_id =  $orders->id;
-*/
-                //If docs are uploaded, save them
-				foreach ($input["documents"] as $document) {
 
-					if (!empty($document["file"])) {
+                //If docs are uploaded, save them
+
+		foreach ($input["documents"] as $document) {
+
+					if ($document["file"]!= NULL) {
 
 						//If valid file, save document
 						$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents', 'jobId' => '']);
@@ -140,6 +141,7 @@ class OrdersController extends \BaseController {
 							$this->DocumentsServed->saveDocType(['document' => $document, 'orderId' => $orders_id]);
 						}
 					}
+
 				}
 
 				//Find uploaded docs for order
@@ -167,18 +169,64 @@ class OrdersController extends \BaseController {
                     $job->process = $process;
                     $job->save();
 
+		//create skip trace tasks
+		if (!empty($input["skip_defendant"])) {
+
+
+			foreach ($input["skip_defendant"] as $defendant) {
+
+				//Create job for skip trace
+				$job = $this->jobs->createJob(['server' => '1', 'defendant' => $defendant, 'servee' => '', 'notes' => '', 'serveeId' => $input["run_notes"], 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'skip trace', 'priority' => 'routine', 'status' => '1', 'street' => '', 'city' => '', 'state' => '', 'county' => '', 'zip' => '']);
+
+				//Load task into db
+				$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => '', 'process' => 'skip trace', 'priority' => 'Routine', 'client' => $input["company"], 'state' => '']);
+
+				//Check for dependent jobs
+
+				if (!$this->jobs->depProcess($process, $orders_id)) {
+
+					$job->status = 1;
+
+				} else {
+
+					$job->status = 2;
+
+				}
+
+				//Update job with process
+				$job->vendor = 1;
+				$job->process = $process;
+				$job->notes = $input["skip_notes"];
+				$job->save();
+
+				//Create Invoice
+				$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'skip trace', 'personal' => '', 'personalRate' => '95', 'rate' => '95', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
+			}
+			//Uploaded docs
+			if($input["skip_docs"][0]["file"]!=NULL) {
+
+
+				foreach ($input["skip_docs"] as $document) {
+
+					$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents', 'jobId'=>'']);
+				}
+			}
+
+		}
+
 				//create court run tasks
 				if (!empty($input["run_notes"])) {
 
+
 					//Create job for filing
-					$job = $this->jobs->createJob(['server' => '1', 'defendant' => $court->court, 'servee' => '', 'notes' => '', 'serveeId'=> $input["run_notes"], 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => $court->county, 'zip' => $court->zip]);
+					$job = $this->jobs->createJob(['server' => '1', 'defendant' => '', 'servee' => '', 'notes' => '', 'serveeId'=> $input["run_notes"], 'client' => $input["company"], 'orders_id' => $orders_id, 'service' => 'court run', 'priority' => $input["court run"], 'status' => '0', 'street' => '', 'city' => '', 'state' => '', 'county' => '', 'zip' => '']);
 
 					//Select Server
 
 					//$server = $this->jobs->SelectServer(['zipcode' => $court->zip, 'state' => $input["caseState"], 'county' => $court->county, 'jobId' => $job->id, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"]]);
 
 					//Load task into db
-					$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => $court->county, 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => $input["caseSt"]]);
+					$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => '', 'process' => 'file', 'priority' => $input["court run"], 'client' => $input["company"], 'state' => '']);
 
 					//Check for dependent jobs
 
@@ -198,12 +246,13 @@ class OrdersController extends \BaseController {
 					$job->save();
 
 					//Create Invoice
-					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'court run', 'personal' => '', 'personalRate' => '95', 'rate' =>'95', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
+					$this->invoices->CreateInvoice(['jobId' => $job->id, 'process' => 'run', 'personal' => '', 'personalRate' => '95', 'rate' =>'95', 'numPgs' => $numPages, 'freePgs' => '0', 'pageRate' => '0']);
 
 					//Uploaded docs
-					if(!empty($input["run_docs"])) {
+					if($input["run_docs"]["file"]!=NULL) {
+						dd($input["run_docs"]["file"]);
 
-						foreach ($input["run_docs"] as $document) {
+						foreach ($input["run_docs"]["file"] as $document) {
 
 							$this->Documents->saveDoc(['document' => $document, 'orders_id' => $orders_id, 'folder' => 'service_documents', 'jobId'=>$job->id]);
 						}
@@ -241,7 +290,7 @@ class OrdersController extends \BaseController {
 							$caseSt = '';
 						}
                         //Load task into db
-						$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => '', 'process' => 'run', 'priority' => $input[$service], 'client' => $input["company"], 'state' => $caseSt]);
+						$process = $this->tasks->CreateTasks(['judicial' => 'judicial', 'jobs_id' => $job->id, 'vendor' => '1', 'orders_id' => $orders_id, 'county' => '', 'process' => $service, 'priority' => $input[$service], 'client' => $input["company"], 'state' => $caseSt]);
 
                         //Check for dependent jobs
 
@@ -269,9 +318,8 @@ class OrdersController extends \BaseController {
                 }
 
 		//If defendant was added, validate data
-		if (!empty($input["defendant"])) {
+		if ($input["defendant"][1]!="") {
 
-dd($input["defendant"]);
 			//loop through all addresses
 			foreach ($input["defendant"] as $servees) {
 

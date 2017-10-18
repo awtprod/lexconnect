@@ -156,6 +156,10 @@ Route::get('home/', [
 		'as' => 'tasks.complete',
 		'uses' => 'TasksController@complete'
 	]);
+	Route::post('tasks/finish', [
+		'as' => 'tasks.finish',
+		'uses' => 'TasksController@finish'
+	]);
 	Route::post('tasks/clear', [
 		'as' => 'tasks.clear',
 		'uses' => 'TasksController@clear'
@@ -229,6 +233,14 @@ Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
 Route::post('search/', [
 	'as' => 'search.index',
 	'uses' => 'SearchController@index'
+	]);
+Route::post('jobs/edit', [
+		'as' => 'jobs.edit',
+		'uses' => 'JobsController@edit'
+	]);
+Route::post('jobs/save', [
+		'as' => 'jobs.save',
+		'uses' => 'JobsController@save'
 	]);
 Route::post('jobs/proof', [
 	'as' => 'jobs.proof',

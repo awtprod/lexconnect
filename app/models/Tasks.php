@@ -351,6 +351,7 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
         //Find process is still active
 		$process = Processes::whereName(str_replace('_', ' ', $sendTask['process']))->first();
+
 /*
 		//If process is not active, find first active process for service type
 		if(empty($process)){

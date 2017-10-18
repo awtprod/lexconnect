@@ -53,7 +53,8 @@ $(document).ready(function() {
     $("#create").validate({
 
         rules: {
-            reference: "required"
+            reference: "required",
+            'defendant[]': "required"
         }
     });
 
@@ -126,7 +127,7 @@ $(document).ready(function() {
 
     $(add_run_button).click(function (e) { //on add input button click
         e.preventDefault();
-        $(add_run_wrapper).append('<div class="supp_court_run"><input type="file" name="run_docs[' + y + ']" class="run_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
+        $(add_run_wrapper).append('<div class="supp_court_run"><input type="file" name="run_docs[' + y + ']" class="run_docs"><input type="hidden" name="run_docs['+y+'][type]" value="run support docs" class="run_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
         y++;
 
     });
@@ -138,7 +139,7 @@ $(document).ready(function() {
 
     $(add_skip_button).click(function (e) { //on add input button click
         e.preventDefault();
-        $(add_skip_wrapper).append('<div class="supp_skip"><input type="file" name="skip_docs[' + z + ']" class="skip_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
+        $(add_skip_wrapper).append('<div class="supp_skip"><input type="file" name="skip_docs[' + z + ']" class="skip_docs"><input type="hidden" name="skip_docs[' + z + '][type]" value="skip trace" class="skip_docs"><a href="#" class="remove_field">Remove</a></div>'); //add input box
         z++;
 
     });
@@ -160,7 +161,7 @@ $(add_document_button).click(function(e) { //on add input button click
     e.preventDefault();
 
 
-    var divContents = '<div class="additional_document">&nbsp;<input type="file" name="documents[' + k + '][file]" class="supp_documents"><a href="#" class="remove_field">Remove</a></div>';
+    var divContents = '<div class="additional_document">&nbsp;<input type="file" name="documents[' + k + '][file]" class="supp_documents"><input type="hidden" name="documents['+k+'][type]" value="service_documents" class="documents"><a href="#" class="remove_field">Remove</a></div>';
 
     $(document_wrapper).append(divContents); //add input box
 

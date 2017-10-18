@@ -62,7 +62,7 @@
 		Request Details:<br>
 		<textarea name="run_notes" id="run_notes" rows="4" cols="50"></textarea><p>
 
-		Support Documents: <input type="file" name="run_docs[0]" class="run_docs">&nbsp;
+		Support Documents: <input type="file" name="run_docs[0][file]" class="run_docs"><input type="hidden" name="run_docs[0][type]" value="run support docs" class="run_docs">&nbsp;
 
 	<div class="add_court_run"></div>
 
@@ -81,7 +81,7 @@
 		<textarea name="skip_notes" id="skip_notes" rows="4" cols="50"></textarea><p>
 
 		Supporting Documents (obituary, etc):<br>
-		<input type="file" name="skip_docs[0]" class="skip_docs">&nbsp;
+		<input type="file" name="skip_docs[0][file]" class="skip_docs"><input type="hidden" name="skip_docs[0][type]" value="skip trace" class="skip_docs">&nbsp;
 
 		<div class="add_skip_docs"></div>
 
@@ -103,7 +103,7 @@
 
 
 <h2>Service Documents:</h2>
-		<input type="file" name="documents[0][file]" class="documents">&nbsp;
+		<input type="file" name="documents[0][file]" class="documents"><input type="hidden" name="documents[0][type]" value="service_documents" class="documents">&nbsp;
 
 		<div class="document_wrapper"></div>
 

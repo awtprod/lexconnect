@@ -75,6 +75,17 @@ class JobsController extends \BaseController {
 		}
 		}
 
+	public function edit(){
+
+		$job = Jobs::whereId(Input::get('jobId'))->first();
+
+		$states = ['' => 'Select State']+DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+
+		//Find all active servers
+		$vendors = ['1' => 'Admin']+Company::whereVC('vendor')->whereStatus(1)->orderBy('name','asc')->lists('name','id');
+
+		Return Response::json(View::make('jobs.edit',['job'=>$job, 'states'=>$states, 'vendors'=>$vendors])->render());
+	}
 
 	/**
 	 * Store a newly created resource in storage.

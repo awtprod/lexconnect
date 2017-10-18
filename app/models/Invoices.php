@@ -54,9 +54,15 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 	//Find Job
 	$job = Jobs::whereId($data['jobId'])->first();
 
-	//Find service rate
-	$surcharge = ClientRates::whereClient($job->client)->pluck($data['process'].'Surcharge');
+	if($data['process'] == 'filing' OR $data['process'] == 'recording' OR $data['process'] == 'skip trace'){
+		$process = 'run';
+	}
+	else{
+		$process = $data['process'];
+	}
 
+	//Find service rate
+	$surcharge = ClientRates::whereClient($job->client)->pluck($process.'Surcharge');
 	//Determine # of pages to bill for
 	$paidPgs = $data["numPgs"] - $data["freePgs"];
 
@@ -79,7 +85,7 @@ class Invoices extends Eloquent implements UserInterface, RemindableInterface {
 	$clientRate = $vendorRate + $appFee;
 
 	//Determine if client is flat rate
-	$flat = ClientRates::whereClient($job->client)->pluck($data['process'].'Flat');
+	$flat = ClientRates::whereClient($job->client)->pluck($process.'Flat');
 
 		if($flat != '0'){
 

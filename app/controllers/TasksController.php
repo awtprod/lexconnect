@@ -332,7 +332,7 @@ class TasksController extends \BaseController {
 		}
 		else{
 			//Find rates
-			$rates = VendorRates::whereVendor(11)->whereState('WA')->whereCounty('Adams')->first();
+			$rates = VendorRates::whereVendor($input["Assign"])->whereState($job->state)->whereCounty($job->county)->first();
 
 			$company = Company::whereId($input["Assign"])->first();
 

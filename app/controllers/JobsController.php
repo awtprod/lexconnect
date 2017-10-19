@@ -79,12 +79,73 @@ class JobsController extends \BaseController {
 
 		$job = Jobs::whereId(Input::get('jobId'))->first();
 
-		$states = ['' => 'Select State']+DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+		$states = ['' => 'Select State']+DB::table('states')->orderBy('name', 'asc')->lists('abbrev', 'abbrev');
 
 		//Find all active servers
 		$vendors = ['1' => 'Admin']+Company::whereVC('vendor')->whereStatus(1)->orderBy('name','asc')->lists('name','id');
 
 		Return Response::json(View::make('jobs.edit',['job'=>$job, 'states'=>$states, 'vendors'=>$vendors])->render());
+	}
+
+	public function save()
+	{
+
+		if (Auth::user()->user_role == 'Admin') {
+			$input = Input::all();
+
+			$job = Jobs::whereId($input["jobId"])->first();
+
+			//If vendor is changed, update tasks
+			if($job->vendor != $input["vendor"]){
+				//Find rates
+				$rates = VendorRates::whereVendor($input["vendor"])->whereState($job->state)->whereCounty($job->county)->first();
+
+				$company = Company::whereId($input["vendor"])->first();
+
+				//Reassign server
+				$newServerData = array('vendor' => $input["vendor"], 'orderId' => $job->order_id, 'jobId' => $job->id);
+				$newServer = $this->jobs->ReAssignServer($newServerData);
+
+				$service_type = $job->service;
+
+				if($rates->serviceFlat !="0"){
+					$rate = $rates->serviceFlat;
+
+				}
+				else{
+
+					$req = "http://api.geosvc.com/rest/usa/$job->zipcode/distance?apikey=60e6b26c492541e0946cc43f57f33489&p=$company->city|$company->zip_code&r=$company->state&c=usa&format=json";
+					$result = (array) json_decode(file_get_contents($req), true);
+
+					$distance = $result["Value"];
+
+					$rate = $rates->$service_type.'Base';
+					$rate += ($rates->$service_type.'Mileage')*$distance;
+				}
+
+				if($job->priority =="Rush" OR $job->priority =="Same Day"){
+					$rate += $rates->$service_type.$job->priority;
+				}
+
+				//Update Invoice
+				$invoice = Invoices::whereJobId($job->id)->whereNull('client')->first();
+				$invoice->vendor_amt = $rate;
+				$invoice->free_pgs = $rates->free_pgs;
+				$invoice->pg_rate = $rates->pg_rate;
+				$invoice->save();
+			}
+
+			$job->defendant = $input["defendant"];
+			$job->vendor = $input["vendor"];
+			$job->street = $input["street"];
+			$job->street2 = $input["street2"];
+			$job->city = $input["city"];
+			$job->state = $input["state"];
+			$job->county = $input["county"];
+			$job->zipcode = $input["zipcode"];
+			$job->save();
+
+		}
 	}
 
 	/**
@@ -618,17 +679,6 @@ class JobsController extends \BaseController {
 		}
 	}
 
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update($id)
-	{
-		//
-	}
 
 
 	/**

@@ -238,6 +238,10 @@ Route::post('jobs/edit', [
 		'as' => 'jobs.edit',
 		'uses' => 'JobsController@edit'
 	]);
+Route::post('jobs/update', [
+		'as' => 'jobs.update',
+		'uses' => 'JobsController@update'
+	]);
 Route::post('jobs/save', [
 		'as' => 'jobs.save',
 		'uses' => 'JobsController@save'

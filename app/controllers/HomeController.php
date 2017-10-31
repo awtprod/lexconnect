@@ -1,4 +1,5 @@
 <?php
+use Carbon\Carbon;
 
 class HomeController extends BaseController {
 
@@ -15,6 +16,13 @@ class HomeController extends BaseController {
 	|
 	*/
 
+	public function date(){
+
+		$tasks = Orders::where( DB::raw('YEAR(created_at)'), '=', date('Y')-1 )->get();;
+		Carbon::setToStringFormat('F Y');
+echo Carbon::now()->addMonths(-1);
+
+	}
 	public function redirect()
 	{
 		

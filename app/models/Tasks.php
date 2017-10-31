@@ -202,8 +202,9 @@ class Tasks extends Eloquent implements UserInterface, RemindableInterface {
 
 		//Check if job is on hold
 		$job = Jobs::whereId($tasksFirst->job_id)->first();
+		$order = Orders::whereId($tasksFirst->order_id)->first();
 
-		if ($job->status != 1) {
+		if ($job->status != 1 OR $order->status != 1) {
 
 			$this->TaskForecast($tasksFirst->id);
 

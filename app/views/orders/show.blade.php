@@ -40,6 +40,28 @@
                 },
             });
 
+            $('.edit_data').click(function () {
+                var order_id = $(this).attr("id");
+                var token = $('#_token').val();
+                $.ajax({
+                    method: 'POST', // Type of response and matches what we said in the route
+                    url: '/orders/edit', // This is the url we gave in the route
+                    data: {orderId: order_id, _token: token },
+                    success: function(response) {
+                        console.log(response);
+                        $('#edit_order').html(response);
+                        $('#editModal').modal("show");
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                        console.log(JSON.stringify(jqXHR));
+                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                    }
+                });
+            });
+            $('#editModal').on('hidden.bs.modal', function (e) {
+                window.location.reload(true);
+            });
+
         });
     </script>
     <style>
@@ -77,6 +99,24 @@
 {{ $orders->plaintiff }}v.{{ $orders->defendant }}<p>
 Case: {{ $orders->courtcase }}<p>
 Reference: {{ $orders->reference }}<p>
+<td><input type="button" name="view" value="Edit Order" id={{ $orders->id }} class="btn btn-info btn-xs edit_data" /></td><br>
+<input id="_token" name="_token" type="hidden" value="{{ csrf_token() }}">
+<div id="editModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Edit Order</h4>
+            </div>
+            <div class="modal-body" id="edit_order">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @else
 <h2>No Order to display!</h2>
 @endif
@@ -158,7 +198,7 @@ Reference: {{ $orders->reference }}<p>
                             <th>Status</th>
                             <th>Due Date</th>
                             <th>History</th>
-                            <th>Actions <label><input type="checkbox" id="checkAll"/> Select all</label></th>
+                            <th>Actions <label></th>
                         </tr>
 
                             @foreach($servees as $servee)
@@ -177,7 +217,15 @@ Reference: {{ $orders->reference }}<p>
 
                                 @endif
                                 <td><input type="button" name="view" value="View Attempts" id={{ $servee->id }} class="btn btn-info btn-xs view_data" /></td>
-                                <td>{{ Form::checkbox('jobId[]', $defendants[$servee->id]["jobId"]) }}</td>
+                                @if($defendants[$servee->id]["job"]->completed != NULL OR $defendants[$servee->id]["job"]->status == '3')
+                                <td></td>
+                                @elseif($orders->status == '0')
+                                <td><input type="button" name="{{ $defendants[$servee->id]["job"]->id}}" value="Cancel Job" class="btn btn-info btn-xs cancel_job" /></td>
+                                @elseif($defendants[$servee->id]["job"]->status == '0')
+                                <td><input type="button" name="view" value="Remove Hold" id={{ $defendants[$servee->id]["job"]->id}} class="btn btn-info btn-xs remove_hold" /> &nbsp: <input type="button" name="view" value="Cancel Job" id={{ $servee->id}} class="btn btn-info btn-xs cancel_job" /></td>
+                                @elseif($defendants[$servee->id]["job"]->status == '1')
+                                 <td><input type="button" name="view" value="Place On Hold" id={{ $defendants[$servee->id]["job"]->id}} class="btn btn-info btn-xs start_hold" /> &nbsp: <input type="button" name="view" value="Cancel Job" id={{ $servee->id}} class="btn btn-info btn-xs cancel_job" /></td>
+                                @endif
                             </tr>
                         @endforeach
 
@@ -186,20 +234,7 @@ Reference: {{ $orders->reference }}<p>
                     @endif
 
 
-@if(!empty($verify))
 
-    <h3>Verify Documents:</h3><br>
-                <table>
-                    <tr>
-                        <th>Status</th>
-                        <th>Due Date</th>
-                    </tr>
-            <tr>
-                <td>{{ $verify->process }}</td>
-                <td>{{ date("m/d/y", strtotime($verify->deadline)) }} </td>
-            </tr>
-</table>
-@endif
 
 @if(!empty($recording))
 
@@ -257,11 +292,28 @@ Reference: {{ $orders->reference }}<p>
 
 
 <br>
-
+@if(!empty($filing)OR!empty($recording)OR!empty($defendants))
+<div align="center">
 {{ Form::select('action', $actions) }}
 {{ Form::submit('Submit') }}
 {{ Form::close() }}
+</div>
+@endif
 
+            @if(!empty($verify))
+
+                <h3>Verify Documents:</h3><br>
+                <table>
+                    <tr>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                    <tr>
+                        <td>{{ $verify->process }}</td>
+                        <td>{{ date("m/d/y", strtotime($verify->deadline)) }} </td>
+                    </tr>
+                </table>
+            @endif
 </div>
 
 <a href="{{ URL::previous() }}">Go Back</a>
@@ -343,6 +395,34 @@ Reference: {{ $orders->reference }}<p>
 
 <script>
     $(document).ready(function(){
+        $('.cancel_job').click(function () {
+
+            console.log($(this).attr("name"));
+        });
+        $('.start_hold').click(function () {
+            actions('add')
+        });
+        $('.remove_hold').click(function () {
+            actions('remove')
+        });
+        function actions(action){
+            console.log(action);
+            var _token = $('#_token').val();
+            $.ajax({
+                method: 'POST', // Type of response and matches what we said in the route
+                url: '/jobs/actions', // This is the url we gave in the route
+                data: {action: action, _token: _token},
+                success: function(response) {
+                    console.log(response);
+                    window.location.reload(true);
+                },
+                error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        }
+
         $('.view_data').click(function () {
             var serveeId = $(this).attr("id");
             $.ajax({

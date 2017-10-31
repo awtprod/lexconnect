@@ -394,14 +394,11 @@ class JobsController extends \BaseController {
 	public function actions(){
 
 		//Get job info
-		$jobs = Input::get('jobId');
+		$job = Input::get('jobId');
 
 		//Place job on hold
-		if(Input::get('action')==0){
+		if(Input::get('action')=='add'){
 
-
-			//Update jobs
-			foreach($jobs as $job){
 
 				//Update status to 0
 				$status = Jobs::whereId($job)->first();
@@ -431,13 +428,11 @@ class JobsController extends \BaseController {
 				$orderId = $status->order_id;
 			}
 
-		}
+
 
 		//Remove hold
-		elseif(Input::get('action')==1){
+		elseif(Input::get('action')== 'remove'){
 
-			//Update jobs
-			foreach($jobs as $job) {
 
 				$jobData = Jobs::whereId($job)->first();
 
@@ -470,12 +465,10 @@ class JobsController extends \BaseController {
 
 			}
 
-		}
+
 
 		//Cancel job
-		elseif(Input::get('action')==2){
-
-			foreach($jobs as $job){
+		elseif(Input::get('action')== 'cancel'){
 
 				//Update status to 1
 				$status = Jobs::whereId($job)->first();
@@ -542,10 +535,6 @@ class JobsController extends \BaseController {
 				$orderId = $status->order_id;
 
 			}
-
-		}
-
-		Return Redirect::route('orders.show', $orderId);
 
 	}
 

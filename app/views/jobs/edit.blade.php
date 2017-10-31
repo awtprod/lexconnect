@@ -107,7 +107,6 @@ table#t01 th	{
 										.attr({"value": key})
 										.text(value));
 							}
-							console.log(numbers)
 						});
 					});
 		};

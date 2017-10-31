@@ -1,74 +1,107 @@
 <html>
 <head>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
-            $('#state').change(function(){
-                $.get("{{ url('api/getcourts')}}", { option: $('#state').val() },
+					function getCourt(state, court){
+                $.get("{{ url('api/getcourts')}}", { option: state },
                         function(data) {
                             var numbers = $('#court');
                             numbers.empty();
                             $.each(data, function(key, value) {
-                                numbers .append($("<option></option>")
-                                        .attr("value",key)
-                                        .text(value));
+
+								if(key == court) {
+									numbers.append($("<option></option>")
+											.attr({"value": key, "selected":"selected"})
+											.text(value))
+								}
+								else{
+									numbers.append($("<option></option>")
+											.attr({"value": key})
+											.text(value));
+								}
                             });
                         });
-            });
+            }
+
+			getCourt($('#state').val(),$('#current_court').val());
+
+			$('#state').change(function(){
+				getCourt($('#state').val(),$('#current_court').val())
+			});
+
+			$("#edit-form").submit(function(event){
+				event.preventDefault();
+				var form = $(this);
+
+				$.ajax({
+					method: 'POST', // Type of response and matches what we said in the route
+					url: '/orders/update', // This is the url we gave in the route
+					data: $(form).serialize(), // a JSON object to send back
+					success: function(response){ // What to do if we succeed
+						console.log(response);
+						$('#editModal').modal('hide');
+					},
+					error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
+						console.log(JSON.stringify(jqXHR));
+						console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+					}
+				});
+
+			});
         });
     </script>
 </head>
 <body>
 <h1>Edit Order</h1>
 
+{{ Form::open(array('route' => 'orders.update','id'=>'edit-form')) }}
 
-{{ Form::open(['route' => 'orders.update']) }}
+<div>
+	{{ Form::label('reference', 'Reference: ') }}
+	{{ Form::text('reference', $data->reference) }}
+</div>
+
+<div>
+	{{ Form::label('user', 'Requester: ') }}
+	{{ Form::select('user', $users, $data->user, ['id' => 'FullName']) }}
+</div>
+@if(Auth::user()->user_role=='Admin')
 	<div>
 	{{ Form::label('plaintiff', 'Plaintiff: ') }}
 	{{ Form::text('plaintiff', $data->plaintiff) }}
-	{{ $errors->first('plaintiff') }}
 	</div>
 		<div>
 	{{ Form::label('defendant', 'Defendant: ') }}
 	{{ Form::text('defendant', $data->defendant) }}
-	{{ $errors->first('defendant') }}
 	</div>
 		<div>
 	{{ Form::label('case', 'Court Case: ') }}
-	{{ Form::text('case', $data->case) }}
-	{{ $errors->first('case') }}
-	</div>
-			<div>
-	{{ Form::label('reference', 'Reference: ') }}
-	{{ Form::text('reference', $data->reference) }}
-	{{ $errors->first('reference') }}
+	{{ Form::text('case', $data->courtcase) }}
 	</div>
 
 	<div>
 	{{ Form::label('state', 'State: ') }}
 	{{ Form::select('state', $states, $data->state, ['id' => 'state']) }}
-	{{ $errors->first('state') }}
 	</div>
 <div class="row">
     <div class="large-9 columns">
         <label for="court">Court:</label>
         <select id="court" name="court" selected>
         </select>
-        <option selected>{{$data->court}}</option>
     </div>
 </div>
 
-@if(Auth::user()->user_role=='Admin')
+
     	{{ Form::label('company', 'Client: ') }}
 	{{ Form::select('company', $clients, $data->company) }}
-	{{ $errors->first('company') }}<p>
 @endif
 
 {{Form::hidden('orderId', $data->id)}}
+<input id="current_court" type="hidden" value="{{ $data->court }}">
 
-	<div>{{ Form::submit('Edit Order') }}{{ Form::reset('Reset') }}</div>
+
+	<div>{{ Form::submit('Save Order') }}{{ Form::reset('Reset') }}</div>
 {{ Form::close() }}
-<a href="{{ URL::previous() }}">Go Back</a>
 
 </body>
 </html>

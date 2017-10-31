@@ -35,6 +35,10 @@ Route::get('attempts/view', [
 		'as' => 'attempts.view',
 		'uses' => 'AttemptsController@view'
 	]);
+Route::get('earnings/', [
+		'as' => 'invoices.earnings',
+		'uses' => 'InvoicesController@earnings'
+	]);
 Route::get('states/', [
 		'as' => 'states.index',
 		'uses' => 'StatesController@index'
@@ -75,10 +79,6 @@ Route::get('home/', [
 		'as' => 'locations.destroy',
 		'uses' => 'LocationsController@destroy'
 	]);
-    Route::get('orders/edit/{id}', [
-        'as' => 'orders.edit',
-        'uses' => 'OrdersController@edit'
-    ]);
     Route::get('steps/edit/{id}', [
         'as' => 'steps.edit',
         'uses' => 'StepsController@edit'
@@ -182,6 +182,10 @@ Route::get('home/', [
 	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
+	Route::post('earnings_table/', [
+		'as' => 'invoices.earnings_table',
+		'uses' => 'InvoicesController@earnings_table'
+	]);
 	Route::post('vendorrates/store', [
 			'as' => 'vendorrates.store',
 			'uses' => 'VendorRatesController@store'
@@ -332,6 +336,10 @@ Route::post('tasks/upload_mailing', [
         'as' => 'tasks.proofFiled',
         'uses' => 'TasksController@proofFiled'
     ]);
+Route::post('orders/edit/', [
+		'as' => 'orders.edit',
+		'uses' => 'OrdersController@edit'
+	]);
 Route::post('orders/verify', [
 	'as' => 'orders.verify',
 	'uses' => 'OrdersController@verify'
@@ -473,4 +481,7 @@ Route::get('/', [
 	'as' => 'home.redirect',
 	'uses' => 'HomeController@redirect'
 	]);
-
+Route::get('/date', [
+	'as' => 'home.date',
+	'uses' => 'HomeController@date'
+]);

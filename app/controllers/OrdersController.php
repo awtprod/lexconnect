@@ -516,17 +516,17 @@ class OrdersController extends \BaseController {
 				else {
 
 					//Find current job
-					$defendants[$viewservee->id]["jobId"] = Jobs::whereserveeId($viewservee->id)
-						->whereNull('completed')->pluck('id');
+					$defendants[$viewservee->id]["job"] = Jobs::whereserveeId($viewservee->id)
+						->whereNull('completed')->first();
 
 
 					//Find current task
-					$defendants[$viewservee->id]["due"] = Tasks::wherejobId($defendants[$viewservee->id]["jobId"])
+					$defendants[$viewservee->id]["due"] = Tasks::wherejobId($defendants[$viewservee->id]["job"]->id)
 						->whereStatus(1)->pluck('deadline');
 
 
 					//Find current status
-					$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["jobId"]);
+					$defendants[$viewservee->id]["status"] = $this->orders->status($defendants[$viewservee->id]["job"]->id);
 				}
 
 			}
@@ -607,19 +607,23 @@ class OrdersController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-    public function edit($id){
+    public function edit(){
 
         //Get order data
-        $data = Orders::whereId($id)->first();
+        $data = Orders::whereId(Input::get('orderId'))->first();
 
-        $states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'name');
+		$users = User::whereCompany($data->company)->orderBy('fname','asc')->get();
+
+		$users = $users->lists('FullName','id');
+
+        $states = DB::table('states')->orderBy('name', 'asc')->lists('name', 'abbrev');
 
         $clients = Company::whereVC('client')->orderBy('name', 'asc')->lists('name', 'name');
 
         //Check if user is Admin or Client
         if(Auth::user()->company==$data->company OR Auth::user()->user_role=='Admin') {
 
-            Return View::make('orders.edit')->with(['data' => $data])->with(['states' => $states])->with(['clients' => $clients]);
+            Return View::make('orders.edit')->with(['data' => $data])->with(['users'=>$users])->with(['states' => $states])->with(['clients' => $clients]);
         }
     }
     public function update()
@@ -627,13 +631,6 @@ class OrdersController extends \BaseController {
         //Gather form data
         $input = Input::all();
 
-        //Validate form data
-        if ( ! $this->orders->fill($input)->isValid())
-        {
-            return Redirect::back()->withInput()->withErrors($this->orders->errors);
-        }
-
-        $court = DB::table('courts')->where('id', Input::get('court'))->pluck('court');
 
         //Update Order Data
         $orders = Orders::whereId(Input::get('orderId'))->first();
@@ -651,7 +648,9 @@ class OrdersController extends \BaseController {
             $orders->courtcase = Input::get('case');
         }
         $orders->state = Input::get('state');
-        $orders->court = $court;
+		if(!empty($input["court"])) {
+			$orders->court = Input::get('court');
+		}
         if(!empty($input["company"])) {
             $orders->company = Input::get('company');
         }

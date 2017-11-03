@@ -50,7 +50,6 @@
 
 
 <script>
-    $(document).ready(function() {
 
         function earnings_table(month,year,start_date,end_date) {
             var token = $('#_token').val();
@@ -69,11 +68,10 @@
             });
         }
 
+
         earnings_table('m','','','');
 
 
-
-    });
 </script>
 </body>
 </html>

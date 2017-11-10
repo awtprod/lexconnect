@@ -39,6 +39,18 @@ Route::get('earnings/', [
 		'as' => 'invoices.earnings',
 		'uses' => 'InvoicesController@earnings'
 	]);
+Route::get('payments/', [
+		'as' => 'invoices.payments',
+		'uses' => 'InvoicesController@payments'
+	]);
+Route::get('pay/', [
+		'as' => 'invoices.pay',
+		'uses' => 'InvoicesController@pay'
+	]);
+Route::get('bill/', [
+		'as' => 'invoices.bill',
+		'uses' => 'InvoicesController@bill'
+	]);
 Route::get('states/', [
 		'as' => 'states.index',
 		'uses' => 'StatesController@index'
@@ -182,9 +194,21 @@ Route::get('home/', [
 	]);
 });
 Route::group(array('before'=>'auth', 'before'=>'csrf'), function() {
+	Route::post('payments_table/', [
+		'as' => 'invoices.payments_table',
+		'uses' => 'InvoicesController@payments_table'
+	]);
 	Route::post('earnings_table/', [
 		'as' => 'invoices.earnings_table',
 		'uses' => 'InvoicesController@earnings_table'
+	]);
+	Route::post('pay_table/', [
+		'as' => 'invoices.pay_table',
+		'uses' => 'InvoicesController@pay_table'
+	]);
+	Route::post('bill_table/', [
+		'as' => 'invoices.bill_table',
+		'uses' => 'InvoicesController@bill_table'
 	]);
 	Route::post('vendorrates/store', [
 			'as' => 'vendorrates.store',

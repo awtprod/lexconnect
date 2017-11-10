@@ -50,7 +50,7 @@
             var token = $('#_token').val();
             $.ajax({
                 method: 'POST', // Type of response and matches what we said in the route
-                url: '/earnings_table/', // This is the url we gave in the route
+                url: '/payments_table/', // This is the url we gave in the route
                 data: {month: month, year: year, start_date: start_date, end_date: end_date, _token: token },
                 success: function(response) {
                     console.log(response);

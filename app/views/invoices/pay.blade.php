@@ -41,20 +41,20 @@
 <input id="_token" name="_token" type="hidden" value="{{ csrf_token() }}">
 </form>
 
-<div id="earningsTable"></div>
+<div id="payTable"></div>
 
 
 <script>
 
-        function earnings_table(month,year,start_date,end_date) {
+        function pay_table(vendor,month,year,start_date,end_date) {
             var token = $('#_token').val();
             $.ajax({
                 method: 'POST', // Type of response and matches what we said in the route
-                url: '/earnings_table/', // This is the url we gave in the route
-                data: {month: month, year: year, start_date: start_date, end_date: end_date, _token: token },
+                url: '/pay_table/', // This is the url we gave in the route
+                data: {vendor: vendor, month: month, year: year, start_date: start_date, end_date: end_date, _token: token },
                 success: function(response) {
                     console.log(response);
-                    $('#earningsTable').html(response);
+                    $('#payTable').html(response);
                 },
                 error: function(jqXHR, textStatus, errorThrown) { // What to do if we fail
                     console.log(JSON.stringify(jqXHR));
@@ -64,7 +64,7 @@
         }
 
 
-        earnings_table('m','','','');
+        pay_table('','m','','','');
 
 
 </script>

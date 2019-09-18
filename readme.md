@@ -1,4 +1,8 @@
 # Lexconnect
+## Technical Background
+Lexconnect was created out of my colleague and I's fustration of the legal support services industry (we were both paralegals). This is first attempt at developing an application. I've worked with PHP before but I never built anything from scratch. There were a lot of struggles with learning Laravel, a PHP framework, JavaScript, and git. Additionally, I learned the hard way why a lot of best practices have been established, such as modular code.
+
+## Application Overview
 Lexconnect gives law firms the convenience of a nationwide process server network without the time and expense of maintaining it. The application is easily customizable to a clients specifications. Paralegals and lawyers no longer have to worry about communicating jurisdictional requirements to servers. Servers are prompted through the application to complete the job while conform to any requirements set by the client or jurisdiction.
 
 Process servers can use Lexconnect to help manage and grow their business. Servers can receive additional jobs without advertising or cold calling law firms.  The application automatically favors responsive, as defined by completing jobs quickly and post frequent updates on jobs, servers by referring them more jobs. Servers still have complete control of their business by accepting or rejecting any job without any penalty. 

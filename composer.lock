@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "a0eb6ae0b33f635e77dba269d2eb02ee",
@@ -481,12 +481,12 @@
             "version": "1.7.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/hanneskod/fpdf.git",
+                "url": "https://github.com/mreg-archive/fpdf.git",
                 "reference": "63340096907ef7525a9002d1ae3d0fd1ff376a6d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hanneskod/fpdf/zipball/63340096907ef7525a9002d1ae3d0fd1ff376a6d",
+                "url": "https://api.github.com/repos/mreg-archive/fpdf/zipball/63340096907ef7525a9002d1ae3d0fd1ff376a6d",
                 "reference": "63340096907ef7525a9002d1ae3d0fd1ff376a6d",
                 "shasum": ""
             },
@@ -505,6 +505,7 @@
             ],
             "description": "Unofficial PSR-0 compliant version of the FPDF library",
             "homepage": "http://www.fpdf.org/",
+            "abandoned": "setasign/fpdf",
             "time": "2016-05-27T09:02:54+00:00"
         },
         {
@@ -512,12 +513,12 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/hanneskod/fpdi.git",
+                "url": "https://github.com/mreg-archive/fpdi.git",
                 "reference": "004ce22954cdf16b94ad841bda406e422b446325"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hanneskod/fpdi/zipball/004ce22954cdf16b94ad841bda406e422b446325",
+                "url": "https://api.github.com/repos/mreg-archive/fpdi/zipball/004ce22954cdf16b94ad841bda406e422b446325",
                 "reference": "004ce22954cdf16b94ad841bda406e422b446325",
                 "shasum": ""
             },
@@ -546,10 +547,11 @@
                 "MIT"
             ],
             "description": "Unofficial PSR-4 compliant version of the FPDI library",
+            "abandoned": "setasign/fpdi",
             "time": "2017-01-08T13:02:41+00:00"
         },
         {
-            "name": "jeremeamia/SuperClosure",
+            "name": "jeremeamia/superclosure",
             "version": "1.0.2",
             "source": {
                 "type": "git",
@@ -1823,16 +1825,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v2.7.34",
+            "version": "v2.7.51",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "8561a9988c161160ee89766088a4579abebcc04b"
+                "reference": "b67e5cbd2bf837fb3681f2c4965826d6c6758532"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/8561a9988c161160ee89766088a4579abebcc04b",
-                "reference": "8561a9988c161160ee89766088a4579abebcc04b",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/b67e5cbd2bf837fb3681f2c4965826d6c6758532",
+                "reference": "b67e5cbd2bf837fb3681f2c4965826d6c6758532",
                 "shasum": ""
             },
             "require": {
@@ -1875,7 +1877,7 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "https://symfony.com",
-            "time": "2017-08-09T10:15:13+00:00"
+            "time": "2019-04-16T09:58:21+00:00"
         },
         {
             "name": "symfony/http-kernel",
@@ -1962,16 +1964,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.5.0",
+            "version": "v1.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803"
+                "reference": "7b4aab9743c30be783b73de055d24a39cf4b954f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
-                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/7b4aab9743c30be783b73de055d24a39cf4b954f",
+                "reference": "7b4aab9743c30be783b73de055d24a39cf4b954f",
                 "shasum": ""
             },
             "require": {
@@ -1983,7 +1985,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.5-dev"
+                    "dev-master": "1.13-dev"
                 }
             },
             "autoload": {
@@ -2017,7 +2019,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2017-06-14T15:44:48+00:00"
+            "time": "2019-11-27T14:18:11+00:00"
         },
         {
             "name": "symfony/process",
